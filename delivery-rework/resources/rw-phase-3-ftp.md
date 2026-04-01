@@ -47,5 +47,5 @@ When calling summarize_history:
 * Total Count: 0
 * Connection Test Mode: ftp
 # Next Instructions
-Fetch and execute instructions from: mcp://resource/rw-phase-3b-test-connection
+Fetch and execute instructions from: mcp://resource/rw-phase-3a-ftp-test
 ```
