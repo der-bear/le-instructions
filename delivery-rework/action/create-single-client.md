@@ -1,6 +1,8 @@
+DELIVERY_SETUP_START
+
 # Phase 0: Flow Entry Router
 
-**CRITICAL STATE UPDATE:** This is the conversation entry point. DO NOT place any other anchors in later phases — the conversation anchor below is re-embedded in every summary.
+**CRITICAL STATE UPDATE:** This is the conversation entry point. The anchor above (`DELIVERY_SETUP_START`) marks the start of the conversation for all `summarize_history` calls. It is re-embedded in every summary so subsequent calls can find it. DO NOT place any other anchors in later phases.
 
 Your objective is to detect the user's setup intent and route them to the correct first phase.
 
