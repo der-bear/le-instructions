@@ -1,8 +1,6 @@
-DELIVERY_SETUP_START
-
 # Phase 0: Flow Entry Router
 
-**CRITICAL STATE UPDATE:** This is the conversation entry point. The anchor above marks the start of the conversation for all future summarize_history calls. DO NOT place any other anchors in later phases.
+**CRITICAL STATE UPDATE:** This is the conversation entry point. DO NOT place any other anchors in later phases — the conversation anchor below is re-embedded in every summary.
 
 Your objective is to detect the user's setup intent and route them to the correct first phase.
 
@@ -19,44 +17,56 @@ Evaluate what information you currently have and take the appropriate action:
   - If the user's request clearly maps to one of these three intents, set flowIntent and proceed to State 2.
   - If the request is unclear, prompt the user exactly as follows:
     "I can help you with:\n\n1. Setting up a new client (full setup)\n2. Adding a delivery method to an existing client\n3. Adding a delivery account using an existing method\n\nWhich would you like to do?"
-  - **STOP AND YIELD.** Do not proceed to State 2. Do not call the summarize_history tool. You must wait for the user to respond.
+  - **STOP AND YIELD.** Do not proceed to State 2. Do not call the summarize_history tool. Do not hallucinate data. You must wait for the user to respond.
   - If clientUID already exists in the user's context, carry it forward.
 
 **State 2: Route and Summarize**
 * IF flowIntent is known:
   - Immediately call the summarize_history tool.
   - Use `start_anchor_substring`: "DELIVERY_SETUP_START"
-  - Use the summarization_text template below, selecting the correct Next resource based on flowIntent.
+  - Use the summarization_text template below, selecting the correct Next Instructions based on flowIntent.
 
 ## Summarization Requirements
 
 When calling summarize_history:
 - **start_anchor_substring:** "DELIVERY_SETUP_START"
-- **summarization_text:** Format exactly as follows:
+- **summarization_text:** Format exactly as follows, selecting the correct Next Instructions block:
 
 For flowIntent = "full-setup":
 ```
-## State
-flowIntent=full-setup, clientUID={clientUID}
+# Current System State
+* Flow Intent: {flowIntent}
+* Client UID: {clientUID}
 
-## Next
-mcp://resource/phase-1-create-client
+# Conversation Anchor
+* DELIVERY_SETUP_START
+
+# Next Instructions
+Fetch and execute instructions from: mcp://resource/phase-1-create-client
 ```
 
 For flowIntent = "add-method":
 ```
-## State
-flowIntent=add-method, clientUID={clientUID}
+# Current System State
+* Flow Intent: {flowIntent}
+* Client UID: {clientUID}
 
-## Next
-mcp://resource/phase-0-select-client
+# Conversation Anchor
+* DELIVERY_SETUP_START
+
+# Next Instructions
+Fetch and execute instructions from: mcp://resource/phase-0-select-client
 ```
 
 For flowIntent = "add-account":
 ```
-## State
-flowIntent=add-account, clientUID={clientUID}
+# Current System State
+* Flow Intent: {flowIntent}
+* Client UID: {clientUID}
 
-## Next
-mcp://resource/phase-0-select-client-and-method
+# Conversation Anchor
+* DELIVERY_SETUP_START
+
+# Next Instructions
+Fetch and execute instructions from: mcp://resource/phase-0-select-client-and-method
 ```

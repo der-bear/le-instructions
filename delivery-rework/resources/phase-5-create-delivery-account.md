@@ -11,26 +11,26 @@ Evaluate what information you currently have and take the appropriate action:
 **State 1: Collect Price (Do this first)**
 * IF price is missing:
   1. Prompt the user exactly as follows: "Finally, let's set up your Delivery Account.\n\nPlease provide the price per lead."
-  2. **STOP AND YIELD.** Do not proceed. You must wait for the user to respond.
+  2. **STOP AND YIELD.** Do not hallucinate data. Do not proceed. You must wait for the user to respond.
   - Normalize the price: extract numbers from user input (e.g., "$25" → 25.00), format to 2 decimals, positive only.
 
 **State 2: Collect Exclusivity and Order System**
 * IF isExclusive is not yet known:
   1. Prompt the user exactly as follows: "Will this client receive exclusive or shared leads?"
   2. Present the choice using display_adaptive_card with an ActionSet: "Exclusive" | "Shared".
-  3. **STOP AND YIELD.** You must wait for the user to respond.
+  3. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
   - Map: "Exclusive" → isExclusive=true, "Shared" → isExclusive=false.
 
 * IF useOrder is not yet known:
   1. Prompt the user exactly as follows: "Would you like to enable the Order System for this client?"
   2. Present the choice using display_adaptive_card with an ActionSet: "Yes" | "No".
-  3. **STOP AND YIELD.** You must wait for the user to respond.
+  3. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
   - Map: "Yes" → useOrder=true, "No" → useOrder=false.
 
 **State 3: Load Lead Fields, Detect State Field, Collect Target States**
 * IF leadFields is missing:
   1. Call the get_lead_type(leadTypeUID) tool and retain: leadTypeName, leadFields.
-  2. If the tool fails, prompt: "I ran into an issue loading the lead type fields.\n\nPlease try again." **STOP AND YIELD.**
+  2. If the tool fails, prompt: "I ran into an issue loading the lead type fields.\n\nPlease try again." **STOP AND YIELD.** Do not hallucinate data.
 
 * IF stateFieldUID is missing:
   1. Detect the state field from leadFields using this priority:
@@ -39,18 +39,18 @@ Evaluate what information you currently have and take the appropriate action:
      - Priority 3: leadFieldName contains "state" (substring)
      Do not process lower tiers once matched. If confidence is low (<5%), confirm the correct field with the user.
   2. Retain stateFieldUID.
-  3. If ambiguous, prompt the user to confirm which field represents the state. Present a compact selector. **STOP AND YIELD.**
+  3. If ambiguous, prompt the user to confirm which field represents the state. Present a compact selector. **STOP AND YIELD.** Do not hallucinate data.
 
 * IF targetStates is missing:
   1. Prompt the user exactly as follows: "Which states do you want to target? (e.g., CA, AZ, TX)"
-  2. **STOP AND YIELD.** You must wait for the user to respond.
+  2. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
   - Normalize target states to uppercase USPS codes (e.g., California → CA). Accept any separator.
 
 **State 4: Ask About Additional Criteria**
 * IF additionalCriteriaChoice is not yet known:
   1. Prompt the user exactly as follows: "Would you like to add additional lead criteria, or skip?"
   2. Present the choice using display_adaptive_card with an ActionSet: "Add criteria" | "Skip".
-  3. **STOP AND YIELD.** Do not proceed. You must wait for the user to respond.
+  3. **STOP AND YIELD.** Do not hallucinate data. Do not proceed. You must wait for the user to respond.
 
 **State 5: Skip Criteria — Create Account and Summarize**
 * IF the user selected "Skip" OR said "none", "skip", or "no" AND deliveryAccountUID is missing:
@@ -61,7 +61,7 @@ Evaluate what information you currently have and take the appropriate action:
      `[{leadFieldUID: stateFieldUID, type: "FieldValue", operator: "In", value: "<pipe-delimited stateUID string>"}]`
   5. Call the create_delivery_account tool with these defaults:
      `clientUID={clientUID}, createDeliveryAccountDto={deliveryMethodUID={deliveryMethodUID}, price={price}, deliveryAccountType="WebAndChatLeads", status="Open", name="{companyName}-Account", automationEnabled=true, isExclusive={isExclusive}, useOrder={useOrder}, dayMax=50, hourMax=-1, weekMax=-1, monthMax=-1, criteria={criteriaPayload}}`
-  6. If the tool fails, repair and retry once silently. If still fails, prompt: "I ran into an issue creating the delivery account.\n\nPlease try again." **STOP AND YIELD.**
+  6. If the tool fails, repair and retry once silently. If still fails, prompt: "I ran into an issue creating the delivery account.\n\nPlease try again." **STOP AND YIELD.** Do not hallucinate data.
   7. Retain: deliveryAccountUID, price, targetStates, additionalCriteria, isExclusive, useOrder.
   8. Immediately call the summarize_history tool.
 
@@ -75,9 +75,38 @@ When calling summarize_history:
 - **summarization_text:** Format exactly as follows:
 
 ```
-## State
-flowIntent={flowIntent}, clientUID={clientUID}, companyName={companyName}, email={email}, clientStatus={clientStatus}, timeZoneName={timeZoneName}, timeOffset={timeOffset}, leadTypeUID={leadTypeUID}, leadTypeName={leadTypeName}, deliveryMethodUID={deliveryMethodUID}, deliveryMethodName={deliveryMethodName}, deliveryType={deliveryType}, deliveryAddress={deliveryAddress}, ftpUser={ftpUser}, ftpPassword={ftpPassword}, mimeContentType={mimeContentType}, requestBody={requestBody}, deliveryScheduleDisplay={deliveryScheduleDisplay}, mappedCount={mappedCount}, totalCount={totalCount}, connectionTestMode={connectionTestMode}, deliveryAccountUID={deliveryAccountUID}, price={price}, targetStates={targetStates}, additionalCriteria={additionalCriteria}, isExclusive={isExclusive}, useOrder={useOrder}
+# Current System State
+* Flow Intent: {flowIntent}
+* Client UID: {clientUID}
+* Company Name: {companyName}
+* Email: {email}
+* Client Status: {clientStatus}
+* Time Zone Name: {timeZoneName}
+* Time Offset: {timeOffset}
+* Lead Type UID: {leadTypeUID}
+* Lead Type Name: {leadTypeName}
+* Delivery Method UID: {deliveryMethodUID}
+* Delivery Method Name: {deliveryMethodName}
+* Delivery Type: {deliveryType}
+* Delivery Address: {deliveryAddress}
+* FTP User: {ftpUser}
+* FTP Password: {ftpPassword}
+* MIME Content Type: {mimeContentType}
+* Request Body: {requestBody}
+* Delivery Schedule Display: {deliveryScheduleDisplay}
+* Mapped Count: {mappedCount}
+* Total Count: {totalCount}
+* Connection Test Mode: {connectionTestMode}
+* Delivery Account UID: {deliveryAccountUID}
+* Price: {price}
+* Target States: {targetStates}
+* Additional Criteria: {additionalCriteria}
+* Is Exclusive: {isExclusive}
+* Use Order: {useOrder}
 
-## Next
-mcp://resource/phase-6-delivery-account-summary
+# Conversation Anchor
+* DELIVERY_SETUP_START
+
+# Next Instructions
+Fetch and execute instructions from: mcp://resource/phase-6-delivery-account-summary
 ```

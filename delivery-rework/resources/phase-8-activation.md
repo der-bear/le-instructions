@@ -20,7 +20,7 @@ Evaluate what information you currently have and take the appropriate action:
   4. IF activation fails:
      - Prompt the user exactly as follows: "We encountered an issue activating the client. Would you like to try again?"
      - Present the choice using display_adaptive_card with an ActionSet: "Retry activation".
-     - **STOP AND YIELD.** You must wait for the user to respond.
+     - **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
      - IF the user clicks "Retry activation": repeat step 2 (call update_client again with ALL fields and a freshly generated password). If it fails again, show the same retry prompt.
 
 **State 2: Keep Client Inactive**

@@ -17,7 +17,7 @@ Evaluate what information you currently have and take the appropriate action:
 ```
 
   2. Replace all {variable} placeholders with current retained values.
-  3. **STOP AND YIELD.** You must wait for the user to click Activate or Keep Inactive.
+  3. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to click Activate or Keep Inactive.
 
 **State 2: Route to Activation**
 * IF the user clicked "Activate" OR "Keep Inactive":

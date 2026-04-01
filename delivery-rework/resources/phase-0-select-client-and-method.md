@@ -12,22 +12,22 @@ Evaluate what information you currently have and take the appropriate action:
 * IF clientUID is already known from context, skip to State 2.
 * IF clientUID is missing:
   1. Call the get_clients tool to retrieve the clientsList.
-  2. If clientsList is empty, prompt: "I couldn't find any clients.\n\nPlease create a client before continuing." **STOP AND YIELD.**
+  2. If clientsList is empty, prompt: "I couldn't find any clients.\n\nPlease create a client before continuing." **STOP AND YIELD.** Do not hallucinate data.
   3. Prompt the user exactly as follows: "Which client would you like to create a delivery account for?"
   4. Present the client list using the display_adaptive_card tool with an Input.ChoiceSet (style=compact) showing companyName as the display value and clientUID as the value.
-  5. **STOP AND YIELD.** Do not proceed to State 2. Do not call the summarize_history tool. You must wait for the user to select a client.
-  - If the user types a value instead of clicking the card, match it against clientsList. If the result is ambiguous or low confidence, re-display the selector with the prompt: "I couldn't match that selection.\n\nWhich client would you like to create a delivery account for?" and STOP AND YIELD again.
+  5. **STOP AND YIELD.** Do not hallucinate data. Do not proceed to State 2. Do not call the summarize_history tool. You must wait for the user to select a client.
+  - If the user types a value instead of clicking the card, match it against clientsList. If the result is ambiguous or low confidence, re-display the selector with the prompt: "I couldn't match that selection.\n\nWhich client would you like to create a delivery account for?" and **STOP AND YIELD.** Do not hallucinate data.
 
 **State 2: Missing Delivery Method Selection**
 * IF clientUID is known AND deliveryMethodUID is missing:
   1. Call the get_client(clientUID) tool to retrieve: companyName, email, clientStatus, timeZoneName, timeOffset.
-  2. If the tool fails, prompt: "I ran into an issue loading that client.\n\nPlease try again." **STOP AND YIELD.**
+  2. If the tool fails, prompt: "I ran into an issue loading that client.\n\nPlease try again." **STOP AND YIELD.** Do not hallucinate data.
   3. Call the get_delivery_methods(clientUID) tool to retrieve the deliveryMethodsList. From the response, extract: deliveryMethodUID, deliveryMethodName (from data.name), and leadTypeUID (from data.leadTypeUID).
-  4. If deliveryMethodsList is empty, prompt: "I couldn't find any delivery methods for this client.\n\nPlease create a delivery method before adding a delivery account." **STOP AND YIELD.**
+  4. If deliveryMethodsList is empty, prompt: "I couldn't find any delivery methods for this client.\n\nPlease create a delivery method before adding a delivery account." **STOP AND YIELD.** Do not hallucinate data.
   5. Prompt the user exactly as follows: "Which delivery method would you like to use?"
   6. Present the delivery methods using the display_adaptive_card tool with an Input.ChoiceSet (style=compact) showing deliveryMethodName as the display value and deliveryMethodUID as the value.
-  7. **STOP AND YIELD.** Do not proceed to State 3. Do not call the summarize_history tool. You must wait for the user to select a delivery method.
-  - If the user types a value instead of clicking the card, match it against deliveryMethodsList. If the result is ambiguous or low confidence, re-display the selector with the prompt: "I couldn't match that selection.\n\nWhich delivery method would you like to use?" and STOP AND YIELD again.
+  7. **STOP AND YIELD.** Do not hallucinate data. Do not proceed to State 3. Do not call the summarize_history tool. You must wait for the user to select a delivery method.
+  - If the user types a value instead of clicking the card, match it against deliveryMethodsList. If the result is ambiguous or low confidence, re-display the selector with the prompt: "I couldn't match that selection.\n\nWhich delivery method would you like to use?" and **STOP AND YIELD.** Do not hallucinate data.
 
 **State 3: Ready for Summarization**
 * IF clientUID, companyName, email, clientStatus, timeZoneName, timeOffset, deliveryMethodUID, deliveryMethodName, and leadTypeUID are all known:
@@ -40,9 +40,21 @@ When calling summarize_history:
 - **summarization_text:** Format exactly as follows:
 
 ```
-## State
-flowIntent={flowIntent}, clientUID={clientUID}, companyName={companyName}, email={email}, clientStatus={clientStatus}, timeZoneName={timeZoneName}, timeOffset={timeOffset}, deliveryMethodUID={deliveryMethodUID}, deliveryMethodName={deliveryMethodName}, leadTypeUID={leadTypeUID}
+# Current System State
+* Flow Intent: {flowIntent}
+* Client UID: {clientUID}
+* Company Name: {companyName}
+* Email: {email}
+* Client Status: {clientStatus}
+* Time Zone Name: {timeZoneName}
+* Time Offset: {timeOffset}
+* Delivery Method UID: {deliveryMethodUID}
+* Delivery Method Name: {deliveryMethodName}
+* Lead Type UID: {leadTypeUID}
 
-## Next
-mcp://resource/phase-5-create-delivery-account
+# Conversation Anchor
+* DELIVERY_SETUP_START
+
+# Next Instructions
+Fetch and execute instructions from: mcp://resource/phase-5-create-delivery-account
 ```

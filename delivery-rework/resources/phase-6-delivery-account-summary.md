@@ -23,7 +23,7 @@ Evaluate what information you currently have and take the appropriate action:
   2. Replace all {variable} placeholders with current retained values. Set isExclusiveDisplay and useOrderDisplay per the boolean display rules above.
   3. IF flowIntent = "full-setup": set buttonTitle="Continue" and buttonAction="Continue".
   4. ELSE: set buttonTitle="Done" and buttonAction="Done".
-  5. **STOP AND YIELD.** You must wait for the user to click the button.
+  5. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to click the button.
 
 **State 2: Route or Complete**
 * IF flowIntent = "full-setup" AND the user clicked "Continue":

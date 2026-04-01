@@ -15,8 +15,8 @@ Evaluate what information you currently have and take the appropriate action:
   3. Present the options to the user using the display_adaptive_card tool.
      - If there are 4 or fewer options, use an ActionSet.
      - If there are more than 4 options, use an Input.ChoiceSet (with style=compact).
-  4. **STOP AND YIELD.** Do not proceed to State 2. Do not call the summarize_history tool. You must wait for the user to click or reply with their selection.
-  - If the user types a value instead of clicking the card, match it against leadTypesList. If the result is ambiguous or low confidence, re-display the selector with the prompt: "I couldn't match that selection.\n\nPlease select a Lead Type for this client." and STOP AND YIELD again.
+  4. **STOP AND YIELD.** Do not hallucinate data. Do not proceed to State 2. Do not call the summarize_history tool. You must wait for the user to click or reply with their selection.
+  - If the user types a value instead of clicking the card, match it against leadTypesList. If the result is ambiguous or low confidence, re-display the selector with the prompt: "I couldn't match that selection.\n\nPlease select a Lead Type for this client." and **STOP AND YIELD.** Do not hallucinate data.
 
 **State 2: Ready for Summarization**
 * IF the user has successfully selected a leadTypeUID and leadTypeName:
@@ -29,9 +29,20 @@ When calling summarize_history:
 - **summarization_text:** Format exactly as follows:
 
 ```
-## State
-flowIntent={flowIntent}, clientUID={clientUID}, companyName={companyName}, email={email}, clientStatus={clientStatus}, timeZoneName={timeZoneName}, timeOffset={timeOffset}, leadTypeUID={leadTypeUID}, leadTypeName={leadTypeName}
+# Current System State
+* Flow Intent: {flowIntent}
+* Client UID: {clientUID}
+* Company Name: {companyName}
+* Email: {email}
+* Client Status: {clientStatus}
+* Time Zone Name: {timeZoneName}
+* Time Offset: {timeOffset}
+* Lead Type UID: {leadTypeUID}
+* Lead Type Name: {leadTypeName}
 
-## Next
-mcp://resource/phase-3-create-delivery-method
+# Conversation Anchor
+* DELIVERY_SETUP_START
+
+# Next Instructions
+Fetch and execute instructions from: mcp://resource/phase-3-create-delivery-method
 ```

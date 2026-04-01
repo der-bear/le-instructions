@@ -17,7 +17,7 @@ Evaluate what information you currently have and take the appropriate action:
   - IF connectionTestChoice is missing:
     1. Prompt the user exactly as follows: "Would you like to test the connection to your endpoint before continuing?"
     2. Present the choice using display_adaptive_card with an ActionSet: "Test Connection" | "Skip".
-    3. **STOP AND YIELD.** Do not call the summarize_history tool. You must wait for the user to respond.
+    3. **STOP AND YIELD.** Do not hallucinate data. Do not call the summarize_history tool. You must wait for the user to respond.
 
   - IF connectionTestChoice = "Skip":
     1. Proceed to State 2.
@@ -34,12 +34,12 @@ Evaluate what information you currently have and take the appropriate action:
     * IF the test succeeds:
       1. Prompt the user exactly as follows: "✓ Connection test successful."
       2. Present an ActionSet: "Continue".
-      3. **STOP AND YIELD.** When the user clicks Continue, proceed to State 2.
+      3. **STOP AND YIELD.** Do not hallucinate data. When the user clicks Continue, proceed to State 2.
 
     * IF the test fails:
       1. Prompt the user exactly as follows: "✗ Connection test failed: {error}. The delivery method is saved; you can update the configuration later."
       2. Present an ActionSet: "Retry" | "Skip".
-      3. **STOP AND YIELD.** If the user clicks Retry, re-run the test above. If Skip, proceed to State 2.
+      3. **STOP AND YIELD.** Do not hallucinate data. If the user clicks Retry, re-run the test above. If Skip, proceed to State 2.
 
 **State 2: Summarize**
 * IF connectionTestChoice = "Skip" OR the test succeeded and the user clicked Continue OR the test failed and the user clicked Skip:
@@ -52,9 +52,32 @@ When calling summarize_history:
 - **summarization_text:** Format exactly as follows:
 
 ```
-## State
-flowIntent={flowIntent}, clientUID={clientUID}, companyName={companyName}, email={email}, clientStatus={clientStatus}, timeZoneName={timeZoneName}, timeOffset={timeOffset}, leadTypeUID={leadTypeUID}, leadTypeName={leadTypeName}, deliveryMethodUID={deliveryMethodUID}, deliveryMethodName={deliveryMethodName}, deliveryType={deliveryType}, deliveryAddress={deliveryAddress}, ftpUser={ftpUser}, ftpPassword={ftpPassword}, mimeContentType={mimeContentType}, requestBody={requestBody}, deliveryScheduleDisplay={deliveryScheduleDisplay}, mappedCount={mappedCount}, totalCount={totalCount}, connectionTestMode={connectionTestMode}
+# Current System State
+* Flow Intent: {flowIntent}
+* Client UID: {clientUID}
+* Company Name: {companyName}
+* Email: {email}
+* Client Status: {clientStatus}
+* Time Zone Name: {timeZoneName}
+* Time Offset: {timeOffset}
+* Lead Type UID: {leadTypeUID}
+* Lead Type Name: {leadTypeName}
+* Delivery Method UID: {deliveryMethodUID}
+* Delivery Method Name: {deliveryMethodName}
+* Delivery Type: {deliveryType}
+* Delivery Address: {deliveryAddress}
+* FTP User: {ftpUser}
+* FTP Password: {ftpPassword}
+* MIME Content Type: {mimeContentType}
+* Request Body: {requestBody}
+* Delivery Schedule Display: {deliveryScheduleDisplay}
+* Mapped Count: {mappedCount}
+* Total Count: {totalCount}
+* Connection Test Mode: {connectionTestMode}
 
-## Next
-mcp://resource/phase-4-delivery-method-summary
+# Conversation Anchor
+* DELIVERY_SETUP_START
+
+# Next Instructions
+Fetch and execute instructions from: mcp://resource/phase-4-delivery-method-summary
 ```

@@ -10,7 +10,7 @@ Your objective is to create the Email delivery method and hand off directly to P
 * IF deliveryMethodUID is missing:
   1. Call the create_delivery_method tool with these defaults:
      `clientUID={clientUID}, createDeliveryMethodDto={deliveryType="EMail", name="{companyName}-Email", enabled=true, leadTypeUID={leadTypeUID}, emailAddress={email}, toEmailAddress={email}, emailSubject="New Lead - {date}", emailOrSmsTemplate="Standard template", deliveryDays={deliveryDays}}`
-  2. If the tool fails, repair the payload and retry once silently. If it still fails, prompt: "I ran into an issue creating the delivery method.\n\nPlease try again." **STOP AND YIELD.**
+  2. If the tool fails, repair the payload and retry once silently. If it still fails, prompt: "I ran into an issue creating the delivery method.\n\nPlease try again." **STOP AND YIELD.** Do not hallucinate data.
   3. If the tool succeeds, retain: deliveryMethodUID, deliveryMethodName="{companyName}-Email", deliveryType="EMail", deliveryAddress={email}, mappedCount=0, totalCount=0.
   4. Immediately call the summarize_history tool.
 
@@ -21,9 +21,27 @@ When calling summarize_history:
 - **summarization_text:** Format exactly as follows:
 
 ```
-## State
-flowIntent={flowIntent}, clientUID={clientUID}, companyName={companyName}, email={email}, clientStatus={clientStatus}, timeZoneName={timeZoneName}, timeOffset={timeOffset}, leadTypeUID={leadTypeUID}, leadTypeName={leadTypeName}, deliveryMethodUID={deliveryMethodUID}, deliveryMethodName={deliveryMethodName}, deliveryType=EMail, deliveryAddress={email}, deliveryScheduleDisplay={deliveryScheduleDisplay}, mappedCount=0, totalCount=0
+# Current System State
+* Flow Intent: {flowIntent}
+* Client UID: {clientUID}
+* Company Name: {companyName}
+* Email: {email}
+* Client Status: {clientStatus}
+* Time Zone Name: {timeZoneName}
+* Time Offset: {timeOffset}
+* Lead Type UID: {leadTypeUID}
+* Lead Type Name: {leadTypeName}
+* Delivery Method UID: {deliveryMethodUID}
+* Delivery Method Name: {deliveryMethodName}
+* Delivery Type: EMail
+* Delivery Address: {email}
+* Delivery Schedule Display: {deliveryScheduleDisplay}
+* Mapped Count: 0
+* Total Count: 0
 
-## Next
-mcp://resource/phase-4-delivery-method-summary
+# Conversation Anchor
+* DELIVERY_SETUP_START
+
+# Next Instructions
+Fetch and execute instructions from: mcp://resource/phase-4-delivery-method-summary
 ```
