@@ -46,10 +46,6 @@ When calling summarize_history:
 * Mapped Count: 0
 * Total Count: 0
 * Connection Test Mode: ftp
-
-# Conversation Anchor
-* DELIVERY_SETUP_START
-
 # Next Instructions
 Fetch and execute instructions from: mcp://resource/rw-phase-3b-test-connection
 ```

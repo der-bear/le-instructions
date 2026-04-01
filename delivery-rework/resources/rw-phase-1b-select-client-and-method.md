@@ -51,10 +51,6 @@ When calling summarize_history:
 * Delivery Method UID: {deliveryMethodUID}
 * Delivery Method Name: {deliveryMethodName}
 * Lead Type UID: {leadTypeUID}
-
-# Conversation Anchor
-* DELIVERY_SETUP_START
-
 # Next Instructions
 Fetch and execute instructions from: mcp://resource/rw-phase-5-create-delivery-account
 ```

@@ -45,10 +45,6 @@ When calling summarize_history:
 * Client Status: New
 * Time Zone Name: Pacific Standard Time
 * Time Offset: -8
-
-# Conversation Anchor
-* DELIVERY_SETUP_START
-
 # Next Instructions
 Fetch and execute instructions from: mcp://resource/rw-phase-2-get-lead-types
 ```

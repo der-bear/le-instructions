@@ -39,10 +39,6 @@ When calling summarize_history:
 * Time Offset: {timeOffset}
 * Lead Type UID: {leadTypeUID}
 * Lead Type Name: {leadTypeName}
-
-# Conversation Anchor
-* DELIVERY_SETUP_START
-
 # Next Instructions
 Fetch and execute instructions from: mcp://resource/rw-phase-3-create-delivery-method
 ```

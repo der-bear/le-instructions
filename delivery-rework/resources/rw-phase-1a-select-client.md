@@ -39,10 +39,6 @@ When calling summarize_history:
 * Client Status: {clientStatus}
 * Time Zone Name: {timeZoneName}
 * Time Offset: {timeOffset}
-
-# Conversation Anchor
-* DELIVERY_SETUP_START
-
 # Next Instructions
 Fetch and execute instructions from: mcp://resource/rw-phase-2-get-lead-types
 ```

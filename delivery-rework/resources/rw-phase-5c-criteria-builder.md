@@ -173,10 +173,6 @@ When calling summarize_history:
 * Additional Criteria: {additionalCriteria}
 * Is Exclusive: {isExclusive}
 * Use Order: {useOrder}
-
-# Conversation Anchor
-* DELIVERY_SETUP_START
-
 # Next Instructions
 Fetch and execute instructions from: mcp://resource/rw-phase-6-delivery-account-summary
 ```
