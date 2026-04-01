@@ -30,16 +30,8 @@ Evaluate what information you currently have and take the appropriate action:
      - ELSE: ActionSet with "Skip"
   6. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
   - IF the user selects "Skip" from the suggestions card:
-    1. Retain additionalCriteria = "None".
-    2. Call the get_usa_states tool. Match the normalized targetStates to the returned USA-state list (match abbreviation, exact match, case-insensitive). Collect the corresponding stateUID values.
-    3. Create stateUIDArray. Serialize as pipe-delimited string: stateUIDArray.join('|').
-    4. Build criteriaPayload with only the state criterion:
-       `[{leadFieldUID: stateFieldUID, type: "FieldValue", operator: "In", value: "<pipe-delimited stateUID string>"}]`
-    5. Call the create_delivery_account tool with these defaults:
-       `clientUID={clientUID}, createDeliveryAccountDto={deliveryMethodUID={deliveryMethodUID}, price={price}, deliveryAccountType="WebAndChatLeads", status="Open", name="{companyName}-Account", automationEnabled=true, isExclusive={isExclusive}, useOrder={useOrder}, dayMax=50, hourMax=-1, weekMax=-1, monthMax=-1, criteria={criteriaPayload}}`
-    6. If the tool fails, repair and retry once silently. If still fails, prompt: "I ran into an issue creating the delivery account.\n\nPlease try again." **STOP AND YIELD.** Do not hallucinate data.
-    7. Retain: deliveryAccountUID, price, targetStates, additionalCriteria, isExclusive, useOrder.
-    8. Immediately call the summarize_history tool (use the same Summarization Requirements at the end of this file).
+    1. Set additionalCriteriaChoice = "Skip" so Phase 5 routes to the skip path.
+    2. Load mcp://resource/rw-phase-5-create-delivery-account — Phase 5 State 5 will handle account creation with state-only criteria.
 
 **State 2: Parse Typed Criterion or Show More Fields**
 
