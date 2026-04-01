@@ -4,14 +4,6 @@
 
 Your objective is to collect webhook configuration, optionally build field mappings, create the delivery method, and hand off to Phase 3b.
 
-## Webhook-Specific Rules
-
-- Prepend `https://` to webhook URLs if the user omitted a scheme.
-- Content-type to MIME mapping: JSON → "application/json", XML → "application/xml", URL Encoded → "application/x-www-form-urlencoded".
-- Field matching priority when mapping: (1) exact match, (2) underscore/CamelCase variations, (3) abbreviations, (4) semantic mapping at >90% confidence only. If multiple fields match at the same priority level, prompt the user to select the correct one. If no confident match exists, ask the user for clarification.
-- Auto-fix for JSON/XML before failing: missing outer braces for a single property block, trailing commas, unescaped quotes, single quotes → double quotes.
-- Input size check: calculate estimatedTokens = inputLength / 3. IF inputLength > 5000 OR estimatedTokens > 1500 OR >200 repetitive items → oversized.
-
 ## Instructions
 
 Evaluate what information you currently have and take the appropriate action:
@@ -20,6 +12,7 @@ Evaluate what information you currently have and take the appropriate action:
 * IF deliveryAddress is missing:
   1. Prompt the user exactly as follows: "What's your webhook URL where we should send the leads?"
   2. **STOP AND YIELD.** Do not hallucinate data. Do not proceed. You must wait for the user to provide the URL.
+  - Prepend `https://` to the URL if the user omitted a scheme.
 
 **State 2: Field Mapping Choice**
 * IF deliveryAddress is known AND skipFieldMapping is not yet decided:
@@ -56,7 +49,8 @@ Evaluate what information you currently have and take the appropriate action:
 * IF postingInstructions is known AND mappingSettings is missing:
   - **Input validation (run inline, do not create separate states):**
     - IF postingInstructions contains "http://" or "https://": prompt exactly: "I can't access external links. Please open the page and paste the posting instructions or schema text here." **STOP AND YIELD.** Do not hallucinate data. On re-entry, re-validate.
-    - IF input is oversized (per rules above): prompt exactly: "This looks too large or unformatted. Would you like to simplify or skip mapping for now?" Present an ActionSet: "Simplify input" | "Skip mapping". **STOP AND YIELD.** Do not hallucinate data.
+    - Input size check: calculate estimatedTokens = inputLength / 3. IF inputLength > 5000 OR estimatedTokens > 1500 OR >200 repetitive items → input is oversized.
+    - IF input is oversized: prompt exactly: "This looks too large or unformatted. Would you like to simplify or skip mapping for now?" Present an ActionSet: "Simplify input" | "Skip mapping". **STOP AND YIELD.** Do not hallucinate data.
       - IF "Simplify input": prompt exactly: "Please paste a smaller, well-formatted excerpt (e.g., the request body and a short field list)." **STOP AND YIELD.** Do not hallucinate data. On re-entry, re-validate.
       - IF "Skip mapping": set skipFieldMapping=true, proceed to State 3.
   - **After input passes validation**, proceed to State 5.
@@ -72,20 +66,20 @@ Evaluate what information you currently have and take the appropriate action:
 
 **State 6: Parse Schema and Build Mapping**
 * IF contentTypeChoice is known (not "I'm not sure") AND postingInstructions is known AND mappingSettings is missing:
-  1. IF contentTypeChoice = "JSON" or "XML": attempt to parse postingInstructions. Apply auto-fix rules (see Webhook-Specific Rules above).
+  1. IF contentTypeChoice = "JSON" or "XML": attempt to parse postingInstructions. Auto-fix common issues before failing: missing outer braces for a single JSON property block, trailing commas, unescaped quotes, single quotes → double quotes.
      - IF parsing still fails: prompt exactly: "I couldn't parse this as valid {contentTypeChoice}. Would you like to:\n• Fix and re-paste the {contentTypeChoice} schema\n• Switch to a different content type"
        Present an ActionSet: "Re-paste {contentTypeChoice} schema" | "Switch content type". **STOP AND YIELD.** Do not hallucinate data.
        - IF "Re-paste": clear postingInstructions, prompt exactly: "Please paste the {contentTypeChoice} schema that your client's API expects." **STOP AND YIELD.** Do not hallucinate data.
        - IF "Switch content type": clear contentTypeChoice and postingInstructions, go back to the content-type prompt in State 4.
   2. Extract field names from postingInstructions.
-  3. Match fields to leadFields using the field matching priority rules.
+  3. Match fields to leadFields using this priority: (1) exact match, (2) underscore/CamelCase variations, (3) abbreviations, (4) semantic mapping at >90% confidence only. If multiple fields match at the same priority level, prompt the user to select the correct one. If no confident match exists, ask the user for clarification.
   4. If ambiguity or no match for a field, prompt the user for clarification. **STOP AND YIELD.** Do not hallucinate data.
   5. Build mappingSettings: [{fieldType:"LeadField", fieldName:<delivery field>, leadFieldUID:<system field uid>}, ...]
   6. Build requestBody with [SystemFieldName] placeholders:
      - URL Encoded: `field1=[SystemField1]&field2=[SystemField2]&...`
      - JSON/XML: preserve the user's posted structure, replace mapped values with [SystemFieldName] placeholders. JSON placeholders are quoted strings "[SystemFieldName]". XML placeholders are unquoted content `<field>[SystemFieldName]</field>`. Use 2-space indentation, one element per line.
   7. Compute mappedCount and totalCount.
-  8. Map contentTypeChoice to mimeContentType (per webhook rules above).
+  8. Map contentTypeChoice to mimeContentType: JSON → "application/json", XML → "application/xml", URL Encoded → "application/x-www-form-urlencoded".
   9. Retain: mappingSettings, requestBody, mappedCount, totalCount, mimeContentType, connectionTestMode="webhook".
   10. Proceed to State 7.
 
