@@ -1,6 +1,6 @@
-# Phase 0b: Select Client and Delivery Method
+# Phase 1b: Select Client and Delivery Method
 
-**CRITICAL STATE UPDATE:** You have successfully fetched the Phase 0b resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute State 1.
+**CRITICAL STATE UPDATE:** You have successfully fetched the Phase 1b resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute State 1.
 
 Your objective is to collect a valid client and delivery-method selection, then hand off directly to Phase 5 (bypassing Phases 1-3).
 
@@ -56,5 +56,5 @@ When calling summarize_history:
 * DELIVERY_SETUP_START
 
 # Next Instructions
-Fetch and execute instructions from: mcp://resource/phase-5-create-delivery-account
+Fetch and execute instructions from: mcp://resource/rw-phase-5-create-delivery-account
 ```

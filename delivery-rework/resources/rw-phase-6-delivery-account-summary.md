@@ -27,7 +27,7 @@ Evaluate what information you currently have and take the appropriate action:
 
 **State 2: Route or Complete**
 * IF flowIntent = "full-setup" AND the user clicked "Continue":
-  - Load mcp://resource/phase-7-client-summary
+  - Load mcp://resource/rw-phase-7-client-summary
 
 * IF flowIntent is NOT "full-setup" AND the user clicked "Done":
   1. Prompt the user exactly as follows: "✓ Your delivery account is ready to use for {companyName}."

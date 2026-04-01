@@ -66,7 +66,7 @@ Evaluate what information you currently have and take the appropriate action:
   8. Immediately call the summarize_history tool.
 
 * IF the user selected "Add criteria" OR said "yes", "add", or "criteria":
-  - Load mcp://resource/phase-5-criteria-builder (no summarize — leadFields stays in working memory)
+  - Load mcp://resource/rw-phase-5c-criteria-builder (no summarize — leadFields stays in working memory)
 
 ## Summarization Requirements
 
@@ -108,5 +108,5 @@ When calling summarize_history:
 * DELIVERY_SETUP_START
 
 # Next Instructions
-Fetch and execute instructions from: mcp://resource/phase-6-delivery-account-summary
+Fetch and execute instructions from: mcp://resource/rw-phase-6-delivery-account-summary
 ```

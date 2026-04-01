@@ -37,13 +37,13 @@ Evaluate what information you currently have and take the appropriate action:
 
 **State 3: Route to Method-Specific Resource**
 * IF deliveryTypeChoice = "Portal":
-  - Load mcp://resource/phase-3-portal
+  - Load mcp://resource/rw-phase-3-portal
 
 * IF deliveryTypeChoice = "Email":
-  - Load mcp://resource/phase-3-email
+  - Load mcp://resource/rw-phase-3-email
 
 * IF deliveryTypeChoice = "FTP":
-  - Load mcp://resource/phase-3-ftp
+  - Load mcp://resource/rw-phase-3-ftp
 
 * IF deliveryTypeChoice = "Webhook":
-  - Load mcp://resource/phase-3-webhook-delivery-method
+  - Load mcp://resource/rw-phase-3-webhook

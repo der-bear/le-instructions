@@ -1,6 +1,6 @@
-# Phase 0a: Select Client
+# Phase 1a: Select Client
 
-**CRITICAL STATE UPDATE:** You have successfully fetched the Phase 0a resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute State 1.
+**CRITICAL STATE UPDATE:** You have successfully fetched the Phase 1a resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute State 1.
 
 Your objective is to collect a valid client selection, load the client profile, and hand off to Phase 2.
 
@@ -44,5 +44,5 @@ When calling summarize_history:
 * DELIVERY_SETUP_START
 
 # Next Instructions
-Fetch and execute instructions from: mcp://resource/phase-2-get-lead-types
+Fetch and execute instructions from: mcp://resource/rw-phase-2-get-lead-types
 ```

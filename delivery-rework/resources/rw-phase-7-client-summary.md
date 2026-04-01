@@ -22,4 +22,4 @@ Evaluate what information you currently have and take the appropriate action:
 **State 2: Route to Activation**
 * IF the user clicked "Activate" OR "Keep Inactive":
   - Retain clientSummaryChoice with the user's selection.
-  - Load mcp://resource/phase-8-activation
+  - Load mcp://resource/rw-phase-8-activation

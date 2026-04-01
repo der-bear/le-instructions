@@ -143,5 +143,5 @@ When calling summarize_history:
 * DELIVERY_SETUP_START
 
 # Next Instructions
-Fetch and execute instructions from: mcp://resource/phase-3b-test-connection
+Fetch and execute instructions from: mcp://resource/rw-phase-3b-test-connection
 ```

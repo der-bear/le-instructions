@@ -44,5 +44,5 @@ When calling summarize_history:
 * DELIVERY_SETUP_START
 
 # Next Instructions
-Fetch and execute instructions from: mcp://resource/phase-3-create-delivery-method
+Fetch and execute instructions from: mcp://resource/rw-phase-3-create-delivery-method
 ```
