@@ -1,16 +1,45 @@
-# RESOURCE - PHASE 1:
+# Phase 1: Create Client
 
-<phase_1_create_client>
- ANCHOR: anchor_client_creation_start
- PROMPT: "Great - first we'll set up your Client, Delivery Method, and Delivery Account.\n\nTo create a new client, please provide:\n\n1. Company Name\n2. Contact Email"
- ASK [conversational]: companyName, email
- WAIT for user input
- TOOL: create_client → data as clientUID
- TOOL_DEFAULTS: createClientDto={companyName={companyName}, email={email}, clientStatus="New", clientAutomationType="Price", username={email}, password={generate-password}, timeZoneName="Pacific Standard Time", timeOffset=-8}
- CRITICAL: createClientDto must be passed as an object, NOT a JSON string
- NOTE: Password generated during client creation but not retained - will be regenerated at activation (Phase 8)
- RETAIN: clientUID, companyName, email, clientStatus="New", flowIntent="full-setup", timeZoneName="Pacific Standard Time", timeOffset=-8
+**CRITICAL STATE UPDATE:** You have successfully fetched the Phase 1 resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute State 1.
 
- TOOL: summarize_history - mandatory
- TOOL_DEFAULTS: start_anchor_substring="anchor_client_creation_start", summarization_text="<summary><retain>clientUID={clientUID}, companyName={companyName}, email={email}, clientStatus={clientStatus}, timeZoneName={timeZoneName}, timeOffset={timeOffset}</retain><next_phase>mcp://resource/phase-2-get-lead-types</next_phase></summary>"
-</phase_1_create_client>
+Your objective is to collect the company name and contact email, create the client, and hand off to Phase 2.
+
+Normalize the email before calling the tool: strip whitespace, lowercase the domain portion, validate RFC-5322 format.
+
+The password is generated during client creation but is NOT retained. Phase 8 (activation) will generate a new password later.
+
+## Instructions
+
+Evaluate what information you currently have and take the appropriate action:
+
+**State 1: Missing Client Inputs (Do this first)**
+* IF companyName is missing OR email is missing:
+  - IF both fields are missing, prompt the user exactly as follows:
+    "Great - first we'll set up your Client, Delivery Method, and Delivery Account.\n\nTo create a new client, please provide:\n\n1. Company Name\n2. Contact Email"
+  - ELSE IF only companyName is missing, prompt: "Please provide the Company Name."
+  - ELSE IF only email is missing, prompt: "Please provide the Contact Email."
+  - **STOP AND YIELD.** Do not proceed to State 2. Do not call the summarize_history tool. You must wait for the user to respond.
+
+**State 2: Create Client and Summarize**
+* IF companyName and email are both known AND clientUID is missing:
+  1. Call the create_client tool with these defaults:
+     `clientUID={clientUID}, createClientDto={companyName={companyName}, email={email}, clientStatus="New", clientAutomationType="Price", username={email}, password=<generate a random 14-character password using upper, lower, digit, and symbol characters>, timeZoneName="Pacific Standard Time", timeOffset=-8}`
+  2. If the tool fails because of a payload-shape or repairable request issue, repair the payload and retry once silently.
+  3. If the tool still fails, prompt: "I ran into an issue creating the client.\n\nPlease confirm the company name and contact email and I'll try again."
+     **STOP AND YIELD.** Do not call the summarize_history tool.
+  4. If the tool succeeds, retain: clientUID, clientStatus="New", timeZoneName="Pacific Standard Time", timeOffset=-8, flowIntent="full-setup".
+  5. Immediately call the summarize_history tool.
+
+## Summarization Requirements
+
+When calling summarize_history:
+- **start_anchor_substring:** "DELIVERY_SETUP_START"
+- **summarization_text:** Format exactly as follows:
+
+```
+## State
+flowIntent=full-setup, clientUID={clientUID}, companyName={companyName}, email={email}, clientStatus=New, timeZoneName=Pacific Standard Time, timeOffset=-8
+
+## Next
+mcp://resource/phase-2-get-lead-types
+```
