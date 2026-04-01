@@ -2,7 +2,7 @@
 
 **CRITICAL STATE UPDATE:** You have successfully fetched the Phase 5 resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute State 1.
 
-Your objective is to collect the delivery-account basics (price, exclusivity, order system), detect the state field, collect target states, and either skip to account creation or route to the criteria builder.
+Your objective is to collect account basics, create the delivery account with state-targeting criteria, then ask about additional criteria.
 
 ## Instructions
 
@@ -11,8 +11,8 @@ Evaluate what information you currently have and take the appropriate action:
 **State 1: Collect Price (Do this first)**
 * IF price is missing:
   1. Prompt the user exactly as follows: "Finally, let's set up your Delivery Account.\n\nPlease provide the price per lead."
-  2. **STOP AND YIELD.** Do not hallucinate data. Do not proceed. You must wait for the user to respond.
-  - Normalize the price: extract numbers from user input (e.g., "$25" → 25.00), format to 2 decimals, positive only.
+  2. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
+  - Normalize the price: extract numbers (e.g., "$25" → 25.00), 2 decimals, positive only.
 
 **State 2: Collect Exclusivity and Order System**
 * IF isExclusive is not yet known:
@@ -33,37 +33,39 @@ Evaluate what information you currently have and take the appropriate action:
   2. If the tool fails, prompt: "I ran into an issue loading the lead type fields.\n\nPlease try again." **STOP AND YIELD.** Do not hallucinate data.
 
 * IF stateFieldUID is missing:
-  1. Detect the state field from leadFields using this priority:
+  1. Detect the state field from leadFields:
      - Priority 1: leadFieldSpecialBit in {'State', 'StandardState'}
      - Priority 2: leadFieldName = "state" (case-insensitive)
      - Priority 3: leadFieldName contains "state" (substring)
-     Do not process lower tiers once matched. If confidence is low (<5%), confirm the correct field with the user.
+     Do not process lower tiers once matched. If confidence is low, confirm with the user.
   2. Retain stateFieldUID.
-  3. If ambiguous, prompt the user to confirm which field represents the state. Present a compact selector. **STOP AND YIELD.** Do not hallucinate data.
+  3. If ambiguous, prompt the user to confirm which field represents the state. **STOP AND YIELD.** Do not hallucinate data.
 
 * IF targetStates is missing:
   1. Prompt the user exactly as follows: "Which states do you want to target? (e.g., CA, AZ, TX)"
   2. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
-  - Normalize target states to uppercase USPS codes (e.g., California → CA). Accept any separator.
+  - Normalize to uppercase USPS codes (e.g., California → CA).
 
-**State 4: Ask About Additional Criteria**
+**State 4: Create Account with State-Only Criteria**
+* IF deliveryAccountUID is missing:
+  1. Call the get_usa_states tool. Match normalized targetStates to the returned list (match abbreviation, exact, case-insensitive). Collect stateUID values.
+  2. Serialize as pipe-delimited string: stateUIDArray.join('|').
+  3. Build criteriaPayload with the state criterion:
+     `[{leadFieldUID: stateFieldUID, type: "FieldValue", operator: "In", value: "<pipe-delimited stateUID string>"}]`
+  4. Call the create_delivery_account tool with these defaults:
+     `clientUID={clientUID}, createDeliveryAccountDto={deliveryMethodUID={deliveryMethodUID}, price={price}, deliveryAccountType="WebAndChatLeads", status="Open", name="{companyName}-Account", automationEnabled=true, isExclusive={isExclusive}, useOrder={useOrder}, dayMax=50, hourMax=-1, weekMax=-1, monthMax=-1, criteria={criteriaPayload}}`
+  5. If the tool fails, repair and retry once silently. If still fails, prompt: "I ran into an issue creating the delivery account.\n\nPlease try again." **STOP AND YIELD.** Do not hallucinate data.
+  6. Retain: deliveryAccountUID, price, targetStates, isExclusive, useOrder.
+
+**State 5: Ask About Additional Criteria**
 * IF additionalCriteriaChoice is not yet known:
   1. Prompt the user exactly as follows: "Would you like to add additional lead criteria, or skip?"
   2. Present the choice using display_adaptive_card with an ActionSet: "Add criteria" | "Skip".
-  3. **STOP AND YIELD.** Do not hallucinate data. Do not proceed. You must wait for the user to respond.
+  3. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
 
-**State 5: Skip Criteria — Create Account and Summarize**
-* IF the user selected "Skip" OR said "none", "skip", or "no" AND deliveryAccountUID is missing:
+* IF the user selected "Skip" OR said "none", "skip", or "no":
   1. Retain additionalCriteria = "None".
-  2. Call the get_usa_states tool. Match the normalized targetStates to the returned USA-state list (match abbreviation against targetStates, exact match, case-insensitive). Collect the corresponding stateUID values.
-  3. Create stateUIDArray by collecting all matched stateUID values. Serialize as pipe-delimited string: stateUIDArray.join('|').
-  4. Build criteriaPayload with only the state criterion:
-     `[{leadFieldUID: stateFieldUID, type: "FieldValue", operator: "In", value: "<pipe-delimited stateUID string>"}]`
-  5. Call the create_delivery_account tool with these defaults:
-     `clientUID={clientUID}, createDeliveryAccountDto={deliveryMethodUID={deliveryMethodUID}, price={price}, deliveryAccountType="WebAndChatLeads", status="Open", name="{companyName}-Account", automationEnabled=true, isExclusive={isExclusive}, useOrder={useOrder}, dayMax=50, hourMax=-1, weekMax=-1, monthMax=-1, criteria={criteriaPayload}}`
-  6. If the tool fails, repair and retry once silently. If still fails, prompt: "I ran into an issue creating the delivery account.\n\nPlease try again." **STOP AND YIELD.** Do not hallucinate data.
-  7. Retain: deliveryAccountUID, price, targetStates, additionalCriteria, isExclusive, useOrder.
-  8. Immediately call the summarize_history tool.
+  2. Immediately call the summarize_history tool.
 
 * IF the user selected "Add criteria" OR said "yes", "add", or "criteria":
   - Load mcp://resource/rw-phase-5c-criteria-builder (no summarize — leadFields stays in working memory)
@@ -74,7 +76,7 @@ When calling summarize_history:
 - **start_anchor_substring:** "DELIVERY_SETUP_START"
 - **summarization_text:** Format exactly as follows:
 
-```
+```text
 # Current System State
 * Flow Intent: {flowIntent}
 * Client UID: {clientUID}

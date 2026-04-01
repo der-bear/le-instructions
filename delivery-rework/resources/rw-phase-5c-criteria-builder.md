@@ -1,10 +1,10 @@
-# Phase 5: Criteria Builder
+# Phase 5c: Criteria Builder
 
-**CRITICAL STATE UPDATE:** You have successfully fetched the Phase 5 criteria-builder resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute State 1.
+**CRITICAL STATE UPDATE:** You have successfully fetched the Phase 5c criteria-builder resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute State 1.
 
-Your objective is to handle the additional-criteria loop (show more fields, parse criteria, handle enum selections), then build the final criteria payload, create the delivery account, and hand off to Phase 6.
+Your objective is to collect additional criteria from the user and update the existing delivery account. The account already exists (deliveryAccountUID is known) — use `update_delivery_account` to add criteria.
 
-CRITICAL: Every criterion the user adds must be preserved in the final payload. Do NOT overwrite parsedCriteriaList — always APPEND to it.
+CRITICAL: Every criterion the user adds must be preserved. Do NOT overwrite parsedCriteriaList — always APPEND to it.
 
 ## Instructions
 
@@ -30,8 +30,8 @@ Evaluate what information you currently have and take the appropriate action:
      - ELSE: ActionSet with "Skip"
   6. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
   - IF the user selects "Skip" from the suggestions card:
-    1. Set additionalCriteriaChoice = "Skip" so Phase 5 routes to the skip path.
-    2. Load mcp://resource/rw-phase-5-create-delivery-account — Phase 5 State 5 will handle account creation with state-only criteria.
+    1. Retain additionalCriteria = "None".
+    2. Immediately call the summarize_history tool.
 
 **State 2: Parse Typed Criterion or Show More Fields**
 
@@ -54,7 +54,7 @@ When parsing a criterion, follow these rules:
 5. Enumerated field handling:
    - MUST use "In" or "NotIn" only. If another operator was parsed, set it to "In".
    - Single-select only (no multi-select).
-   - If user provided values: validate against leadFieldEnums (fuzzy >85%, case-insensitive). Auto-correct casing if match found. If no match or low confidence, show the ChoiceSet selector.
+   - If user provided values: validate against leadFieldEnums (fuzzy >85%, case-insensitive). If no match, show ChoiceSet.
    - ChoiceSet: Input.ChoiceSet with style=compact, placeholder="Select a value". Choices from leadFieldEnums with value=leadFieldEnumUID, title=value. Include Action.Submit.
    - The selected leadFieldEnumUID is stored as a string in parsedCriteria.value.
 6. Parsed criteria object format: `{leadFieldUID: <integer>, type: "FieldValue", operator: <string>, value: <string>}`
@@ -69,39 +69,35 @@ When parsing a criterion, follow these rules:
   3. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
 
 * IF the user provided a criterion directly:
-  1. Parse the criterion using the Criteria Parsing Rules above.
+  1. Parse the criterion using the rules above.
   2. IF no field matches confidently: prompt exactly: "I couldn't find that field. Please type the field name you'd like to use, or say 'show fields' to see all available options." **STOP AND YIELD.** Do not hallucinate data.
   3. IF the matched field is enumerated AND the user did not provide a valid enum value:
-     - Force the operator to "In" or "NotIn" only. If the parsed operator is anything else, set it to "In".
-     - Retain enumFieldName and enumFieldOperator (now corrected).
+     - Force the operator to "In" or "NotIn" only. If anything else, set to "In".
+     - Retain enumFieldName and enumFieldOperator.
      - Prompt exactly: "I see you want to filter by {fieldName}.\nPlease select a value:"
-     - Display the ChoiceSet selector per the enum rules above.
+     - Display the ChoiceSet selector.
      - **STOP AND YIELD.** Do not hallucinate data. Proceed to State 3 when the user selects a value.
-  4. IF the matched field is enumerated AND the user mentioned only the field name (no operator or value):
+  4. IF the matched field is enumerated AND the user mentioned only the field name:
      - Retain enumFieldName, set enumFieldOperator="In".
      - Prompt exactly: "Please select a value for {fieldName}:"
-     - Display the ChoiceSet selector per the enum rules above.
+     - Display the ChoiceSet selector.
      - **STOP AND YIELD.** Do not hallucinate data. Proceed to State 3 when the user selects a value.
-  5. ELSE IF the matched field is enumerated AND the user provided a value that fuzzy-matches an enum entry (>85%, case-insensitive):
-     - Force the operator to "In" or "NotIn" only. If the parsed operator is anything else, set it to "In".
-     - Resolve the matched enum entry's leadFieldEnumUID. Use this UID (as a string) for the criteria value — do NOT use the raw user text.
-     - Create the parsed criteria object with value=leadFieldEnumUID.
-     - Append it to parsedCriteriaList.
-     - Create a plain-English summary (translate operator to friendly text, e.g., GreaterOrEqual → "at least").
-     - Append it to criteriaSummaryList.
+  5. ELSE IF the matched field is enumerated AND the user provided a value that fuzzy-matches (>85%):
+     - Force operator to "In" or "NotIn" only.
+     - Resolve to leadFieldEnumUID. Use this UID as the value.
+     - Create parsed criteria object. Append to parsedCriteriaList.
+     - Create plain-English summary. Append to criteriaSummaryList.
      - Proceed to State 4.
   6. ELSE (non-enum field):
-     - Create the parsed criteria object.
-     - Append it to parsedCriteriaList.
-     - Create a plain-English summary (translate operator to friendly text, e.g., GreaterOrEqual → "at least").
-     - Append it to criteriaSummaryList.
+     - Create parsed criteria object. Append to parsedCriteriaList.
+     - Create plain-English summary. Append to criteriaSummaryList.
      - Proceed to State 4.
 
 **State 3: Accept Enum Selection**
 * IF enumFieldName is known AND the user has selected a value (enumFieldChoice):
-  1. Create the parsed criteria object: leadFieldUID from the matched field, type="FieldValue", operator={enumFieldOperator}, value={enumFieldChoice} (this is the leadFieldEnumUID as a string).
-  2. Append it to parsedCriteriaList.
-  3. Create a plain-English summary. Append to criteriaSummaryList.
+  1. Create parsed criteria object: leadFieldUID from matched field, type="FieldValue", operator={enumFieldOperator}, value={enumFieldChoice} (the leadFieldEnumUID as string).
+  2. Append to parsedCriteriaList.
+  3. Create plain-English summary. Append to criteriaSummaryList.
   4. Clear: enumFieldName, enumFieldOperator, enumFieldChoice.
   5. Proceed to State 4.
 
@@ -116,19 +112,14 @@ When parsing a criterion, follow these rules:
   - IF user selects "Show more fields": go back to State 2 show-fields logic.
   - IF user selects "Continue" OR says "continue", "done", or "no": proceed to State 5.
 
-**State 5: Build Payload, Create Account, and Summarize**
-* IF the user chose to continue AND deliveryAccountUID is missing:
-  1. Build additionalCriteria: join all criteriaSummaryList entries with "; " if criteria exist, otherwise "None".
-  2. Call the get_usa_states tool. Match the normalized targetStates to the returned USA-state list (match abbreviation, exact match, case-insensitive). Collect the corresponding stateUID values.
-  3. Create stateUIDArray by collecting all matched stateUID values. Serialize as pipe-delimited string: stateUIDArray.join('|').
-  4. Build criteriaPayload array:
-     - FIRST element: the state criterion: `{leadFieldUID: stateFieldUID, type: "FieldValue", operator: "In", value: "<pipe-delimited stateUID string>"}`
-     - REMAINING elements: every item from parsedCriteriaList, in order.
-  5. Call the create_delivery_account tool with these defaults:
-     `clientUID={clientUID}, createDeliveryAccountDto={deliveryMethodUID={deliveryMethodUID}, price={price}, deliveryAccountType="WebAndChatLeads", status="Open", name="{companyName}-Account", automationEnabled=true, isExclusive={isExclusive}, useOrder={useOrder}, dayMax=50, hourMax=-1, weekMax=-1, monthMax=-1, criteria={criteriaPayload}}`
-  6. If the tool fails, repair and retry once silently. If still fails, prompt: "I ran into an issue creating the delivery account.\n\nPlease try again." **STOP AND YIELD.** Do not hallucinate data.
-  7. Retain: deliveryAccountUID, price, targetStates, additionalCriteria, isExclusive, useOrder.
-  8. Immediately call the summarize_history tool.
+**State 5: Update Account with Additional Criteria and Summarize**
+* IF the user chose to continue:
+  1. Build additionalCriteria: join criteriaSummaryList entries with "; ".
+  2. Call the update_delivery_account tool to add the parsed criteria to the existing account:
+     `deliveryAccountUID={deliveryAccountUID}, criteria={parsedCriteriaList}`
+  3. If the tool fails, repair and retry once silently. If still fails, prompt: "I ran into an issue updating the delivery account.\n\nPlease try again." **STOP AND YIELD.** Do not hallucinate data.
+  4. Retain: additionalCriteria.
+  5. Immediately call the summarize_history tool.
 
 ## Summarization Requirements
 
@@ -136,7 +127,7 @@ When calling summarize_history:
 - **start_anchor_substring:** "DELIVERY_SETUP_START"
 - **summarization_text:** Format exactly as follows:
 
-```
+```text
 # Current System State
 * Flow Intent: {flowIntent}
 * Client UID: {clientUID}
