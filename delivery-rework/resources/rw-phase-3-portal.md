@@ -39,5 +39,5 @@ When calling summarize_history:
 * Mapped Count: 0
 * Total Count: 0
 # Next Instructions
-Fetch and execute instructions from: mcp://resource/rw-phase-4-delivery-method-summary
+Load mcp://resource/rw-phase-4-delivery-method-summary
 ```

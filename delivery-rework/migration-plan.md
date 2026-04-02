@@ -1,4 +1,8 @@
-# Delivery-Rework Migration Plan
+# Delivery-Rework Migration Plan (SUPERSEDED)
+
+> **Note:** The stage-by-stage implementation plan below was written for the first rework attempt, which was scrapped and replaced with a lean imperative rewrite. The bug list and baseline data sections remain valid reference. For the current architecture, see `ARCHITECTURE.md`.
+
+---
 
 ## Summary
 

@@ -13,7 +13,7 @@ Display boolean values with context-appropriate labels:
 Evaluate what information you currently have and take the appropriate action:
 
 **State 1: Show Summary Card (Do this first)**
-* IF the user has not yet acknowledged the summary card:
+* IF accountSummaryChoice is missing:
   1. Display the following adaptive card using the display_adaptive_card tool:
 
 ```json

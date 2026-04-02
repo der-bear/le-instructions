@@ -106,5 +106,5 @@ When calling summarize_history:
 * Is Exclusive: {isExclusive}
 * Use Order: {useOrder}
 # Next Instructions
-Fetch and execute instructions from: mcp://resource/rw-phase-6-delivery-account-summary
+Load mcp://resource/rw-phase-6-delivery-account-summary
 ```

@@ -62,5 +62,5 @@ When calling summarize_history:
 * Total Count: {totalCount}
 * Connection Test Mode: webhook
 # Next Instructions
-Fetch and execute instructions from: mcp://resource/rw-phase-4-delivery-method-summary
+Load mcp://resource/rw-phase-4-delivery-method-summary
 ```

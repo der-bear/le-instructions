@@ -43,5 +43,5 @@ When calling summarize_history:
 * Time Zone Name: Pacific Standard Time
 * Time Offset: -8
 # Next Instructions
-Fetch and execute instructions from: mcp://resource/rw-phase-2-get-lead-types
+Load mcp://resource/rw-phase-2-get-lead-types
 ```

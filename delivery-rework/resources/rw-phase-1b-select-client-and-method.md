@@ -52,5 +52,5 @@ When calling summarize_history:
 * Delivery Method Name: {deliveryMethodName}
 * Lead Type UID: {leadTypeUID}
 # Next Instructions
-Fetch and execute instructions from: mcp://resource/rw-phase-5-create-delivery-account
+Load mcp://resource/rw-phase-5-create-delivery-account
 ```

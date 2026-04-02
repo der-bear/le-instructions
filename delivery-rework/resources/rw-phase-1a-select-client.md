@@ -40,5 +40,5 @@ When calling summarize_history:
 * Time Zone Name: {timeZoneName}
 * Time Offset: {timeOffset}
 # Next Instructions
-Fetch and execute instructions from: mcp://resource/rw-phase-2-get-lead-types
+Load mcp://resource/rw-phase-2-get-lead-types
 ```
