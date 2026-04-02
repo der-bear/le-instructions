@@ -1,6 +1,8 @@
-# Phase 1: Create Client
-
-**CRITICAL STATE UPDATE:** You have successfully fetched the Phase 1 resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute State 1.
+═══════════════════════════════════════
+CURRENT PHASE: Phase 1 — Create Client
+All prior phase summaries are completed history.
+Execute ONLY the instructions below.
+═══════════════════════════════════════
 
 Your objective is to collect the company name and contact email, create the client, and hand off to Phase 2.
 
@@ -33,7 +35,9 @@ When calling summarize_history:
 - **start_anchor_substring:** "DELIVERY_SETUP_START"
 - **summarization_text:** Format exactly as follows:
 
-```
+```text
+# Phase 1 Complete — Client Created
+
 # Current System State
 * Flow Intent: full-setup
 * Client UID: {clientUID}
@@ -42,6 +46,8 @@ When calling summarize_history:
 * Client Status: New
 * Time Zone Name: Pacific Standard Time
 * Time Offset: -8
+
 # Next Instructions
-Load mcp://resource/rw-phase-2-get-lead-types
+→ Load and execute Phase 2 at mcp://resource/rw-phase-2-get-lead-types
 ```
+

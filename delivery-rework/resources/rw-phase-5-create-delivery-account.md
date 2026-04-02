@@ -1,6 +1,8 @@
-# Phase 5: Create Delivery Account
-
-**CRITICAL STATE UPDATE:** You have successfully fetched the Phase 5 resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute State 1.
+═══════════════════════════════════════
+CURRENT PHASE: Phase 5 — Delivery Account Setup
+All prior phase summaries are completed history.
+Execute ONLY the instructions below.
+═══════════════════════════════════════
 
 Your objective is to collect account basics, create the delivery account with state-targeting criteria, then ask about additional criteria.
 
@@ -77,6 +79,8 @@ When calling summarize_history:
 - **summarization_text:** Format exactly as follows:
 
 ```text
+# Phase 5 Complete — Delivery Account Created
+
 # Current System State
 * Flow Intent: {flowIntent}
 * Client UID: {clientUID}
@@ -105,6 +109,8 @@ When calling summarize_history:
 * Additional Criteria: {additionalCriteria}
 * Is Exclusive: {isExclusive}
 * Use Order: {useOrder}
+
 # Next Instructions
-Load mcp://resource/rw-phase-6-delivery-account-summary
+→ Load and execute Phase 6 at mcp://resource/rw-phase-6-delivery-account-summary
 ```
+

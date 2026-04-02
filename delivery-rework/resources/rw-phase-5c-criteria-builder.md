@@ -1,10 +1,15 @@
-# Phase 5c: Criteria Builder
-
-**CRITICAL STATE UPDATE:** You have successfully fetched the Phase 5c criteria-builder resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute State 1.
+═══════════════════════════════════════
+CURRENT PHASE: Phase 5c — Criteria Builder
+Phase 5 instructions above are complete. Execute ONLY the below.
+═══════════════════════════════════════
 
 Your objective is to collect additional criteria from the user and update the existing delivery account. The account already exists (deliveryAccountUID is known) — use `update_delivery_account` to add criteria.
 
 CRITICAL: Every criterion the user adds must be preserved. Do NOT overwrite parsedCriteriaList — always APPEND to it.
+
+GLOBAL EXIT RULE: If at any YIELD point the user says "skip", "done", "continue", "none", or "no" instead of providing a criterion or selecting a value:
+- IF criteriaSummaryList is not empty → proceed to State 5 (update account with collected criteria, then summarize).
+- IF criteriaSummaryList is empty → set additionalCriteriaChoice = "Skip", load mcp://resource/rw-phase-5-create-delivery-account — Phase 5 will handle the skip and summarize.
 
 ## Instructions
 
@@ -24,14 +29,11 @@ Evaluate what information you currently have and take the appropriate action:
      - parsedCriteriaList = [] (empty array)
      - criteriaSummaryList = [] (empty array)
   3. CRITICAL: You MUST display the field suggestions prompt below. Do NOT skip this step.
-  4. Prompt the user exactly as follows: "Based on your {leadTypeName} lead type, here are the most common criteria fields:\n\nRecommended Fields:\n\n• {list suggestedFields}\n{if extraFieldCount > 0: \"\nThere are \" + extraFieldCount + \" more fields available.\n\nWould you like to add criteria, see more fields, or skip?\" else: \"\nWould you like to add criteria or skip?\"}"
+  4. Prompt the user exactly as follows: "Based on your {leadTypeName} lead type, here are the most common criteria fields:\n\nRecommended Fields:\n\n• {list suggestedFields}\n{if extraFieldCount > 0: "\nThere are " + extraFieldCount + " more fields available.\n\nYou can type a criterion directly, show more fields, or skip." else: "\nYou can type a criterion directly or skip."}"
   5. Present the choice using display_adaptive_card:
      - IF extraFieldCount > 0: ActionSet with "Show more fields" | "Skip"
      - ELSE: ActionSet with "Skip"
   6. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
-  - IF the user selects "Skip" from the suggestions card:
-    1. Retain additionalCriteria = "None".
-    2. Immediately call the summarize_history tool.
 
 **State 2: Parse Typed Criterion or Show More Fields**
 
@@ -62,15 +64,13 @@ When parsing a criterion, follow these rules:
 * IF the user selected "Show more fields" OR asked to see more fields:
   1. Prompt the user exactly as follows: "Additional Fields (showing up to 10):\n\n• {list extraFields}"
   2. Present the choice using display_adaptive_card:
-     - IF criteriaSummaryList is empty AND more extra fields remain: ActionSet with "Show more fields" | "Skip"
-     - IF criteriaSummaryList is empty AND no more extra fields: ActionSet with "Skip"
-     - IF criteriaSummaryList is not empty AND more extra fields remain: ActionSet with "Show more fields" | "Continue"
-     - IF criteriaSummaryList is not empty AND no more extra fields: ActionSet with "Continue"
+     - IF criteriaSummaryList is empty: ActionSet with "Show more fields" | "Skip"
+     - IF criteriaSummaryList is not empty: ActionSet with "Show more fields" | "Continue"
   3. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
 
 * IF the user provided a criterion directly:
   1. Parse the criterion using the rules above.
-  2. IF no field matches confidently: prompt exactly: "I couldn't find that field. Please type the field name you'd like to use, or say 'show fields' to see all available options." **STOP AND YIELD.** Do not hallucinate data.
+  2. IF no field matches confidently: prompt exactly: "I couldn't find that field. Please type the field name you'd like to use, say 'show fields' to see all available options, or say 'skip' to continue without additional criteria." **STOP AND YIELD.** Do not hallucinate data.
   3. IF the matched field is enumerated AND the user did not provide a valid enum value:
      - Force the operator to "In" or "NotIn" only. If anything else, set to "In".
      - Retain enumFieldName and enumFieldOperator.
@@ -128,6 +128,8 @@ When calling summarize_history:
 - **summarization_text:** Format exactly as follows:
 
 ```text
+# Phase 5c Complete — Criteria Added
+
 # Current System State
 * Flow Intent: {flowIntent}
 * Client UID: {clientUID}
@@ -156,6 +158,7 @@ When calling summarize_history:
 * Additional Criteria: {additionalCriteria}
 * Is Exclusive: {isExclusive}
 * Use Order: {useOrder}
+
 # Next Instructions
-Load mcp://resource/rw-phase-6-delivery-account-summary
+→ Load and execute Phase 6 at mcp://resource/rw-phase-6-delivery-account-summary
 ```

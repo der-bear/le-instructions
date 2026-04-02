@@ -1,6 +1,8 @@
-# Phase 3b: Webhook Connection Test
-
-**CRITICAL STATE UPDATE:** You have successfully fetched the Phase 3b resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute State 1.
+═══════════════════════════════════════
+CURRENT PHASE: Phase 3b — Webhook Connection Test
+All prior phase summaries are completed history.
+Execute ONLY the instructions below.
+═══════════════════════════════════════
 
 Your objective is to optionally test the webhook connection, then hand off to Phase 4.
 
@@ -41,6 +43,8 @@ When calling summarize_history:
 - **summarization_text:** Format exactly as follows:
 
 ```text
+# Phase 3b Complete — Webhook Connection Tested
+
 # Current System State
 * Flow Intent: {flowIntent}
 * Client UID: {clientUID}
@@ -61,6 +65,8 @@ When calling summarize_history:
 * Mapped Count: {mappedCount}
 * Total Count: {totalCount}
 * Connection Test Mode: webhook
+
 # Next Instructions
-Load mcp://resource/rw-phase-4-delivery-method-summary
+→ Load and execute Phase 4 at mcp://resource/rw-phase-4-delivery-method-summary
 ```
+

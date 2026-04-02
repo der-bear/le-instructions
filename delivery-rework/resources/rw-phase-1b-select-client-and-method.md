@@ -1,6 +1,8 @@
-# Phase 1b: Select Client and Delivery Method
-
-**CRITICAL STATE UPDATE:** You have successfully fetched the Phase 1b resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute State 1.
+═══════════════════════════════════════
+CURRENT PHASE: Phase 1b — Select Client & Method
+All prior phase summaries are completed history.
+Execute ONLY the instructions below.
+═══════════════════════════════════════
 
 Your objective is to collect a valid client and delivery-method selection, then hand off directly to Phase 5 (bypassing Phases 1-3).
 
@@ -19,7 +21,7 @@ Evaluate what information you currently have and take the appropriate action:
   - If the user types a value instead of clicking the card, match it against clientsList. If the result is ambiguous or low confidence, re-display the selector with the prompt: "I couldn't match that selection.\n\nWhich client would you like to create a delivery account for?" and **STOP AND YIELD.** Do not hallucinate data.
 
 **State 2: Missing Delivery Method Selection**
-* IF clientUID is known AND deliveryMethodUID is missing:
+* IF clientUID is known AND (deliveryMethodUID is missing OR deliveryMethodName is missing OR leadTypeUID is missing):
   1. Call the get_client(clientUID) tool to retrieve: companyName, email, clientStatus, timeZoneName, timeOffset.
   2. If the tool fails, prompt: "I ran into an issue loading that client.\n\nPlease try again." **STOP AND YIELD.** Do not hallucinate data.
   3. Call the get_delivery_methods(clientUID) tool to retrieve the deliveryMethodsList. From the response, extract: deliveryMethodUID, deliveryMethodName (from data.name), and leadTypeUID (from data.leadTypeUID).
@@ -39,7 +41,9 @@ When calling summarize_history:
 - **start_anchor_substring:** "DELIVERY_SETUP_START"
 - **summarization_text:** Format exactly as follows:
 
-```
+```text
+# Phase 1b Complete — Client & Method Selected
+
 # Current System State
 * Flow Intent: {flowIntent}
 * Client UID: {clientUID}
@@ -51,6 +55,8 @@ When calling summarize_history:
 * Delivery Method UID: {deliveryMethodUID}
 * Delivery Method Name: {deliveryMethodName}
 * Lead Type UID: {leadTypeUID}
+
 # Next Instructions
-Load mcp://resource/rw-phase-5-create-delivery-account
+→ Load and execute Phase 5 at mcp://resource/rw-phase-5-create-delivery-account
 ```
+

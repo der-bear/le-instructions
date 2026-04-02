@@ -1,6 +1,8 @@
-# Phase 3: Email Delivery Method
-
-**CRITICAL STATE UPDATE:** You have successfully fetched the Phase 3 Email resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute State 1.
+═══════════════════════════════════════
+CURRENT PHASE: Phase 3 Email — Create Email Method
+All prior phase summaries are completed history.
+Execute ONLY the instructions below.
+═══════════════════════════════════════
 
 Your objective is to create the Email delivery method and hand off directly to Phase 4 (no connection test needed for Email).
 
@@ -20,7 +22,9 @@ When calling summarize_history:
 - **start_anchor_substring:** "DELIVERY_SETUP_START"
 - **summarization_text:** Format exactly as follows:
 
-```
+```text
+# Phase 3 Complete — Email Method Created
+
 # Current System State
 * Flow Intent: {flowIntent}
 * Client UID: {clientUID}
@@ -38,6 +42,8 @@ When calling summarize_history:
 * Delivery Schedule Display: {deliveryScheduleDisplay}
 * Mapped Count: 0
 * Total Count: 0
+
 # Next Instructions
-Load mcp://resource/rw-phase-4-delivery-method-summary
+→ Load and execute Phase 4 at mcp://resource/rw-phase-4-delivery-method-summary
 ```
+

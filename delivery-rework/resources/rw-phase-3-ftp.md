@@ -1,6 +1,8 @@
-# Phase 3: FTP Delivery Method
-
-**CRITICAL STATE UPDATE:** You have successfully fetched the Phase 3 FTP resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute State 1.
+═══════════════════════════════════════
+CURRENT PHASE: Phase 3 FTP — Create FTP Method
+All prior phase summaries are completed history.
+Execute ONLY the instructions below.
+═══════════════════════════════════════
 
 Your objective is to collect FTP credentials, create the FTP delivery method, and hand off to Phase 3b for connection testing.
 
@@ -25,7 +27,9 @@ When calling summarize_history:
 - **start_anchor_substring:** "DELIVERY_SETUP_START"
 - **summarization_text:** Format exactly as follows:
 
-```
+```text
+# Phase 3 Complete — FTP Method Created
+
 # Current System State
 * Flow Intent: {flowIntent}
 * Client UID: {clientUID}
@@ -46,6 +50,8 @@ When calling summarize_history:
 * Mapped Count: 0
 * Total Count: 0
 * Connection Test Mode: ftp
+
 # Next Instructions
-Load mcp://resource/rw-phase-3a-ftp-test
+→ Load and execute Phase 3a at mcp://resource/rw-phase-3a-ftp-test
 ```
+

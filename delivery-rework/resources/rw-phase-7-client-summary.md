@@ -1,6 +1,8 @@
-# Phase 7: Client Summary
-
-**CRITICAL STATE UPDATE:** You have successfully fetched the Phase 7 resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute State 1.
+═══════════════════════════════════════
+CURRENT PHASE: Phase 7 — Client Summary
+All prior phase summaries are completed history.
+Execute ONLY the instructions below.
+═══════════════════════════════════════
 
 Your objective is to display the final setup summary card and collect the user's activation choice. Do NOT call summarize_history in this phase — it adds no new state.
 
@@ -17,9 +19,9 @@ Evaluate what information you currently have and take the appropriate action:
 ```
 
   2. Replace all {variable} placeholders with current retained values.
-  3. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to click Activate or Keep Inactive.
+  3. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
 
 **State 2: Route to Activation**
-* IF the user clicked "Activate" OR "Keep Inactive":
+* IF the user said "Activate" or "Keep Inactive":
   - Retain clientSummaryChoice with the user's selection.
   - Load mcp://resource/rw-phase-8-activation

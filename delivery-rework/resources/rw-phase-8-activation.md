@@ -1,6 +1,8 @@
-# Phase 8: Activation
-
-**CRITICAL STATE UPDATE:** You have successfully fetched the Phase 8 resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute the appropriate state.
+═══════════════════════════════════════
+CURRENT PHASE: Phase 8 — Activation
+All prior phase summaries are completed history.
+Execute ONLY the instructions below.
+═══════════════════════════════════════
 
 Your objective is to either activate the client or confirm they remain inactive. Do NOT suggest any next steps after either terminal branch.
 
@@ -18,10 +20,11 @@ Evaluate what information you currently have and take the appropriate action:
      - Prompt the user exactly as follows: "✓ Setup complete. Your lead delivery system is now \"ACTIVE\" for {companyName}."
      - End the conversation. Do not suggest any next steps.
   4. IF activation fails:
-     - Prompt the user exactly as follows: "We encountered an issue activating the client. Would you like to try again?"
-     - Present the choice using display_adaptive_card with an ActionSet: "Retry activation".
+     - Prompt the user exactly as follows: "We encountered an issue activating the client.\n\nWould you like to try again, or keep the client inactive?"
+     - Present the choice using display_adaptive_card with an ActionSet: "Retry activation" | "Keep Inactive".
      - **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
-     - IF the user clicks "Retry activation": repeat step 2 (call update_client again with ALL fields and a freshly generated password). If it fails again, show the same retry prompt.
+     - IF the user said "Retry activation": repeat step 2 (call update_client again with ALL fields and a freshly generated password). If it fails again, show the same retry prompt.
+     - IF the user said "Keep Inactive": proceed to State 2.
 
 **State 2: Keep Client Inactive**
 * IF clientSummaryChoice = "Keep Inactive":

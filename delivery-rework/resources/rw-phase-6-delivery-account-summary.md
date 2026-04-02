@@ -1,6 +1,8 @@
-# Phase 6: Delivery Account Summary
-
-**CRITICAL STATE UPDATE:** You have successfully fetched the Phase 6 resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute State 1.
+═══════════════════════════════════════
+CURRENT PHASE: Phase 6 — Delivery Account Summary
+All prior phase summaries are completed history.
+Execute ONLY the instructions below.
+═══════════════════════════════════════
 
 Your objective is to display the delivery-account summary card and route based on the user's flow intent. Do NOT call summarize_history in this phase — it adds no new state.
 
@@ -23,12 +25,12 @@ Evaluate what information you currently have and take the appropriate action:
   2. Replace all {variable} placeholders with current retained values. Set isExclusiveDisplay and useOrderDisplay per the boolean display rules above.
   3. IF flowIntent = "full-setup": set buttonTitle="Continue" and buttonAction="Continue".
   4. ELSE: set buttonTitle="Done" and buttonAction="Done".
-  5. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to click the button.
+  5. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
 
 **State 2: Route or Complete**
-* IF flowIntent = "full-setup" AND the user clicked "Continue":
+* IF flowIntent = "full-setup" AND the user said "Continue" or "done":
   - Load mcp://resource/rw-phase-7-client-summary
 
-* IF flowIntent is NOT "full-setup" AND the user clicked "Done":
+* IF flowIntent is NOT "full-setup" AND the user said "Done" or "continue":
   1. Prompt the user exactly as follows: "✓ Your delivery account is ready to use for {companyName}."
   2. End the conversation for this branch. Do not suggest any next steps.

@@ -1,6 +1,8 @@
-# Phase 1a: Select Client
-
-**CRITICAL STATE UPDATE:** You have successfully fetched the Phase 1a resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute State 1.
+═══════════════════════════════════════
+CURRENT PHASE: Phase 1a — Select Client
+All prior phase summaries are completed history.
+Execute ONLY the instructions below.
+═══════════════════════════════════════
 
 Your objective is to collect a valid client selection, load the client profile, and hand off to Phase 2.
 
@@ -30,7 +32,9 @@ When calling summarize_history:
 - **start_anchor_substring:** "DELIVERY_SETUP_START"
 - **summarization_text:** Format exactly as follows:
 
-```
+```text
+# Phase 1a Complete — Client Selected
+
 # Current System State
 * Flow Intent: {flowIntent}
 * Client UID: {clientUID}
@@ -39,6 +43,8 @@ When calling summarize_history:
 * Client Status: {clientStatus}
 * Time Zone Name: {timeZoneName}
 * Time Offset: {timeOffset}
+
 # Next Instructions
-Load mcp://resource/rw-phase-2-get-lead-types
+→ Load and execute Phase 2 at mcp://resource/rw-phase-2-get-lead-types
 ```
+

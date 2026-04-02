@@ -1,6 +1,8 @@
-# Phase 3: Webhook Delivery Method
-
-**CRITICAL STATE UPDATE:** You have successfully fetched the Phase 3 webhook resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute State 1.
+═══════════════════════════════════════
+CURRENT PHASE: Phase 3 Webhook — Webhook Delivery Method
+All prior phase summaries are completed history.
+Execute ONLY the instructions below.
+═══════════════════════════════════════
 
 Your objective is to collect webhook configuration, optionally build field mappings, create the delivery method, and hand off to Phase 3b.
 
@@ -110,7 +112,9 @@ When calling summarize_history:
 - **start_anchor_substring:** "DELIVERY_SETUP_START"
 - **summarization_text:** Format exactly as follows:
 
-```
+```text
+# Phase 3 Complete — Webhook Method Created
+
 # Current System State
 * Flow Intent: {flowIntent}
 * Client UID: {clientUID}
@@ -131,6 +135,8 @@ When calling summarize_history:
 * Mapped Count: {mappedCount}
 * Total Count: {totalCount}
 * Connection Test Mode: webhook
+
 # Next Instructions
-Load mcp://resource/rw-phase-3b-webhook-test
+→ Load and execute Phase 3b at mcp://resource/rw-phase-3b-webhook-test
 ```
+

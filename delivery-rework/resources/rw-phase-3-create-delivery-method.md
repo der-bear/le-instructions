@@ -1,6 +1,8 @@
-# Phase 3: Delivery Method Router
-
-**CRITICAL STATE UPDATE:** You have successfully fetched the Phase 3 resource. DO NOT call the get_resource tool again for this phase. You must now read the instructions below and execute State 1.
+═══════════════════════════════════════
+CURRENT PHASE: Phase 3 — Delivery Method Router
+All prior phase summaries are completed history.
+Execute ONLY the instructions below.
+═══════════════════════════════════════
 
 Your objective is to collect the delivery schedule, collect the delivery type, and route to the correct method-specific resource. Do NOT create a delivery method in this router. Do NOT call summarize_history in this router.
 
@@ -12,11 +14,12 @@ Evaluate what information you currently have and take the appropriate action:
 * IF deliveryScheduleChoice is missing:
   1. Prompt the user exactly as follows: "First, let's set the delivery schedule.\n\nWould you like leads delivered 24/7, or only during specific hours?"
   2. Present the choice using display_adaptive_card with an ActionSet: "24/7 delivery" | "Specific hours only".
-  3. **STOP AND YIELD.** Do not hallucinate data. Do not proceed to State 2. You must wait for the user to respond.
+  3. **STOP AND YIELD.** Do not hallucinate data. Do not proceed to State 1b or State 2. You must wait for the user to respond.
 
-  * IF deliveryScheduleChoice = "Specific hours only" AND scheduleInput is missing:
-    - Prompt the user exactly as follows: "Please describe your preferred delivery schedule.\n\n(e.g., Mon-Fri 9am-5pm PST)"
-    - **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
+**State 1b: Collect Specific Schedule**
+* IF deliveryScheduleChoice = "Specific hours only" AND scheduleInput is missing:
+  1. Prompt the user exactly as follows: "Please describe your preferred delivery schedule.\n\n(e.g., Mon-Fri 9am-5pm PST)"
+  2. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
 
 **State 2: Build Schedule and Ask Delivery Type**
 * IF deliveryDays is missing:
@@ -47,3 +50,8 @@ Evaluate what information you currently have and take the appropriate action:
 
 * IF deliveryTypeChoice = "Webhook":
   - Load mcp://resource/rw-phase-3-webhook
+
+* IF deliveryTypeChoice does not match any known type:
+  - Clear deliveryTypeChoice.
+  - Re-display the delivery type prompt and ActionSet from State 2.
+  - **STOP AND YIELD.** Do not hallucinate data.
