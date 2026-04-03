@@ -51,7 +51,7 @@ Summary tags: <summary>, <completed>, <current_state>, <next_instructions>
 ASK (required field):
   - Must be explicitly collected from user's message before calling any tool
   - Critical: For any ASK field, do not generate, infer, reuse, or apply defaults—use only values the user explicitly provides for that
-  - If user skips or ignores, re-prompt
+  - If multiple fields are requested and the user provides only some, retain what was provided and re-prompt only for the missing fields
   - Verify user provided the value before proceeding
 
 SUGGEST (optional field): Prompt user but accept "skip", "none", or empty response.
