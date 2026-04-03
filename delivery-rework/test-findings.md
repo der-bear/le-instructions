@@ -625,11 +625,65 @@ New findings:
 
 ---
 
-## Root Cause Analysis
+## Post-Fix Live Test Results (Round 2)
 
-Most issues trace to **four root causes**:
+### Context
 
-1. **State machine non-compliance** (F5, F6, F7, F8, F13, F29, F33, F34): The LLM doesn't evaluate states sequentially. It batches, skips, reorders, or loses context entirely. The "Evaluate what information you currently have" instruction is too open-ended. This is the #1 issue — affects data integrity.
+After the first round of live tests (T01-T12), the State→Step conversion was applied to Phase 5 to address F5 (state order wrong) and F6 (target states skipped). The conversion replaced "State 1/2/3/4" headers with "Step 1-N" numbering within each state to enforce within-state ordering.
+
+### T1 Post-Fix — Full-Setup, Portal, 24/7, Skip Criteria
+
+| Step | Expected | Actual | Finding |
+|------|----------|--------|---------|
+| Phase 5 Step 1: Price | Ask first | ✓ Asked first | F5 FIXED (within-state) |
+| Phase 5 Step 2: Exclusivity | Ask second | ✓ Asked second | F5 FIXED (within-state) |
+| Phase 5 Step 3: Order | Ask third | ✓ Asked third | F5 FIXED (within-state) |
+| Phase 5 State 2: Load fields | Silent tool call | **SKIPPED** | F6 NOT FIXED |
+| Phase 5 State 2: Detect state field | Silent | **SKIPPED** | F6 NOT FIXED |
+| Phase 5 State 2: Target states | Ask user | **SKIPPED** | F6 NOT FIXED |
+| Phase 5 State 3: Create account | Silent tool call | **SKIPPED** | F44 — account creation skipped |
+| Phase 5 State 4: Criteria gate | Ask user | ✓ Jumped directly here from State 1 | Cross-state skip confirmed |
+
+**What was fixed**: Within-state step ordering now works perfectly. Price→Exclusivity→Order executes in correct sequence every time.
+
+**What was NOT fixed**: Cross-state skipping. After completing State 1's three user-facing steps, the LLM jumps directly to State 4 (criteria gate), skipping States 2 (load fields + target states) and 3 (create account) entirely.
+
+### New Findings (F44)
+
+| # | Issue | Severity | Description |
+|---|-------|----------|-------------|
+| F44 | Account creation skipped (cross-state) | CRITICAL | State 3 (create_delivery_account tool call) was never executed. LLM skips from State 1 (last user prompt) to State 4 (next user prompt), treating silent tool-call states as optional. |
+
+### Additional Observations
+
+- **F42 FIXED**: Phase 7 summary no longer shows internal UIDs (deliveryMethodUID, etc.)
+- **Phase 4 summary cosmetic**: Shows "Field Mappings: 0 of 0" for Portal/Email/FTP delivery types — should be hidden for non-webhook types (not a data issue, cosmetic only)
+- **Phase 2 update in progress**: Being updated to use `display_lead_types_choice` tool (agent running separately)
+
+---
+
+## Root Cause Analysis (Updated)
+
+### Primary Root Cause: Multi-State Architecture vs Flat Linear Script
+
+The stabilized original (`delivery-original-stabilized/resources/phase-5-create-delivery-account.md`) has **NO states at all**. It is a flat linear script:
+
+```
+PROMPT → WAIT → PROMPT → WAIT → PROMPT → WAIT → TOOL → PROMPT → WAIT → TOOL → TOOL → TOOL → PROMPT → WAIT
+```
+
+Tool calls are **inline** between user prompts — there is no separate "State" boundary between collecting user input and executing silent tool calls. The LLM reads top-to-bottom and executes each line in sequence.
+
+The rework groups silent tool calls into separate States (State 2: load fields, State 3: create account). The LLM treats these as **optional/skippable blocks** because:
+- They have no user-facing prompt at the top
+- The LLM naturally seeks the next user interaction point
+- State boundaries create "jump targets" — the LLM sees State 4's user prompt and skips to it
+
+This explains why:
+- **Within-state ordering works** (Steps 1-3 in State 1 are all user prompts — linear, no skip targets)
+- **Cross-state skipping persists** (States 2-3 are silent blocks — the LLM jumps over them to State 4's user prompt)
+
+### Secondary Root Causes (Unchanged)
 
 2. **Adaptive card construction** (F1, F4, F11, F14, F15, F23, F26, F27, F28): The LLM inconsistently uses adaptive cards. Sometimes renders ChoiceSet, sometimes plain text for the same prompt. JSON Table templates never render as proper tables. Action.Submit data merges with ChoiceSet values.
 
@@ -639,12 +693,58 @@ Most issues trace to **four root causes**:
 
 ---
 
+## Fix Plan: Flatten Phase 5 Into Single-State Linear Script
+
+### Problem
+
+Phase 5 currently has 4 States. States 2 and 3 contain only silent tool calls (no user prompts). The LLM skips these entirely, jumping from State 1 (last user prompt) to State 4 (next user prompt).
+
+### Solution
+
+Merge States 1-4 into a **single state** with Steps 1-10, matching the stabilized original's flat linear approach:
+
+| Step | Type | Action |
+|------|------|--------|
+| Step 1 | User prompt | Collect Price |
+| Step 2 | User prompt | Collect Exclusivity (ActionSet) |
+| Step 3 | User prompt | Collect Order System (ActionSet) |
+| Step 4 | Silent tool call | `get_lead_type(leadTypeUID)` — load lead fields |
+| Step 5 | Silent processing | Detect state field from leadFields |
+| Step 6 | User prompt | Collect target states |
+| Step 7 | Silent tool call | `get_usa_states()` — match states to UIDs |
+| Step 8 | Silent processing | Build criteria payload |
+| Step 9 | Silent tool call | `create_delivery_account` |
+| Step 10 | User prompt | Criteria gate ("Add criteria" / "Skip") |
+
+### Why This Works
+
+The stabilized original proves that **inline silent tool calls between user prompts are NOT skipped**. The LLM follows `PROMPT → WAIT → TOOL → PROMPT` linearly. It only skips when tool calls are **segregated into a separate State block** with no user prompt anchor.
+
+By removing State boundaries:
+- No jump targets for the LLM to skip to
+- Silent tool calls are "sandwiched" between user prompts
+- Linear top-to-bottom execution, same as the working original
+
+### Phases to Apply This Pattern
+
+- **Phase 5** (create delivery account) — most critical, F6 100% failure rate
+- **Phase 3 Webhook** (field mapping) — States with silent processing also get skipped (F41)
+- **Phase 3 FTP** — credentials skipped (F38), likely same multi-state issue
+- **Any phase** with silent-only States between user-facing States
+
+### Risks
+
+- Longer single-state instructions may hit token limits in some phases
+- If the LLM still skips inline tool calls, the root cause is different (but the original proves inline works)
+
+---
+
 ## Comparison: Original vs Rework Live Behavior
 
 | Aspect | Original | Rework |
 |--------|----------|--------|
 | Target states | Always asked | **Never asked — hallucinated** |
-| State order | Always correct (linear script) | Non-deterministic |
+| State order | Always correct (linear script) | Non-deterministic (fixed within-state, broken cross-state) |
 | Table cards | Render as proper tables | Always plain text |
 | ChoiceSet | Always renders | Non-deterministic (sometimes plain text) |
 | Field suggestions | Always shown before criteria | **Skipped** |
@@ -654,3 +754,85 @@ Most issues trace to **four root causes**:
 | Enum fields | ChoiceSet with enum values | Plain text "provide value" |
 | Submit labels | Clean button text | `action: X` data shown as messages |
 | Flow integrity | Never regresses | Can regress to wrong phase (T04) |
+| Account creation | Always executes | **Skipped when in silent-only State (F44)** |
+
+---
+
+## Post-Fix Live Test Results (Round 3 — After State→Step Conversion)
+
+### T1 Post-Fix — Portal, 24/7, Skip Criteria, Keep Inactive
+
+| Step | Pre-fix Result | Post-fix Result | Status |
+|------|---------------|-----------------|--------|
+| Phase 1 | ✓ | ✓ | SAME |
+| Phase 2 ChoiceSet | ✓ (sometimes) | ✓ (dropdown shown) | SAME |
+| Phase 3 Schedule | ✓ | ✓ | SAME |
+| Phase 3 Portal | ✓ | ✓ | SAME |
+| Phase 4 Summary | Plain text | Plain text | SAME (F4) |
+| **Phase 5 Price FIRST** | Sometimes skipped/reordered | **✓ ASKED FIRST** | **FIXED (F5)** |
+| **Phase 5 Exclusivity** | Sometimes wrong order | **✓ Asked second** | **FIXED** |
+| **Phase 5 Order System** | Sometimes skipped | **✓ Asked third** | **FIXED** |
+| **Phase 5 Target States** | SKIPPED (hallucinated CA) | **STILL SKIPPED** | **NOT FIXED (F6)** |
+| Phase 5 Account Creation | SKIPPED | **STILL SKIPPED** | **NOT FIXED** |
+| Phase 5 Criteria Gate | Plain text (sometimes) | ActionSet buttons ✓ | **FIXED (F24)** |
+| Phase 7 UIDs | Shown (ID: 12345) | **Removed** | **FIXED (F42)** |
+| Phase 8 | ✓ | ✓ | SAME |
+
+### T2 Post-Fix — Webhook, Specific Hours, "I'm Not Sure" Auto-Detect, Complex Nested JSON
+
+| Step | Pre-fix Result | Post-fix Result | Status |
+|------|---------------|-----------------|--------|
+| Phase 3 State 1b (specific hours) | ✓ | ✓ | SAME |
+| Webhook URL prompt | ✓ (sometimes) | ✓ | SAME |
+| Mapping choice | ✓ (sometimes) | ✓ | SAME |
+| Content type as plain text | Non-deterministic | **Still plain text (no card)** | NOT FIXED (F26) |
+| **Auto-detect "I'm not sure"** | FAILED (regressed to Phase 2) | **✓ WORKED — detected JSON** | **FIXED (F34)** |
+| **Auto-detect confirmation** | Never reached | **✓ "Continue with JSON" / "Switch"** | **FIXED** |
+| **Mapping preview shown** | Sometimes text, sometimes skipped | **✓ Table card with Continue** | **IMPROVED** |
+| Field mapping (25 fields) | N/A | 20/20 mapped | **NEW ISSUES** |
+| Duplicate field mappings | N/A | state→ContactState AND PropertyState | **NEW (F44)** |
+| Ambiguous fields asked | Never | **Still auto-resolved** | NOT FIXED (F30) |
+
+### New Findings from Post-Fix Testing (F44-F48)
+
+| # | Issue | Severity | Description |
+|---|-------|----------|-------------|
+| F44 | Phase 5 States 2+3 still skipped | CRITICAL | State→Step conversion fixed WITHIN-state ordering but NOT cross-state skipping. States 2 (load fields + target states) and 3 (create account) still skipped every time. Root cause: separate States with silent tool calls get skipped — need flat format like stabilized version. |
+| F45 | Duplicate field mappings | MEDIUM | Same delivery field "state" mapped to both ContactState AND PropertyState. "zip" mapped to both ContactZip and PropertyZip. A delivery field should map to exactly one system field. |
+| F46 | Content type card still non-deterministic | MEDIUM | Content type ActionSet ("URL Encoded / JSON / XML / I'm not sure") sometimes renders as plain text (no buttons). User must type response. |
+| F47 | Posting instructions auto-fix too weak | MEDIUM | From original screenshot: user pasted JSON as XML content → correctly detected mismatch. But after switching to JSON, same data failed parse again. AI should try harder to fix broken JSON (missing braces, trailing content) before refusing. |
+| F48 | Request body format should preserve user's structure | LOW | The rework instructions say to preserve the user's posted structure in requestBody template, but the field mapping doesn't show dot notation for nested fields (e.g., "lead.contact.first_name") — uses flat names instead. Original used dot notation. |
+
+### What IMPROVED vs Pre-Fix
+
+1. **F5 FIXED**: Phase 5 within-State-1 ordering now correct (Price→Exclusivity→Order) — was wrong 75% of time
+2. **F34 FIXED**: Auto-detect "I'm not sure" now works — was causing flow regression to Phase 2 in 50% of webhook tests  
+3. **F24 FIXED**: Criteria gate shows ActionSet card — was plain text
+4. **F42 FIXED**: Phase 7 no longer shows UIDs
+5. **Mapping preview works**: Shown as card with Continue button for JSON
+6. **State 1b (specific hours) works**: Schedule collection prompt reachable
+
+### What's STILL BROKEN
+
+1. **F44/F6 CRITICAL**: Phase 5 States 2+3 (target states + account creation) still 100% skipped
+2. **F46/F26**: Content type card non-deterministic (sometimes plain text)
+3. **F30**: Ambiguous fields auto-resolved without asking user
+4. **F4**: Table cards still render as plain text (not proper tables)
+5. **F45**: Duplicate field mappings for same delivery field
+6. **F47**: Auto-fix for broken posting instructions too weak
+
+### Root Cause of F44 (States 2+3 Skipped)
+
+The stabilized version has NO states at all — it's a flat linear script:
+```
+PROMPT: price → WAIT
+PROMPT: exclusivity → WAIT
+PROMPT: order → WAIT
+TOOL: get_lead_type (inline, not in a separate state)
+PROMPT: target states → WAIT
+```
+
+The rework groups silent tool calls into "State 2" — a separate block the LLM treats as optional because it has no user-facing prompt at the top. The LLM scans all states, sees State 4 has a user prompt, and jumps to it — skipping silent States 2+3.
+
+**Fix**: Merge all states into ONE flat state with Steps 1-10. No state boundaries to skip across. This matches the stabilized version's proven approach.
+
