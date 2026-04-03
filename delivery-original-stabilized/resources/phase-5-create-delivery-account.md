@@ -4,6 +4,8 @@ All prior phase summaries are completed history.
 Execute ONLY the instructions below.
 Follow steps in order from top to bottom. Do NOT skip ahead.
 ═══════════════════════════════════════
+ 
+STEP 1:
 
  PROMPT: "Finally, let's set up your Delivery Account.\n\nPlease provide the price per lead."
  ASK [conversational]: price
@@ -14,10 +16,14 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
  ASK [adaptive_card]: ActionSet (Exclusive | Shared)
  WAIT for user choice
 
+STEP 2:
+
  IF "Exclusive":
    isExclusive = true
  ELSE:
    isExclusive = false
+
+STEP 3:
 
  PROMPT: "Would you like to enable the Order System for this client?"
  ASK [adaptive_card]: ActionSet (Yes | No)
@@ -28,9 +34,13 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
  ELSE:
    useOrder = false
 
+STEP 4:
+
  TOOL: get_lead_type(leadTypeUID) → data.leadTypeName as leadTypeName, data.leadFields as leadFields
  RETAIN: leadTypeName, leadFields
  PROCESS: Detect state field from leadFields priority: 1) leadFieldSpecialBit in {'State','StandardState'} 2) leadFieldName='state' (case-insensitive) 3) leadFieldName contains 'state'. Remember as stateFieldUID.
+
+STEP 5:
 
  PROMPT: "Which states do you want to target? (e.g., CA, AZ, TX)"
  ASK [conversational]: targetStates
@@ -39,18 +49,21 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
 
  CRITICAL: Field suggestion steps below are MANDATORY. Do NOT skip.
 
- PROCESS (Silent - Build Field Suggestions):
+ STEP 6:
+
+ PROCESS (Build Field Suggestions):
    - Build field suggestion lists:
-       - Exclude contact/personal information lead fields
+       - Exclude contact/personal information lead fields, ids
        - Exclude state field where leadFieldUID = stateFieldUID (already collected)
-       - Prioritize top relevant industry-specific lead qualification business criteria
+       - Prioritize the most relevant industry-specific criteria for lead qualification and segmentation
        - RETAIN:
            suggestedFields = first 5 leadFieldName (or all if fewer)
            extraFields = next 10 leadFieldName (or fewer if not available)
            extraFieldCount = total remaining field count
            leadFieldsMap = {leadFieldName → {leadFieldUID, leadFieldDataType, isEnumerated, leadFieldEnums, leadFieldSpecialBit}}
 
- CRITICAL: MUST display the field suggestions prompt below. Do NOT skip this step.
+ STEP 7:
+
  PROMPT (MANDATORY): "Based on your {leadTypeName} lead type, here are the most common criteria fields:\n\nRecommended Fields:\n\n• {list suggestedFields}\n{if extraFieldCount > 0: "\nThere are " + extraFieldCount + " more fields available.\n\nWould you like to add criteria, see more fields, or skip?" else: "\nWould you like to add criteria or skip?"}"
  ASK [adaptive_card]: ActionSet (Show more fields | Skip) if extraFieldCount > 0, else ActionSet (Skip)
  WAIT for user choice
@@ -65,6 +78,8 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
 
  CRITICAL: The Criteria Loop MUST repeat until the user EXPLICITLY selects "Continue" or says "continue"/"done"/"no". After each criterion is added, always re-enter the loop to ask for more. Do NOT exit the loop automatically after adding a criterion.
 
+STEP 8:
+
  PROCESS (Criteria Loop):
    - PROMPT: "Would you like to add another criterion, see more fields, or continue?"
    - SUGGEST [adaptive_card]: ActionSet (Show more fields | Continue) if extraFieldCount > 0, else ActionSet (Continue)
@@ -75,6 +90,8 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
        SUGGEST [adaptive_card]: ActionSet (Show more fields | Continue) if extraFieldCount > 0, else ActionSet (Continue)
        LOOP BACK to start of Criteria Loop
    - ONLY IF selects "Continue" OR says "continue"/"done"/"no" → create summary string from criteriaList ("; " separated or "None" if empty) → RETAIN additionalCriteria (string) → GO TO Build Criteria Array
+
+STEP 9:
 
  PROCESS (Criteria Parsing):
    - Parse natural language to operator keywords (minimum/at least→GreaterOrEqual, exactly→Equal, etc.)
@@ -134,6 +151,8 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
    - APPEND this parsedCriteria to criteriaPayload array (do NOT overwrite previous entries)
    - Add display entry to criteriaList array for summary display
 
+STEP 10:
+
  PROCESS (Build Criteria Array):
      NOTE: State fields allow multiple values via conversational input. Enumerated fields use single-select only.
 
@@ -146,6 +165,8 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
      - Create state criterion object: {leadFieldUID: stateFieldUID, type: "FieldValue", operator: "In", value: (pipe-delimited stateUID string)}
      - Insert state criterion as the FIRST element of criteriaPayload array (before any additional criteria already in the array)
      - RETAIN criteriaPayload
+
+STEP 11:
 
  TOOL: create_delivery_account → data as deliveryAccountUID
  TOOL_DEFAULTS: clientUID={clientUID}, createDeliveryAccountDto={deliveryMethodUID={deliveryMethodUID}, price={price}, deliveryAccountType="WebAndChatLeads", status="Open", name="{companyName}-Account", automationEnabled=true, isExclusive={isExclusive}, useOrder={useOrder}, dayMax=50, hourMax=-1, weekMax=-1, monthMax=-1, criteria={criteriaPayload}}

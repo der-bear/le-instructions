@@ -121,7 +121,7 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
                IF "Skip mapping": skipFieldMapping = true
            - Store valid schema structure
 
-       PROCESS (Silent - Field Mapping & RequestBody Generation):
+       PROCESS (Field Mapping & RequestBody Generation):
          - Extract field names from postingInstructions
          - Fuzzy match to leadFields (of selected lead type) in the following priority: exact match → underscore/CamelCase variations → abbreviations → semantic mapping (>90% confidence only).
          - If multiple fields match at the same priority level, prompt the user to select the correct field from the candidates.
