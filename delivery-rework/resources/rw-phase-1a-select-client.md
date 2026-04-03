@@ -15,8 +15,9 @@ Evaluate what information you currently have and take the appropriate action:
 * IF clientUID is missing:
   1. Call the get_clients tool to retrieve the clientsList.
   2. If clientsList is empty, prompt: "I couldn't find any clients.\n\nPlease create a client before continuing." **STOP AND YIELD.** Do not hallucinate data.
-  3. Prompt the user exactly as follows: "Which client would you like to create a delivery method for?"
-  4. Present the client list using the display_adaptive_card tool with an Input.ChoiceSet (style=compact) showing companyName as the display value and clientUID as the value.
+  3. Present the client list using display_adaptive_card:
+     - TextBlock: "Which client would you like to create a delivery method for?"
+     - Input.ChoiceSet (style=compact, placeholder="Select a client", choices from clientsList with title=companyName, value=clientUID) + Action.Submit.
   5. **STOP AND YIELD.** Do not hallucinate data. Do not proceed to State 2. Do not call the summarize_history tool. You must wait for the user to select a client.
   - If the user types a value instead of clicking the card, match it against clientsList. If the result is ambiguous or low confidence, re-display the selector with the prompt: "I couldn't match that selection.\n\nWhich client would you like to create a delivery method for?" and **STOP AND YIELD.** Do not hallucinate data.
 

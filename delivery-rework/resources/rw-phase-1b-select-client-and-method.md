@@ -15,8 +15,9 @@ Evaluate what information you currently have and take the appropriate action:
 * IF clientUID is missing:
   1. Call the get_clients tool to retrieve the clientsList.
   2. If clientsList is empty, prompt: "I couldn't find any clients.\n\nPlease create a client before continuing." **STOP AND YIELD.** Do not hallucinate data.
-  3. Prompt the user exactly as follows: "Which client would you like to create a delivery account for?"
-  4. Present the client list using the display_adaptive_card tool with an Input.ChoiceSet (style=compact) showing companyName as the display value and clientUID as the value.
+  3. Present the client list using display_adaptive_card:
+     - TextBlock: "Which client would you like to create a delivery account for?"
+     - Input.ChoiceSet (style=compact, placeholder="Select a client", choices from clientsList with title=companyName, value=clientUID) + Action.Submit.
   5. **STOP AND YIELD.** Do not hallucinate data. Do not proceed to State 2. Do not call the summarize_history tool. You must wait for the user to select a client.
   - If the user types a value instead of clicking the card, match it against clientsList. If the result is ambiguous or low confidence, re-display the selector with the prompt: "I couldn't match that selection.\n\nWhich client would you like to create a delivery account for?" and **STOP AND YIELD.** Do not hallucinate data.
 
@@ -26,8 +27,9 @@ Evaluate what information you currently have and take the appropriate action:
   2. If the tool fails, prompt: "I ran into an issue loading that client.\n\nPlease try again." **STOP AND YIELD.** Do not hallucinate data.
   3. Call the get_delivery_methods(clientUID) tool to retrieve the deliveryMethodsList. From the response, extract: deliveryMethodUID, deliveryMethodName (from data.name), and leadTypeUID (from data.leadTypeUID).
   4. If deliveryMethodsList is empty, prompt: "I couldn't find any delivery methods for this client.\n\nPlease create a delivery method before adding a delivery account." **STOP AND YIELD.** Do not hallucinate data.
-  5. Prompt the user exactly as follows: "Which delivery method would you like to use?"
-  6. Present the delivery methods using the display_adaptive_card tool with an Input.ChoiceSet (style=compact) showing deliveryMethodName as the display value and deliveryMethodUID as the value.
+  5. Present the delivery method list using display_adaptive_card:
+     - TextBlock: "Which delivery method would you like to use?"
+     - Input.ChoiceSet (style=compact, placeholder="Select a delivery method", choices from deliveryMethodsList with title=deliveryMethodName, value=deliveryMethodUID) + Action.Submit.
   7. **STOP AND YIELD.** Do not hallucinate data. Do not proceed to State 3. Do not call the summarize_history tool. You must wait for the user to select a delivery method.
   - If the user types a value instead of clicking the card, match it against deliveryMethodsList. If the result is ambiguous or low confidence, re-display the selector with the prompt: "I couldn't match that selection.\n\nWhich delivery method would you like to use?" and **STOP AND YIELD.** Do not hallucinate data.
 
