@@ -544,6 +544,87 @@ The rework is **significantly less reliable** than the original in live testing:
 
 ---
 
+## T12 — Rework Webhook JSON (FAILED — skipped entire mapping flow)
+
+| Step | Expected | Actual | Finding |
+|------|----------|--------|---------|
+| Webhook URL | Collect URL | Agent asked "webhook test response text" instead of URL prompt | F43 |
+| Field mapping choice | "I'll provide instructions / Skip" | **SKIPPED entirely** | F41 |
+| Method creation | After mapping | **Auto-created immediately with no mappings** | F41 |
+| Connection test | Ask user | **Auto-ran without asking** | F41 |
+| Internal UID | Hidden | **Showed "Delivery method UID: 46863"** | F42 |
+
+New findings:
+- **F41**: Webhook flow skipped mapping choice, auto-created method, auto-tested — entire webhook flow compressed into one step
+- **F42**: Internal deliveryMethodUID exposed to user (violates "hide technical details" global rule)
+- **F43**: Webhook URL treated as "test response text" — hallucinated prompt
+
+---
+
+## ORIG-T13 — Original Webhook Comparison Test
+
+**Purpose**: Compare original behavior with same inputs as rework tests.
+
+| Step | Original Behavior | Rework Comparison |
+|------|-------------------|-------------------|
+| Phase 1 | Correct prompt, created client (after email collision retry) | Same ✓ |
+| Phase 2 | ChoiceSet with "Select" button | Rework: ChoiceSet with "Continue" button (F1 merged data both versions) |
+| Phase 3 Schedule | 24/7 buttons ✓ | Same ✓ |
+| Phase 3 Delivery Type | Webhook ✓ | Same ✓ |
+| Webhook URL | "What's your webhook URL?" ✓ | Rework T12: skipped/hallucinated (F41/F43) |
+| Mapping choice | "I'll provide instructions / Skip for now" ✓ | Rework T12: skipped (F41) |
+| Content type | JSON ✓ | Rework: same when it gets here |
+| JSON parsing | Parsed nested JSON, mapped 10/19 fields | Rework T03: mapped 14/14 (overcounted, F32) |
+| Ambiguous fields | **Not asked** (same as rework) | Same — both auto-resolve |
+| Field count | **10 of 19** (counts ALL fields) ✓ | Rework: 14 of 14 (only mapped, F32) |
+| Dot notation | lead.contact.first_name ✓ | Rework: flat names (first_name) |
+| Mapping preview | Card with Continue button ✓ | Rework T03: text, not table (F4) |
+| Connection test | Plain text "Test Connection / Skip" (no card) | Same inconsistency in both versions |
+| Phase 4 summary | Table card ✓ | Rework: plain text (F4) |
+| Phase 5 Price | **ASKED FIRST** ✓✓✓ | Rework: skipped or asked 2nd/3rd (F5) |
+| Phase 5 Exclusivity | Asked second ✓ | Rework: sometimes first |
+| Phase 5 Order | Asked third ✓ | Rework: sometimes skipped |
+| Phase 5 Target States | **Agent hung at get_lead_type call (3+ min)** | Rework: SKIPPED entirely (F6) |
+
+**Critical finding from ORIG-T13**: The original also hung at the get_lead_type step after Order System. This suggests the **API call itself is slow/unreliable**, not just the instructions. The rework's LLM may skip State 3 partly because it's learned that get_lead_type is slow. However, the original at least GETS to this point correctly before hanging, while the rework never tries.
+
+**Also confirmed**: F1 (ChoiceSet merged data) and F23 (submit data visible as messages) exist in the ORIGINAL too — these are platform issues, not rework-specific.
+
+---
+
+## Updated Findings Summary (F1-F43)
+
+### CRITICAL (data integrity / flow-breaking)
+| # | Issue | Rework-only? | Frequency |
+|---|-------|-------------|-----------|
+| F6 | Target states never asked | **Yes** — original asks (but may hang) | 100% of rework |
+| F38 | FTP credentials skipped | **Yes** | 100% of FTP |
+| F34 | Webhook flow regresses to Phase 2 | **Yes** | 50% of webhook |
+| F29 | Agent stuck on enum prompt | **Yes** | 100% of enum |
+| F37 | Broken XML hangs agent | **Unknown** — not tested in original | 100% of XML |
+| F41 | Webhook mapping flow skipped entirely | **Yes** | 25% of webhook |
+
+### HIGH (wrong behavior / bad UX)
+| # | Issue | Rework-only? | Frequency |
+|---|-------|-------------|-----------|
+| F5 | Phase 5 state order wrong | **Yes** | 75% of rework |
+| F4 | Table cards as plain text | **Yes** | 100% of rework |
+| F8 | Field suggestions never shown | **Yes** | 100% of criteria |
+| F27 | Criteria loop plain text | **Yes** | 100% of criteria |
+| F28 | Enum field no ChoiceSet | **Yes** | 100% of enum |
+| F42 | Internal UID exposed | **Yes** | Intermittent |
+| F43 | URL treated as test response | **Yes** | Intermittent |
+
+### MEDIUM (both versions or cosmetic)
+| # | Issue | Rework-only? |
+|---|-------|-------------|
+| F1 | ChoiceSet merged data | **No** — both versions |
+| F23 | Submit data visible as messages | **No** — both versions |
+| F30 | Ambiguous fields auto-resolved | **No** — both versions |
+| F32 | Wrong field count (mapped only) | **Yes** — original counts all |
+
+---
+
 ## Root Cause Analysis
 
 Most issues trace to **four root causes**:
