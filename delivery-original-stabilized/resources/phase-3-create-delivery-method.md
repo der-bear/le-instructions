@@ -12,7 +12,7 @@ Execute ONLY the instructions below.
    PROMPT: "Please describe your preferred delivery schedule.\n\n(e.g., Mon-Fri 9am-5pm PST)"
    ASK [conversational]: scheduleInput
    WAIT for user input
-   PROCESS: Parse scheduleInput per <data_normalization> rules
+   PROCESS (Normalize schedule): Parse natural language to ISO format with timezone. Use current year's date (YYYY-01-01) + time + timezone offset (use retained timeOffset if available, otherwise default to -8 for PST). Example: "9am-5pm" with timeOffset=-8 → startTime: "2025-01-01T09:00:00-08:00", endTime: "2025-01-01T17:00:00-08:00"
 
    BUILD deliveryDays array with EXACTLY 7 entries (weekDay 0-6, one for each day of week):
      - User-specified days: allow=true with their startTime/endTime
@@ -37,6 +37,7 @@ Execute ONLY the instructions below.
    PROMPT: "What's your webhook URL where we should send the leads?"
    ASK [conversational]: deliveryAddress
    WAIT for user input
+   PROCESS (Normalize URL): prepend https:// if missing
 
    PROMPT: "Would you like to configure field mappings?\n\nIf you have posting instructions or API documentation, I can automatically extract the field mappings."
    SUGGEST [adaptive_card]: ActionSet (I'll provide instructions | Skip for now)

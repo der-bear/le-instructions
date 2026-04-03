@@ -7,6 +7,7 @@ Execute ONLY the instructions below.
  PROMPT: "Finally, let's set up your Delivery Account.\n\nPlease provide the price per lead."
  ASK [conversational]: price
  WAIT for user input
+ PROCESS (Normalize price): extract numbers ("$25"→25.00), 2 decimals, positive only
 
  PROMPT: "Will this client receive exclusive or shared leads?"
  ASK [adaptive_card]: ActionSet (Exclusive | Shared)
@@ -41,6 +42,7 @@ Execute ONLY the instructions below.
  PROMPT: "Which states do you want to target? (e.g., CA, AZ, TX)"
  ASK [conversational]: targetStates
  WAIT for user input
+ PROCESS (Normalize states): normalize to uppercase USPS codes (California→CA)
  
  CRITICAL: Field suggestion steps are MANDATORY. You MUST execute all steps below before proceeding to Build Criteria Array. Do NOT skip field suggestions.
 
@@ -85,7 +87,7 @@ Execute ONLY the instructions below.
    - Parse natural language to operator keywords (minimum/at least→GreaterOrEqual, exactly→Equal, etc.)
    - Match field leadFieldName (fuzzy >90%)
    - Lookup matched field metadata from leadFields: leadFieldUID, leadFieldDataType, isEnumerated, leadFieldEnums, leadFieldSpecialBit
-   - Extract values (comma/or-separated, normalize per <data_normalization>)
+   - Extract values (comma/or-separated)
    - Validate operator compatibility (check in priority order):
        PRIORITY 1 - Special flags override dataType:
          - IF isEnumerated=true: ONLY "In", "NotIn"
@@ -142,7 +144,7 @@ Execute ONLY the instructions below.
  PROCESS (Build Criteria Array):
      NOTE: State fields allow multiple values via conversational input. Enumerated fields use single-select only.
 
-     - Normalize targetStates to uppercase USPS codes (per <data_normalization>)
+     - Normalize targetStates to uppercase USPS codes (California→CA)
      - TOOL: get_usa_states() → returns array [{stateUID, abbr, name}, ...]
      - Filter returned array: match abbr against targetStates (exact match, case-insensitive)
      - Extract stateUID from each matched state object

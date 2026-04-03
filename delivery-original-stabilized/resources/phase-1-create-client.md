@@ -7,6 +7,7 @@ Execute ONLY the instructions below.
  PROMPT: "Great - first we'll set up your Client, Delivery Method, and Delivery Account.\n\nTo create a new client, please provide:\n\n1. Company Name\n2. Contact Email"
  ASK [conversational]: companyName, email
  WAIT for user input
+ PROCESS (Normalize email): strip whitespace, lowercase the domain portion
  TOOL: create_client → data as clientUID
  TOOL_DEFAULTS: createClientDto={companyName={companyName}, email={email}, clientStatus="New", clientAutomationType="Price", username={email}, password={generate-password}, timeZoneName="Pacific Standard Time", timeOffset=-8}
  CRITICAL: createClientDto must be passed as an object, NOT a JSON string

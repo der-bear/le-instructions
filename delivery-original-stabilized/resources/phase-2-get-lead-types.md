@@ -4,9 +4,8 @@ All prior phase summaries are completed history.
 Execute ONLY the instructions below.
 ═══════════════════════════════════════
 
- TOOL: get_lead_types → data as leadTypesList (leadTypeName, leadTypeUID)
  PROMPT: "Please select a Lead Type for this client."
- ASK [adaptive_card]: leadTypeName (leadTypeUID) (ActionSet if≤4, Input.ChoiceSet with style=compact if>4)
+ TOOL: display_lead_types_choice
  WAIT for user choice
  RETAIN: leadTypeUID, leadTypeName
 
