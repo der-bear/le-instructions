@@ -2,6 +2,7 @@
 <current_phase>Phase 1 — Create Client</current_phase>
 All prior phase summaries are completed history.
 Execute ONLY the instructions below.
+Follow steps in order from top to bottom. Do NOT skip ahead.
 ═══════════════════════════════════════
 
  PROMPT: "Great - first we'll set up your Client, Delivery Method, and Delivery Account.\n\nTo create a new client, please provide:\n\n1. Company Name\n2. Contact Email"

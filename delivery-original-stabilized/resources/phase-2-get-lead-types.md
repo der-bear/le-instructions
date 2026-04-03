@@ -2,6 +2,7 @@
 <current_phase>Phase 2 — Lead Type Selection</current_phase>
 All prior phase summaries are completed history.
 Execute ONLY the instructions below.
+Follow steps in order from top to bottom. Do NOT skip ahead.
 ═══════════════════════════════════════
 
  PROMPT: "Please select a Lead Type for this client."

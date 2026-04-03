@@ -2,6 +2,7 @@
 <current_phase>Phase 8 — Activation</current_phase>
 All prior phase summaries are completed history.
 Execute ONLY the instructions below.
+Follow steps in order from top to bottom. Do NOT skip ahead.
 ═══════════════════════════════════════
 
  IF "Activate":

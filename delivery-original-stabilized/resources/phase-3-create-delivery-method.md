@@ -2,6 +2,7 @@
 <current_phase>Phase 3 — Create Delivery Method</current_phase>
 All prior phase summaries are completed history.
 Execute ONLY the instructions below.
+Follow steps in order from top to bottom. Do NOT skip ahead.
 ═══════════════════════════════════════
 
  PROMPT: "First, let's set the delivery schedule.\n\nWould you like leads delivered 24/7, or only during specific hours?"
