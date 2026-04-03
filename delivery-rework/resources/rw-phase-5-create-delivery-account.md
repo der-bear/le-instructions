@@ -30,11 +30,11 @@ Step 3: Collect Order System
   **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
   Map: "Yes" → useOrder=true, "No" → useOrder=false. If the user types "yes" or "no" as text, accept it directly.
 
-Step 4: Load Lead Fields (silent — no user prompt)
+Step 4: Load Lead Fields
   Call the get_lead_type(leadTypeUID) tool and retain: leadTypeName, leadFields.
   If the tool fails, prompt: "I ran into an issue loading the lead type fields.\n\nPlease try again." **STOP AND YIELD.** Do not hallucinate data.
 
-Step 5: Detect State Field (silent — no user prompt)
+Step 5: Detect State Field
   Detect the state field from leadFields:
   - Priority 1: leadFieldSpecialBit in {'State', 'StandardState'}
   - Priority 2: leadFieldName = "state" (case-insensitive)
@@ -47,20 +47,20 @@ Step 6: Collect Target States
   **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
   Normalize to uppercase USPS codes (e.g., California → CA).
 
-Step 7: Match States and Build Criteria (silent — no user prompt unless failure)
+Step 7: Match States and Build Criteria
   Call the get_usa_states tool. Match normalized targetStates to the returned list (match abbreviation, exact, case-insensitive). Collect ALL matched stateUID values into stateUIDArray.
   If no states matched, prompt: "None of those matched valid US states. Please re-enter your target states (e.g., CA, AZ, TX)." **STOP AND YIELD.** Re-normalize and re-match.
   Serialize stateUIDArray as pipe-delimited string: stateUIDArray.join('|').
   Build criteriaPayload with the state criterion as the FIRST element:
   `[{leadFieldUID: stateFieldUID, type: "FieldValue", operator: "In", value: "<pipe-delimited stateUID string>"}]`
 
-Step 8: Create Delivery Account (silent — no user prompt unless failure)
+Step 8: Create Delivery Account
   Call the create_delivery_account tool with these defaults:
   `clientUID={clientUID}, createDeliveryAccountDto={deliveryMethodUID={deliveryMethodUID}, price={price}, deliveryAccountType="WebAndChatLeads", status="Open", name="{companyName}-Account", automationEnabled=true, isExclusive={isExclusive}, useOrder={useOrder}, dayMax=50, hourMax=-1, weekMax=-1, monthMax=-1, criteria={criteriaPayload}}`
   CRITICAL: createDeliveryAccountDto must be passed as a native object, NOT a JSON string. criteria must be an array of criterion objects, NOT a JSON string.
   If the tool fails, repair the payload and retry once silently. If still fails, prompt: "I ran into an issue creating the delivery account.\n\nPlease try again." **STOP AND YIELD.** Do not hallucinate data.
 
-Step 9: Validate and Retain (silent — no user prompt unless failure)
+Step 9: Validate and Retain
   Verify deliveryAccountUID is a positive integer > 0. If 0 or null, treat as failure and retry Step 8.
   Retain: deliveryAccountUID, price, targetStates, isExclusive, useOrder.
 

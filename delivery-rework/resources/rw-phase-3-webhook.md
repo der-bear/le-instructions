@@ -74,29 +74,37 @@ Step 2: Match Fields (silent — do NOT display results)
   Extract field names from postingInstructions.
   Match extracted fields to leadFields by priority: exact match → underscore/CamelCase variations → abbreviations → semantic (>90% only). Auto-map confident matches silently — do NOT display mapping results, the preview comes in Step 5.
 
-Step 3: Resolve Ambiguous Fields
-  For each ambiguous field (multiple candidates at same priority level): Present using display_adaptive_card an ActionSet with the candidate system field names + "Skip mapping" as buttons. MUST ask the user — do NOT auto-resolve ambiguous matches. Resolve one ambiguous field at a time. **STOP AND YIELD.** Do not hallucinate data.
-  For each unmatched field (no confident match): prompt the user to clarify or skip. **STOP AND YIELD.** Do not hallucinate data.
+Step 3: Resolve Unclear Mappings
+  If any ambiguous fields (multiple candidates at the same priority level) or unmatched fields (no confident match) remain after Step 2, you MUST ask the user for clarification before proceeding.
+  For each ambiguous field, prompt the user to select the correct system field from the candidate matches.
+  For each unmatched field, ask the user which system field it should map to.
+  Do NOT auto-resolve ambiguous or unmatched fields.
+  Do NOT present an adaptive card for each ambiguous field. Ask in plain text. You may batch multiple unresolved fields into one clarification message.
+  **STOP AND YIELD.** Do not hallucinate data.
+  On re-entry, apply the user's answers to the unresolved fields.
+  If unresolved fields still remain, ask again and **STOP AND YIELD** until they are resolved.
 
 Step 4: Build Mapping Payload
-  Build mappingSettings: [{fieldType:"LeadField", fieldName:<delivery field>, leadFieldUID:<system field uid>}, ...]
+  Build mappingSettings using the confidently matched fields plus any user-resolved fields: [{fieldType:"LeadField", fieldName:<delivery field>, leadFieldUID:<system field uid>}, ...]
   Build requestBody with [SystemFieldName] placeholders:
   - URL Encoded: `field1=[SystemField1]&field2=[SystemField2]&`
   - JSON/XML: preserve the user's posted structure, replace mapped values with [SystemFieldName] placeholders. JSON placeholders are quoted strings "[SystemFieldName]". XML placeholders are unquoted content `<field>[SystemFieldName]</field>`. Use 2-space indentation, one element per line.
+  Include only mapped fields in mappingSettings and in requestBody.
   Compute mappedCount (number of successfully mapped fields) and totalCount (total number of fields extracted from postingInstructions, including unmapped). Both MUST be shown in the preview.
   Map contentTypeChoice to mimeContentType: JSON → "application/json", XML → "application/xml", URL Encoded → "application/x-www-form-urlencoded".
   Retain: mappingSettings, requestBody, mappedCount, totalCount, mimeContentType, connectionTestMode="webhook".
 
 Step 5: Display Mapping Preview
   CRITICAL: You MUST call display_adaptive_card with the EXACT JSON template below IMMEDIATELY — in the same message as field matching completes, no progress text, no intermediate messages. Do NOT render mappings as plain text or arrows. The preview MUST be a Table card. MUST show preview for ALL content types (JSON, XML, URL Encoded).
+  Show only the mapped rows in the table preview.
 
-  Display the field mapping preview using display_adaptive_card with this template:
+  Display the field mapping preview using display_adaptive_card tool and this template as base:
 
 ```json
-{"type": "AdaptiveCard", "version": "1.5", "body": [{"type": "TextBlock", "text": "Field Mapping Preview", "weight": "bolder"}, {"type": "Table", "firstRowAsHeader": true, "showGridLines": true, "columns": [{"width": 1}, {"width": 1}, {"width": 1}], "rows": [{"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "System Field"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "Delivery Field"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "Status"}]}]}, {"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "{leadFieldName}"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{fieldName}"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "✓ Mapped"}]}]}]}, {"type": "TextBlock", "text": "Successfully mapped {mappedCount} out of {totalCount} fields."}], "actions": [{"type": "Action.Submit", "title": "Continue", "data": {"action": "Continue"}}]}
+  {"type": "AdaptiveCard", "version": "1.5", "body": [{"type": "TextBlock", "text": "Field Mapping Preview", "weight": "bolder"}, {"type": "Table", "firstRowAsHeader": true, "showGridLines": true, "columns": [{"width": 1}, {"width": 1}, {"width": 1}], "rows": [{"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "System Field"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "Delivery Field"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "Status"}]}]}, {"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "{leadFieldName}"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{fieldName}"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "✓ Mapped"}]}]}]}, {"type": "TextBlock", "text": "Successfully mapped {mappedCount} out of {totalCount} fields."}], "actions": [{"type": "Action.Submit", "title": "Continue", "data": {"action": "Continue"}}]}
 ```
 
-  FOR EACH item in mappingSettings: look up the leadFieldName from leadFields where leadFieldUID matches the item's leadFieldUID. Duplicate the data row template, replacing {leadFieldName} with the actual leadFieldName and {fieldName} with item.fieldName.
+  FOR EACH item in mappingSettings: look up the leadFieldName from leadFields where leadFieldUID matches the item's leadFieldUID. Duplicate the data row template, replacing {leadFieldName} with the actual leadFieldName and {fieldName} with item.fieldName. Set Status to "✓ Mapped".
   **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to say Continue.
   When the user says Continue, proceed to State 4.
 

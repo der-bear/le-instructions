@@ -852,3 +852,62 @@ The stabilized version has explicit auto-progression rules missing from the rewo
 - "Immediately begin executing without requiring user confirmation"
 
 The rework's Resource Handling section only said "follow its handoff instructions immediately" which is too weak. Fixed by adding mandatory phase transition language to rw-1-global.md.
+
+---
+
+## Post-Fix Live Test Results (Round 4 — After Phase 5 Flat + Global Reverts)
+
+### T8 Post-Fix — Portal, 24/7, Phase 5 Flat Format Test
+
+| Step | Result | Status |
+|------|--------|--------|
+| Phase 1 | ✓ Correct prompt | PASS |
+| Phase 2 | ✓ ChoiceSet with dropdown | PASS |
+| Phase 2→3 auto-progress | ✓ Phase 3 loaded after summarize | **PASS (F50 not reproduced)** |
+| Phase 3 Schedule | ✓ 24/7 buttons | PASS |
+| Phase 3 Portal→Phase 4 | ✓ Summary card shown | PASS |
+| Phase 4→Phase 5 | ✓ Price asked FIRST | **PASS (F5 FIXED)** |
+| Phase 5 Step 1 Price | ✓ "$35" accepted | PASS |
+| Phase 5 Step 2 Exclusivity | ✓ "Shared" selected | PASS |
+| Phase 5 Step 3 Order System | ✓ "No" selected | PASS |
+| **Phase 5 Steps 4-6 Target States** | **SKIPPED — went to criteria gate** | **FAIL (F44 NOT FIXED)** |
+| Phase 5 Criteria Gate | ✓ ActionSet "Add criteria / Skip" | PASS (F24 fixed) |
+
+### Key Finding: F44 Persists Despite Flat Format
+
+The flat format (ONE state, Steps 1-10) did NOT fix the target states skip. The LLM executes Steps 1-3 (user prompts) correctly in order, then skips Steps 4-6 (silent tool calls + target states) and jumps to Step 10 (criteria gate — next user prompt).
+
+**Root cause is NOT the State vs Step format.** The LLM specifically avoids executing silent tool call steps regardless of how they're structured. It jumps to the next user-facing prompt.
+
+### Possible Root Causes (Narrowed Down)
+
+1. **"(silent — no user prompt)" annotation** — our Steps 4-5 say this explicitly. The stabilized version uses `TOOL:` and `PROCESS:` directives with no "silent" annotation. The word "silent" may tell the LLM "this step has no output, skip it."
+
+2. **The `get_lead_type` tool call itself** — may be slow/unreliable. The ORIG-T13 test showed the original also hung at this exact step (after Order System, waiting for get_lead_type to return). The LLM may have learned to avoid this call.
+
+3. **Step count** — 10 steps in one state may be too many. The LLM might not attend to steps past a certain count. Steps 1-3 work because they're at the top.
+
+4. **Instruction format vs stabilized** — the stabilized version uses `TOOL: get_lead_type(leadTypeUID) → data.leadTypeName` as a single-line directive. Our rework wraps it in a labeled step with explanatory text. The terse directive format may be more reliable.
+
+### What's Confirmed Working
+
+| Fix | Finding | Status |
+|-----|---------|--------|
+| State→Step within-state ordering | F5 | **FIXED** — Price→Excl→Order always correct now |
+| Criteria gate ActionSet | F24 | **FIXED** — buttons shown consistently |
+| Phase 7 UID display | F42 | **FIXED** (user reverted — shows IDs when appropriate) |
+| ChoiceSet Action.Submit rule | F1/F14 | Added to global |
+| Webhook auto-detect | F34 | **FIXED** in T2 (no regression to Phase 2) |
+| FTP credentials Step format | F38 | Untested (needs T10) |
+| Phase 5c GLOBAL EXIT RULE | F29 | Untested (needs T12) |
+
+### What's Still Broken
+
+| Finding | Description | Root Cause |
+|---------|-------------|------------|
+| F44 | Target states skipped (100%) | LLM skips silent tool call steps |
+| F46 | Content type card non-deterministic | LLM sometimes renders ActionSet as plain text |
+| F49 | Typed text at non-card prompts causes regression | Context loss when user types vs clicks |
+| F4 | Table cards as plain text | LLM JSON template construction issue |
+| F30 | Ambiguous fields auto-resolved | Both versions do this |
+
