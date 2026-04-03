@@ -67,10 +67,18 @@ Date: 2026-04-03
 - **Status:** Fixed
 - **Fix:** Changed global rule to "retain what was provided and re-prompt only for the missing fields."
 
-### F12 — AI stalls after webhook URL input
-- **Severity:** Medium
-- **Status:** Open (platform/model timeout)
-- **Description:** LLM receives URL but takes >50s to respond with field mapping choice. May be related to Phase 3 monolithic file length (182 lines).
+### F12 — AI stalls during webhook path transitions
+- **Severity:** High
+- **Status:** Open (confirmed across multiple runs)
+- **Description:** LLM stalls for >60s during summarize_history transitions in the webhook path. Confirmed at two points: (1) after webhook URL input, (2) after connection test skip. The LLM needs to carry all Phase 3 state (including full JSON posting instructions in context) through summarize_history, which creates excessive processing load.
+- **Root cause:** Phase 3 monolithic file (182 lines) with full webhook logic. The conversation context after webhook+mapping is very large, making summarize_history slow.
+- **Recommendation:** Consider splitting Phase 3 into separate files (like the rework does) to reduce per-phase context size.
+
+### F13 — Field mapping preview card skipped
+- **Severity:** High
+- **Status:** Open
+- **Description:** After JSON parsing succeeded (lenient validation worked — JSON without braces accepted), the AI skipped the field mapping preview table card and went directly to Phase 3b connection test. Instructions say "CRITICAL: MUST execute the DISPLAY [adaptive_card] below IMMEDIATELY after processing."
+- **Root cause:** The LLM processed the mapping silently but didn't display the preview card. May be related to F12 — the LLM is rushing to summarize and transition rather than stopping to display the card.
 
 ---
 
