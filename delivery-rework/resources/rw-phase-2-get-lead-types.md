@@ -8,22 +8,21 @@ Your objective is to have the user select a Lead Type for their client.
 
 ## Instructions
 
-Execute the first incomplete state below. Follow its steps in order.
+**Display Lead Type Selector**
+1. Call `display_lead_types_choice` tool with prompt: "Please select a Lead Type for this client."
+   - This tool fetches available lead types AND renders the dropdown automatically
+   - If no lead types available, the tool returns empty — prompt the user: "No lead types are available. Please contact support." **STOP AND YIELD.**
+2. **STOP AND YIELD.** Wait for the user to respond.
 
-**State 1: Missing Selection (Do this first)**
-* IF the user has NOT yet selected a leadTypeUID:
-  1. Call the get_lead_types tool (this is a data tool, NOT a resource-fetching tool) to retrieve the available leadTypesList.
-     If leadTypesList is empty, prompt: "No lead types are available. Please contact support." **STOP AND YIELD.** Do not hallucinate data.
-  2. You MUST call display_adaptive_card for the lead type selector. Do NOT render lead types as a plain text list. Present the lead type list using display_adaptive_card:
-     - TextBlock: "Please select a Lead Type for this client."
-     - If 4 or fewer options: ActionSet with leadTypeName as button titles.
-     - If more than 4 options: Input.ChoiceSet (style=compact, placeholder="Select a Lead Type", choices from leadTypesList with title=leadTypeName, value=leadTypeUID) + Action.Submit.
-  3. **STOP AND YIELD.** Do not hallucinate data. Do not proceed to State 2. Do not call the summarize_history tool. You must wait for the user to respond.
-  - If the user types a value instead of selecting from the card, match it against leadTypesList. When matching typed text, normalize spaces and compare case-insensitively before fuzzy matching. If the result is ambiguous or low confidence, re-display the selector with the prompt: "I couldn't match that selection.\n\nPlease select a Lead Type for this client." and **STOP AND YIELD.** Do not hallucinate data.
+**Handle User Input**
+- If the user selects from the dropdown: leadTypeUID and leadTypeName are captured automatically.
+- If the user types a value instead: Match it against the lead types list using fuzzy matching (case-insensitive, normalize spaces). 
+  - If match is certain: Proceed with the matched leadTypeUID and leadTypeName.
+  - If match is ambiguous or low confidence: Re-display the selector with prompt: "I couldn't match that selection.\n\nPlease select a Lead Type for this client." **STOP AND YIELD.**
 
-**State 2: Ready for Summarization**
-* IF the user has successfully selected a leadTypeUID and leadTypeName:
-  1. Immediately call the summarize_history tool.
+**Ready for Summarization**
+Once leadTypeUID and leadTypeName are confirmed:
+1. Immediately call the `summarize_history` tool.
 
 ## Summarization Requirements
 

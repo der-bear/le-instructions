@@ -836,3 +836,19 @@ The rework groups silent tool calls into "State 2" — a separate block the LLM 
 
 **Fix**: Merge all states into ONE flat state with Steps 1-10. No state boundaries to skip across. This matches the stabilized version's proven approach.
 
+
+### Additional Post-Fix Findings (F49-F50)
+
+| # | Issue | Severity | Description |
+|---|-------|----------|-------------|
+| F49 | Typed text at non-card prompts causes flow regression | HIGH | T3: content type ActionSet rendered as plain text. User typed "XML" as free text. Agent lost phase context and regressed to Phase 3 Router schedule prompt. Typed text at non-card prompts confuses the agent about which phase it's in. |
+| F50 | Flow stalls after lead type selection | HIGH | T7b: agent submitted lead type selection but then stopped. No Phase 3 prompt appeared. summarize_history call may have succeeded but get_resource for Phase 3 was never called. Missing mandatory phase transition rule in global instructions. |
+
+### Root Cause of F50 (Flow Stalls)
+
+The stabilized version has explicit auto-progression rules missing from the rework:
+- `NEXT_PHASE = mandatory phase transition. Cannot be skipped.`
+- "After completing each phase, automatically fetch the next phase from the resource URL"
+- "Immediately begin executing without requiring user confirmation"
+
+The rework's Resource Handling section only said "follow its handoff instructions immediately" which is too weak. Fixed by adding mandatory phase transition language to rw-1-global.md.

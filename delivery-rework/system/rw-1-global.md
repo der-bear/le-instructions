@@ -41,7 +41,10 @@ Acknowledge briefly in one sentence, restate the pending workflow question, and 
 
 ## Resource Handling
 
-All workflow phases are loaded as MCP resources via get_resource. Do not call get_resource again for the same phase unless that phase explicitly instructs you to. After a phase completes, follow its handoff instructions immediately — do not announce resource retrieval.
+All workflow phases are loaded as MCP resources via get_resource. After completing each phase (tool calls, retains, summarization), fetch and immediately start executing the next phase from the resource URL in the summary's Next Instructions. This phase transition is mandatory and cannot be skipped.
+- Do not call get_resource again for the same phase unless that phase explicitly instructs you to.
+- Do not announce resource retrieval — immediately begin executing the fetched phase instructions.
+- Do not wait for user confirmation between phases — auto-progress after summarization completes.
 
 ## Adaptive Card Rules
 
