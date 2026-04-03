@@ -1,0 +1,96 @@
+FIX PLAN SUMMARY — HIGH & MEDIUM SEVERITY ISSUES
+==================================================
+
+All fixes are INSTRUCTION-LEVEL (not platform/model behavior).
+
+ISSUE 1: Content Type Mismatch Detection (HIGH)
+────────────────────────────────────────────────
+File: phase-3-create-delivery-method.md
+Location: Lines 100-110 (Auto-detect Content Type section)
+
+CURRENT: Auto-detection only happens when contentType = "I'm not sure"
+FIX: Add mismatch detection even when user pre-selects a type
+  - Auto-detect actual format from pasted content
+  - If actual != declared format, ask user to confirm
+  - Prevents silent extraction of wrong format (e.g., JSON declared but XML pasted)
+
+Scope: 11-line addition after existing auto-detect block
+
+
+ISSUE 2: Batch Criteria Parsing (HIGH)
+──────────────────────────────────────
+File: phase-5-create-delivery-account.md
+Location: Lines 68-77 (Criteria Loop section)
+
+CURRENT: Multiple criteria in one message processed as batch, enum validation skipped
+FIX: Detect batch input and process each criterion individually
+  - Add batch detection logic (identify comma-separated criteria with operators)
+  - For each criterion in batch: call Criteria Parsing separately
+  - Ensures per-criterion enum validation via ChoiceSet
+
+Scope: 8-line addition within Criteria Loop
+
+
+ISSUE 3: "Between" Operator Value Format (MEDIUM)
+──────────────────────────────────────────────────
+File: phase-5-create-delivery-account.md
+Location: Lines 128-135 (Create parsedCriteria object section)
+
+CURRENT: Value format undocumented (ambiguous for Between operator)
+FIX: Document pipe-delimited format across all operators
+  - Single values: "scalar_value" or "enumUID"
+  - Multiple values (In/NotIn/Between): "value1|value2|value3"
+  - Example: "500000|1000000" for Between on numeric field
+
+Scope: 4-line documentation addition, clarifies existing intent
+
+
+ISSUE 4: Field-Not-Found Loop Continuation (MEDIUM)
+────────────────────────────────────────────────────
+File: phase-5-create-delivery-account.md
+Location: Lines 125-127 (IF field not matched section)
+
+CURRENT: After "couldn't find field" prompt, no explicit loop-back instruction
+FIX: Add explicit handling for user responses + loop-back
+  - If user says "show fields": display all fields + return to Criteria Loop
+  - If user retries: re-attempt match (max 2 attempts)
+  - If still no match: offer skip option and return to Criteria Loop
+  - Prevents LLM from getting stuck or exiting loop prematurely
+
+Scope: 11-line addition in field-not-found section
+
+
+ISSUE 5: Criteria Loop Exit Phrases (MEDIUM)
+─────────────────────────────────────────────
+File: phase-5-create-delivery-account.md
+Location: Line 77 (exit condition) + Line 69 (prompt)
+
+CURRENT: Only "continue"/"done"/"no" exit the loop
+FIX: Expand exit phrase list to include natural language variants
+  - Add: "skip", "finish", "that's all", "nothing else", "no more"
+  - Update loop prompt to signal acceptable exit phrases
+  - Users can now naturally exit without their input being treated as field name
+
+Scope: 1-line expansion of exit phrase list + 1-line prompt enhancement
+
+
+IMPLEMENTATION NOTES
+════════════════════
+
+Risk Level Summary:
+  Issues 1, 2: Medium risk (adds prompts, but only when needed)
+  Issues 3, 4, 5: Low risk (3=docs only, 4-5=boundary clarity)
+
+Testing Strategy:
+  - Issue 1: Test format mismatch scenarios (JSON declared, XML pasted, etc.)
+  - Issue 2: Test batch input ("LoanAmount > 500k, PropertyType = Condo")
+  - Issue 3: Test Between operator value serialization
+  - Issue 4: Test field-not-found → show fields → loop back
+  - Issue 5: Test all exit phrases ("skip", "finish", "nothing else", etc.)
+
+Files Modified: 2
+  - phase-3-create-delivery-method.md (Issue 1)
+  - phase-5-create-delivery-account.md (Issues 2, 3, 4, 5)
+
+Estimated Implementation Time: 1-2 hours
+Estimated Testing Time: 45 minutes (focused agent traces)
