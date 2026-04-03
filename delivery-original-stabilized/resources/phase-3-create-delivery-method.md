@@ -111,17 +111,14 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
 
        PROCESS (Schema Validation - JSON/XML only):
          IF contentType = "JSON" OR contentType = "XML":
-           - Attempt to parse postingInstructions as {contentType}
-           - Auto-fix common issues:
-               • If missing outer braces for JSON object property (e.g., starts with "key": {), wrap in { }
-               • Trailing commas, unescaped quotes, single quotes → double quotes
-               • Common formatting issues
-           - IF parse still fails after auto-fix:
-               PROMPT: "I couldn't parse this as valid {contentType}. Would you like to:\n• Fix and re-paste the {contentType} schema\n• Switch to a different content type"
-               SUGGEST [adaptive_card]: ActionSet (Re-paste {contentType} schema | Switch content type)
+           - Interpret the postingInstructions as {contentType}. Use your best judgment to fix common issues silently: missing outer braces, trailing commas, unescaped quotes, single quotes, missing colons. The user is providing field structure, not production code — be lenient and extract the field names even if the format is imperfect.
+           - ONLY if the input is truly unintelligible (no recognizable field structure at all):
+               PROMPT: "I couldn't parse this as valid {contentType}. Would you like to:\n• Fix and re-paste the {contentType} schema\n• Switch to a different content type\n• Skip field mapping for now"
+               SUGGEST [adaptive_card]: ActionSet (Re-paste {contentType} schema | Switch content type | Skip mapping)
                WAIT for user choice
                IF "Re-paste {contentType} schema": Loop back to ask for postingInstructions
                IF "Switch content type": Loop back to ask for contentType
+               IF "Skip mapping": skipFieldMapping = true
            - Store valid schema structure
 
        PROCESS (Silent - Field Mapping & RequestBody Generation):

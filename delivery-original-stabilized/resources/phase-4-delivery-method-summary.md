@@ -14,7 +14,8 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
 
  IF flowIntent = "full-setup":
    WAIT for user to click Continue
-   NEXT_PHASE: mcp://resource/phase-5-create-delivery-account - mandatory
+   TOOL: summarize_history - mandatory
+   TOOL_DEFAULTS: start_anchor_substring="DELIVERY_SETUP_START", summarization_text="<summary><completed>Phase 4 — Delivery Method Summary Reviewed</completed><current_state>flowIntent={flowIntent}, clientUID={clientUID}, companyName={companyName}, email={email}, clientStatus={clientStatus}, timeZoneName={timeZoneName}, timeOffset={timeOffset}, leadTypeUID={leadTypeUID}, leadTypeName={leadTypeName}, deliveryMethodUID={deliveryMethodUID}, deliveryMethodName={deliveryMethodName}, deliveryType={deliveryType}, deliveryAddress={deliveryAddress}, ftpUser={ftpUser}, ftpPassword={ftpPassword}, mimeContentType={mimeContentType}, requestBody={requestBody}, deliveryScheduleDisplay={deliveryScheduleDisplay}, mappedCount={mappedCount}, totalCount={totalCount}</current_state><next_instructions>Load and execute Phase 5 from mcp://resource/phase-5-create-delivery-account</next_instructions></summary>"
  ELSE:
    WAIT for user to click Done
    PROMPT: "✓ Your delivery method is ready to use for {companyName}."

@@ -30,22 +30,14 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
 
  TOOL: get_lead_type(leadTypeUID) → data.leadTypeName as leadTypeName, data.leadFields as leadFields
  RETAIN: leadTypeName, leadFields
-
- PROCESS (Silent - State Detection):
-   - Detect state field from leadFields priority:
-       1) leadFieldSpecialBit in {'State','StandardState'}
-       2) leadFieldName='state' (case-insensitive)
-       3) leadFieldName contains 'state'
-     Do not process lower tiers once matched.
-     Semantically validate selected field represents US state; if confidence <5%, confirm correct field with user.
-     Remember as stateFieldUID.
+ PROCESS: Detect state field from leadFields priority: 1) leadFieldSpecialBit in {'State','StandardState'} 2) leadFieldName='state' (case-insensitive) 3) leadFieldName contains 'state'. Remember as stateFieldUID.
 
  PROMPT: "Which states do you want to target? (e.g., CA, AZ, TX)"
  ASK [conversational]: targetStates
  WAIT for user input
- PROCESS (Normalize states): normalize to uppercase USPS codes (California→CA)
- 
- CRITICAL: Field suggestion steps are MANDATORY. You MUST execute all steps below before proceeding to Build Criteria Array. Do NOT skip field suggestions.
+ PROCESS: normalize targetStates to uppercase USPS codes (California→CA)
+
+ CRITICAL: Field suggestion steps below are MANDATORY. Do NOT skip.
 
  PROCESS (Silent - Build Field Suggestions):
    - Build field suggestion lists:
