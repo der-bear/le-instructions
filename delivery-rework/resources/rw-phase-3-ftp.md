@@ -4,22 +4,29 @@ All prior phase summaries are completed history.
 Execute ONLY the instructions below.
 ═══════════════════════════════════════
 
-Your objective is to collect FTP credentials, create the FTP delivery method, and hand off to Phase 3b for connection testing.
+Your objective is to collect FTP credentials, create the FTP delivery method, and hand off to Phase 3a for connection testing.
 
 ## Instructions
 
-**State 1: Collect FTP Credentials (Do this first)**
-* IF deliveryMethodUID is missing AND any of deliveryAddress, ftpUser, or ftpPassword is missing:
-  1. Prompt the user exactly as follows: "Please provide FTP details:\n\n1. Server address\n2. Username\n3. Password"
-  2. **STOP AND YIELD.** Do not hallucinate data. Do not call any tools. You must wait for the user to provide the FTP credentials.
+Execute the first incomplete state below. Follow its steps in order.
 
-**State 2: Create FTP Method and Summarize**
-* IF deliveryAddress, ftpUser, and ftpPassword are all known AND deliveryMethodUID is missing:
-  1. Call the create_delivery_method tool with these defaults:
-     `clientUID={clientUID}, createDeliveryMethodDto={deliveryType="FTP", name="{companyName}-FTP", enabled=true, leadTypeUID={leadTypeUID}, deliveryAddress={deliveryAddress}, ftpUser={ftpUser}, ftpPassword={ftpPassword}, ftpPath="/incoming/", deliveryDays={deliveryDays}}`
-  2. If the tool fails, repair the payload and retry once silently. If it still fails, prompt: "I ran into an issue creating the delivery method.\n\nPlease try again." **STOP AND YIELD.** Do not hallucinate data.
-  3. If the tool succeeds, retain: deliveryMethodUID, deliveryMethodName="{companyName}-FTP", deliveryType="FTP", deliveryAddress, ftpUser, ftpPassword, mappedCount=0, totalCount=0, connectionTestMode="ftp".
-  4. Immediately call the summarize_history tool.
+**State 1: Collect Credentials and Create Method**
+Execute these steps in order:
+
+Step 1: Collect FTP Credentials
+  Prompt the user exactly as follows: "Please provide FTP details:\n\n1. Server address\n2. Username\n3. Password"
+  **STOP AND YIELD.** Do not hallucinate data. Do not call any tools. You must wait for the user to provide the FTP credentials.
+  Verify all three fields (deliveryAddress, ftpUser, ftpPassword) were provided. If any are missing, re-prompt for the missing field(s). **STOP AND YIELD.**
+
+Step 2: Create FTP Method
+  Call the create_delivery_method tool with these defaults:
+  `clientUID={clientUID}, createDeliveryMethodDto={deliveryType="FTP", name="{companyName}-FTP", enabled=true, leadTypeUID={leadTypeUID}, deliveryAddress={deliveryAddress}, ftpUser={ftpUser}, ftpPassword={ftpPassword}, ftpPath="/incoming/", deliveryDays={deliveryDays}}`
+  CRITICAL: createDeliveryMethodDto must be passed as a native object, NOT a JSON string.
+  If the tool fails, repair the payload and retry once silently. If it still fails, prompt: "I ran into an issue creating the delivery method.\n\nPlease try again." **STOP AND YIELD.** Do not hallucinate data.
+
+Step 3: Retain and Summarize
+  Retain: deliveryMethodUID, deliveryMethodName="{companyName}-FTP", deliveryType="FTP", deliveryAddress, ftpUser, ftpPassword, mappedCount=0, totalCount=0, connectionTestMode="ftp".
+  Immediately call the summarize_history tool.
 
 ## Summarization Requirements
 
@@ -54,4 +61,3 @@ When calling summarize_history:
 # Next Instructions
 → Load and execute Phase 3a at mcp://resource/rw-phase-3a-ftp-test
 ```
-

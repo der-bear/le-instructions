@@ -8,7 +8,7 @@ Your objective is to collect a valid client selection, load the client profile, 
 
 ## Instructions
 
-Evaluate what information you currently have and take the appropriate action:
+Execute the first incomplete state below. Follow its steps in order.
 
 **State 1: Missing Client Selection (Do this first)**
 * IF clientUID is already known from context, skip to State 2.
@@ -18,8 +18,8 @@ Evaluate what information you currently have and take the appropriate action:
   3. Present the client list using display_adaptive_card:
      - TextBlock: "Which client would you like to create a delivery method for?"
      - Input.ChoiceSet (style=compact, placeholder="Select a client", choices from clientsList with title=companyName, value=clientUID) + Action.Submit.
-  5. **STOP AND YIELD.** Do not hallucinate data. Do not proceed to State 2. Do not call the summarize_history tool. You must wait for the user to select a client.
-  - If the user types a value instead of clicking the card, match it against clientsList. If the result is ambiguous or low confidence, re-display the selector with the prompt: "I couldn't match that selection.\n\nWhich client would you like to create a delivery method for?" and **STOP AND YIELD.** Do not hallucinate data.
+  4. **STOP AND YIELD.** Do not hallucinate data. Do not proceed to State 2. Do not call the summarize_history tool. You must wait for the user to select a client.
+  - If the user types a value instead of selecting from the card, match it against clientsList. If the result is ambiguous or low confidence, re-display the selector with the prompt: "I couldn't match that selection.\n\nWhich client would you like to create a delivery method for?" and **STOP AND YIELD.** Do not hallucinate data.
 
 **State 2: Load Client Profile and Summarize**
 * IF clientUID is known:

@@ -8,10 +8,13 @@ Your objective is to create the Portal delivery method and hand off directly to 
 
 ## Instructions
 
+Execute the first incomplete state below. Follow its steps in order.
+
 **State 1: Create Portal Method and Summarize (Do this first)**
 * IF deliveryMethodUID is missing:
   1. Call the create_delivery_method tool with these defaults:
      `clientUID={clientUID}, createDeliveryMethodDto={deliveryType="HttpPost", name="{companyName}-Portal", enabled=true, leadTypeUID={leadTypeUID}, deliveryDays={deliveryDays}}`
+     CRITICAL: createDeliveryMethodDto must be passed as a native object, NOT a JSON string.
   2. If the tool fails, repair the payload and retry once silently. If it still fails, prompt: "I ran into an issue creating the delivery method.\n\nPlease try again." **STOP AND YIELD.** Do not hallucinate data.
   3. If the tool succeeds, retain: deliveryMethodUID, deliveryMethodName="{companyName}-Portal", deliveryType="HttpPost", deliveryAddress="Portal", mappedCount=0, totalCount=0.
   4. Immediately call the summarize_history tool.

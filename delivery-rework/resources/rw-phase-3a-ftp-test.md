@@ -8,7 +8,7 @@ Your objective is to optionally test the FTP connection, then hand off to Phase 
 
 ## Instructions
 
-Evaluate what information you currently have and take the appropriate action:
+Execute the first incomplete state below. Follow its steps in order.
 
 **State 1: Offer and Run FTP Test (Do this first)**
 * IF connectionTestChoice is missing:
@@ -24,15 +24,15 @@ Evaluate what information you currently have and take the appropriate action:
   2. Call the test_ftp_sftp_connection tool with: `protocol={protocol}, host={deliveryAddress}, username={ftpUser}, password={ftpPassword}, remotePath="/incoming/"`
   3. IF the test succeeds:
      - Prompt the user exactly as follows: "✓ Connection test successful."
-     - Present an ActionSet: "Continue".
-     - **STOP AND YIELD.** Do not hallucinate data. When the user clicks Continue, proceed to State 2.
+     - Present using display_adaptive_card an ActionSet: "Continue".
+     - **STOP AND YIELD.** Do not hallucinate data. When the user says Continue, proceed to State 2.
   4. IF the test fails:
      - Prompt the user exactly as follows: "✗ Connection test failed: {error}. The delivery method is saved; you can update the configuration later."
-     - Present an ActionSet: "Retry" | "Skip".
-     - **STOP AND YIELD.** Do not hallucinate data. If the user clicks Retry, re-run the test. If Skip, proceed to State 2.
+     - Present using display_adaptive_card an ActionSet: "Retry" | "Skip".
+     - **STOP AND YIELD.** Do not hallucinate data. If the user says Retry, re-run the test. If Skip, proceed to State 2.
 
 **State 2: Summarize**
-* IF connectionTestChoice = "Skip" OR the test succeeded and the user clicked Continue OR the test failed and the user clicked Skip:
+* IF connectionTestChoice = "Skip" OR the test succeeded and the user said Continue OR the test failed and the user said Skip:
   1. Immediately call the summarize_history tool.
 
 ## Summarization Requirements

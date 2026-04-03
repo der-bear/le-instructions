@@ -8,20 +8,17 @@ Your objective is to display the final setup summary card and collect the user's
 
 ## Instructions
 
-Evaluate what information you currently have and take the appropriate action:
 
-**State 1: Show Summary Card (Do this first)**
-* IF clientSummaryChoice is missing:
-  1. Display the following adaptive card using the display_adaptive_card tool:
+Display the client setup summary using display_adaptive_card with this template:
 
 ```json
-{"type": "AdaptiveCard", "version": "1.5", "body": [{"type": "TextBlock", "text": "Client Setup Summary", "weight": "bolder"}, {"type": "Table", "firstRowAsHeader": false, "showGridLines": true, "columns": [{"width": 1}, {"width": 2}], "rows": [{"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "Company Name"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{companyName}"}]}]}, {"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "Contact Email"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{email}"}]}]}, {"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "Client Status"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{clientStatus}"}]}]}, {"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "Lead Type"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{leadTypeName}"}]}]}, {"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "Delivery Method"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{deliveryMethodName} (ID: {deliveryMethodUID})"}]}]}, {"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "Delivery Account"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{companyName}-Account (ID: {deliveryAccountUID})"}]}]}]}, {"type": "TextBlock", "text": "Review your configuration above. Would you like to activate the client now?"}], "actions": [{"type": "Action.Submit", "title": "Activate", "data": {"action": "Activate"}}, {"type": "Action.Submit", "title": "Keep Inactive", "data": {"action": "Keep Inactive"}}]}
+{"type": "AdaptiveCard", "version": "1.5", "body": [{"type": "TextBlock", "text": "Client Setup Summary", "weight": "bolder"}, {"type": "Table", "firstRowAsHeader": false, "showGridLines": true, "columns": [{"width": 1}, {"width": 2}], "rows": [{"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "Company Name"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{companyName}"}]}]}, {"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "Contact Email"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{email}"}]}]}, {"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "Client Status"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{clientStatus}"}]}]}, {"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "Lead Type"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{leadTypeName}"}]}]}, {"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "Delivery Method"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{deliveryMethodName}"}]}]}, {"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "Delivery Account"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{companyName}-Account"}]}]}]}, {"type": "TextBlock", "text": "Review your configuration above. Would you like to activate the client now?"}], "actions": [{"type": "Action.Submit", "title": "Activate", "data": {"action": "Activate"}}, {"type": "Action.Submit", "title": "Keep Inactive", "data": {"action": "Keep Inactive"}}]}
 ```
 
-  2. Replace all {variable} placeholders with current retained values.
-  3. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
+Replace all {variable} placeholders with current retained values.
 
-**State 2: Route to Activation**
-* IF the user said "Activate" or "Keep Inactive":
-  - Retain clientSummaryChoice with the user's selection.
-  - Load mcp://resource/rw-phase-8-activation
+**STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
+
+IF the user said "Activate" or "Keep Inactive":
+  Retain clientSummaryChoice with the user's selection.
+  Load mcp://resource/rw-phase-8-activation

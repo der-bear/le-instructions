@@ -8,7 +8,7 @@ Your objective is to collect the company name and contact email, create the clie
 
 ## Instructions
 
-Evaluate what information you currently have and take the appropriate action:
+Execute the first incomplete state below. Follow its steps in order.
 
 **State 1: Missing Client Inputs (Do this first)**
 * IF companyName is missing OR email is missing:

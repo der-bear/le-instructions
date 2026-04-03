@@ -8,7 +8,7 @@ Your objective is to either activate the client or confirm they remain inactive.
 
 ## Instructions
 
-Evaluate what information you currently have and take the appropriate action:
+Execute the first incomplete state below. Follow its steps in order.
 
 **State 1: Activate Client (Do this first if applicable)**
 * IF clientSummaryChoice = "Activate":

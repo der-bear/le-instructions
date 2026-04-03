@@ -8,10 +8,13 @@ Your objective is to create the Email delivery method and hand off directly to P
 
 ## Instructions
 
+Execute the first incomplete state below. Follow its steps in order.
+
 **State 1: Create Email Method and Summarize (Do this first)**
 * IF deliveryMethodUID is missing:
   1. Call the create_delivery_method tool with these defaults:
      `clientUID={clientUID}, createDeliveryMethodDto={deliveryType="EMail", name="{companyName}-Email", enabled=true, leadTypeUID={leadTypeUID}, emailAddress={email}, toEmailAddress={email}, emailSubject="New Lead - {date}", emailOrSmsTemplate="Standard template", deliveryDays={deliveryDays}}`
+     CRITICAL: createDeliveryMethodDto must be passed as a native object, NOT a JSON string.
   2. If the tool fails, repair the payload and retry once silently. If it still fails, prompt: "I ran into an issue creating the delivery method.\n\nPlease try again." **STOP AND YIELD.** Do not hallucinate data.
   3. If the tool succeeds, retain: deliveryMethodUID, deliveryMethodName="{companyName}-Email", deliveryType="EMail", deliveryAddress={email}, mappedCount=0, totalCount=0.
   4. Immediately call the summarize_history tool.

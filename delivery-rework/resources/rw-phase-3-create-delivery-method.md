@@ -8,7 +8,7 @@ Your objective is to collect the delivery schedule, collect the delivery type, a
 
 ## Instructions
 
-Evaluate what information you currently have and take the appropriate action:
+Execute the first incomplete state below. Follow its steps in order.
 
 **State 1: Missing Delivery Schedule (Do this first)**
 * IF deliveryScheduleChoice is missing:

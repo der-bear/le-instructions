@@ -5,121 +5,90 @@ Phase 5 instructions above are complete. Execute ONLY the below.
 
 Your objective is to collect additional criteria from the user and update the existing delivery account. The account already exists (deliveryAccountUID is known) — use `update_delivery_account` to add criteria.
 
-CRITICAL: Every criterion the user adds must be preserved. Do NOT overwrite parsedCriteriaList — always APPEND to it.
+CRITICAL: Always APPEND to parsedCriteriaList, never overwrite.
 
-GLOBAL EXIT RULE: If at any YIELD point the user says "skip", "done", "continue", "none", or "no" instead of providing a criterion or selecting a value:
-- IF criteriaSummaryList is not empty → proceed to State 5 (update account with collected criteria, then summarize).
-- IF criteriaSummaryList is empty → set additionalCriteriaChoice = "Skip", load mcp://resource/rw-phase-5-create-delivery-account — Phase 5 will handle the skip and summarize.
+GLOBAL EXIT RULE: At any YIELD, if user says "skip"/"done"/"continue"/"none"/"no":
+- If criteriaSummaryList not empty → State 3.
+- If empty → set additionalCriteriaChoice="Skip", return to Phase 5.
 
 ## Instructions
 
-Evaluate what information you currently have and take the appropriate action:
+Execute the first incomplete state below. Follow its steps in order.
 
-**State 1: Build and Show Field Suggestions (Do this first)**
-* IF suggestedFields is missing:
-  1. Build field suggestion lists from leadFields:
-     - Exclude contact/personal-information fields
-     - Exclude the state field (leadFieldUID = stateFieldUID)
-     - Prioritize relevant business-qualification fields
-  2. Retain:
-     - suggestedFields = first 5 leadFieldName values
-     - extraFields = next 10 leadFieldName values
-     - extraFieldCount = total remaining field count
-     - leadFieldsMap = {leadFieldName → {leadFieldUID, leadFieldDataType, isEnumerated, leadFieldEnums, leadFieldSpecialBit}}
-     - parsedCriteriaList = [] (empty array)
-     - criteriaSummaryList = [] (empty array)
-  3. CRITICAL: You MUST display the field suggestions prompt below. Do NOT skip this step.
-  4. Prompt the user exactly as follows: "Based on your {leadTypeName} lead type, here are the most common criteria fields:\n\nRecommended Fields:\n\n• {list suggestedFields}\n{if extraFieldCount > 0: "\nThere are " + extraFieldCount + " more fields available.\n\nYou can type a criterion directly, show more fields, or skip." else: "\nYou can type a criterion directly or skip."}"
-  5. Present the choice using display_adaptive_card:
-     - IF extraFieldCount > 0: ActionSet with "Show more fields" | "Skip"
-     - ELSE: ActionSet with "Skip"
-  6. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
+**State 1: Show Field Suggestions**
+Execute these steps in order:
 
-**State 2: Parse Typed Criterion or Show More Fields**
+1. Build field suggestion lists from leadFields:
+   - Exclude contact/personal-information fields
+   - Exclude the state field (leadFieldUID = stateFieldUID)
+   - Prioritize top relevant industry-specific lead qualification business criteria
+   Retain: suggestedFields (first 5), extraFields (next 10), extraFieldCount (total remaining), leadFieldsMap = {leadFieldName → {leadFieldUID, leadFieldDataType, isEnumerated, leadFieldEnums, leadFieldSpecialBit}}, parsedCriteriaList = [], criteriaSummaryList = [].
 
-When parsing a criterion, follow these rules:
-1. Parse natural language to operator keywords: minimum/at least → GreaterOrEqual, exactly → Equal, more than → Greater, less than → Less, between → Between, contains → Contains, etc.
-2. Match the field name against leadFieldsMap (fuzzy match >90% confidence).
-3. Look up matched field metadata: leadFieldUID, leadFieldDataType, isEnumerated, leadFieldEnums, leadFieldSpecialBit.
-4. Validate the operator against the field type:
+2. Prompt the user exactly as follows: "Based on your {leadTypeName} lead type, here are the most common criteria fields:\n\nRecommended Fields:\n\n• {list suggestedFields}\n{if extraFieldCount > 0: "\nThere are " + extraFieldCount + " more fields available.\n\nYou can type a criterion directly, show more fields, or skip." else: "\nYou can type a criterion directly or skip."}"
+   Present using display_adaptive_card: IF extraFieldCount > 0: ActionSet "Show more fields" | "Skip". ELSE: ActionSet "Skip".
+   **STOP AND YIELD.** Do not hallucinate data.
+
+**State 2: Handle Criteria Input**
+
+This state handles ALL user responses: typed criteria, show-more-fields, enum selections, and the criteria loop prompt. Apply the Criteria Parsing Rules below when parsing any criterion.
+
+Handle user response:
+
+- IF "Show more fields" OR asked to see more:
+  Prompt: "Additional Fields (showing up to 10):\n\n• {list extraFields}"
+  Present using display_adaptive_card: IF criteriaSummaryList empty: ActionSet "Show more fields" | "Skip". IF not empty: ActionSet "Show more fields" | "Continue".
+  **STOP AND YIELD.** Loop back to this handler on next response.
+
+- IF user typed a criterion:
+  Parse using Criteria Parsing Rules below.
+  IF no confident field match: Prompt: "I couldn't find that field. Please type the field name you'd like to use, say 'show fields' to see all available options, or say 'skip' to continue without additional criteria." **STOP AND YIELD.** Do not hallucinate data.
+  IF enumerated field AND no valid value provided or only field name mentioned:
+    Force operator to "In". Prompt: "Please select a value for {fieldName}:" (or "I see you want to filter by {fieldName}.\nPlease select a value:" if user attempted a value). Display ChoiceSet via display_adaptive_card: Input.ChoiceSet (style=compact, placeholder="Select a value", choices from leadFieldEnums with value=leadFieldEnumUID, title=value) + Action.Submit. **STOP AND YIELD.** On selection, use selected leadFieldEnumUID as string value.
+  IF enumerated field AND user value fuzzy-matches enum (>85%): resolve to leadFieldEnumUID, force operator to "In"/"NotIn".
+  Create parsed criteria object. Append to parsedCriteriaList. Create plain-English summary, append to criteriaSummaryList.
+  Show criteria loop prompt (below).
+
+- IF user selected an enum value from ChoiceSet:
+  Create parsed criteria object with leadFieldUID, type="FieldValue", operator from retained enumFieldOperator, value=selected leadFieldEnumUID (as string).
+  Append to parsedCriteriaList. Create plain-English summary, append to criteriaSummaryList.
+  Show criteria loop prompt (below).
+
+Criteria loop prompt (after each criterion added):
+  Prompt: "Would you like to add another criterion, see more fields, or continue?"
+  Present using display_adaptive_card: IF more extra fields remain: ActionSet "Show more fields" | "Continue". ELSE: ActionSet "Continue".
+  **STOP AND YIELD.** Do not hallucinate data.
+  - IF another criterion → handle as "user typed a criterion" above.
+  - IF "Show more fields" → handle as show-more above.
+  - IF "Continue"/"done"/"no" → State 3.
+
+### Criteria Parsing Rules
+
+1. Parse natural language to operator keywords: minimum/at least → GreaterOrEqual, exactly → Equal, more than → Greater, less than → Less, between → Between, contains → Contains.
+2. Match field name against leadFieldsMap (fuzzy >90%). Look up leadFieldUID, leadFieldDataType, isEnumerated, leadFieldEnums, leadFieldSpecialBit.
+3. Extract values (comma/or-separated). Auto-correct casing on enum matches.
+4. Validate operator against field type:
    **PRIORITY 1 — Special flags override dataType:**
-   - IF isEnumerated = true: ONLY "In", "NotIn"
-   - IF leadFieldSpecialBit = 'State' OR 'StandardState': ONLY "In", "NotIn"
-   - IF leadFieldSpecialBit = 'Zip': "Equal", "NotEqual", "In", "NotIn", "Distance_Compare"
-   - IF leadFieldSpecialBit = 'PrimaryPhone' OR 'MobilePhone': "Equal", "NotEqual", "Greater", "Less", "GreaterOrEqual", "LessOrEqual", "Between", "In", "NotIn"
+   - isEnumerated=true: ONLY "In", "NotIn"
+   - leadFieldSpecialBit='State'/'StandardState': ONLY "In", "NotIn"
+   - leadFieldSpecialBit='Zip': "Equal", "NotEqual", "In", "NotIn", "Distance_Compare"
+   - leadFieldSpecialBit='PrimaryPhone'/'MobilePhone': "Equal", "NotEqual", "Greater", "Less", "GreaterOrEqual", "LessOrEqual", "Between", "In", "NotIn"
    **PRIORITY 2 — By leadFieldDataType:**
    - Int, BigInt, Decimal, Float, Money: "Equal", "NotEqual", "Greater", "Less", "GreaterOrEqual", "LessOrEqual", "Between", "In", "NotIn"
    - DateTime: "Equal", "NotEqual", "Greater", "Less", "GreaterOrEqual", "LessOrEqual", "Between", "DateCompare"
    - Varchar: "Equal", "NotEqual", "Contains", "DoesNotContain", "In", "NotIn"
    - Bit: "Equal", "NotEqual"
-   If the parsed operator is NOT in the valid list, replace it with the FIRST valid operator from the list.
-5. Enumerated field handling:
-   - MUST use "In" or "NotIn" only. If another operator was parsed, set it to "In".
-   - Single-select only (no multi-select).
-   - If user provided values: validate against leadFieldEnums (fuzzy >85%, case-insensitive). If no match, show ChoiceSet.
-   - ChoiceSet: Input.ChoiceSet with style=compact, placeholder="Select a value". Choices from leadFieldEnums with value=leadFieldEnumUID, title=value. Include Action.Submit.
-   - The selected leadFieldEnumUID is stored as a string in parsedCriteria.value.
-6. Parsed criteria object format: `{leadFieldUID: <integer>, type: "FieldValue", operator: <string>, value: <string>}`
+   If parsed operator invalid for field type, use the FIRST valid operator from the list.
+5. Enumerated fields: MUST use "In"/"NotIn" only (default to "In"). Single-select only. Validate user values against leadFieldEnums (fuzzy >85%, case-insensitive). The selected leadFieldEnumUID is stored as a string in parsedCriteria.value.
+6. Parsed criteria format: `{leadFieldUID: <int>, type: "FieldValue", operator: <string>, value: <string>}`. For "Between" operator, serialize value as pipe-delimited "min|max" (e.g., "100000|500000").
 
-* IF the user selected "Show more fields" OR asked to see more fields:
-  1. Prompt the user exactly as follows: "Additional Fields (showing up to 10):\n\n• {list extraFields}"
-  2. Present the choice using display_adaptive_card:
-     - IF criteriaSummaryList is empty: ActionSet with "Show more fields" | "Skip"
-     - IF criteriaSummaryList is not empty: ActionSet with "Show more fields" | "Continue"
-  3. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
+**State 3: Update Account with Additional Criteria**
 
-* IF the user provided a criterion directly:
-  1. Parse the criterion using the rules above.
-  2. IF no field matches confidently: prompt exactly: "I couldn't find that field. Please type the field name you'd like to use, say 'show fields' to see all available options, or say 'skip' to continue without additional criteria." **STOP AND YIELD.** Do not hallucinate data.
-  3. IF the matched field is enumerated AND the user did not provide a valid enum value:
-     - Force the operator to "In" or "NotIn" only. If anything else, set to "In".
-     - Retain enumFieldName and enumFieldOperator.
-     - Prompt exactly: "I see you want to filter by {fieldName}.\nPlease select a value:"
-     - Display the ChoiceSet selector.
-     - **STOP AND YIELD.** Do not hallucinate data. Proceed to State 3 when the user selects a value.
-  4. IF the matched field is enumerated AND the user mentioned only the field name:
-     - Retain enumFieldName, set enumFieldOperator="In".
-     - Prompt exactly: "Please select a value for {fieldName}:"
-     - Display the ChoiceSet selector.
-     - **STOP AND YIELD.** Do not hallucinate data. Proceed to State 3 when the user selects a value.
-  5. ELSE IF the matched field is enumerated AND the user provided a value that fuzzy-matches (>85%):
-     - Force operator to "In" or "NotIn" only.
-     - Resolve to leadFieldEnumUID. Use this UID as the value.
-     - Create parsed criteria object. Append to parsedCriteriaList.
-     - Create plain-English summary. Append to criteriaSummaryList.
-     - Proceed to State 4.
-  6. ELSE (non-enum field):
-     - Create parsed criteria object. Append to parsedCriteriaList.
-     - Create plain-English summary. Append to criteriaSummaryList.
-     - Proceed to State 4.
-
-**State 3: Accept Enum Selection**
-* IF enumFieldName is known AND the user has selected a value (enumFieldChoice):
-  1. Create parsed criteria object: leadFieldUID from matched field, type="FieldValue", operator={enumFieldOperator}, value={enumFieldChoice} (the leadFieldEnumUID as string).
-  2. Append to parsedCriteriaList.
-  3. Create plain-English summary. Append to criteriaSummaryList.
-  4. Clear: enumFieldName, enumFieldOperator, enumFieldChoice.
-  5. Proceed to State 4.
-
-**State 4: Criteria Loop Prompt**
-* IF criteriaSummaryList is not empty AND the user has not yet said "continue" or "done":
-  1. Prompt the user exactly as follows: "Would you like to add another criterion, see more fields, or continue?"
-  2. Present the choice using display_adaptive_card:
-     - IF more extra fields remain: ActionSet with "Show more fields" | "Continue"
-     - ELSE: ActionSet with "Continue"
-  3. **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.
-  - IF user provides another criterion: go back to State 2 parsing logic.
-  - IF user selects "Show more fields": go back to State 2 show-fields logic.
-  - IF user selects "Continue" OR says "continue", "done", or "no": proceed to State 5.
-
-**State 5: Update Account with Additional Criteria and Summarize**
-* IF the user chose to continue:
-  1. Build additionalCriteria: join criteriaSummaryList entries with "; ".
-  2. Call the update_delivery_account tool to add the parsed criteria to the existing account:
-     `deliveryAccountUID={deliveryAccountUID}, criteria={parsedCriteriaList}`
-  3. If the tool fails, repair and retry once silently. If still fails, prompt: "I ran into an issue updating the delivery account.\n\nPlease try again." **STOP AND YIELD.** Do not hallucinate data.
-  4. Retain: additionalCriteria.
-  5. Immediately call the summarize_history tool.
+1. Build additionalCriteria: join criteriaSummaryList with "; ".
+2. Call update_delivery_account: `deliveryAccountUID={deliveryAccountUID}, criteria={parsedCriteriaList}`
+   CRITICAL: Send the FULL parsedCriteriaList array, not just the latest criterion.
+   If the tool fails, repair and retry once silently. If still fails, prompt: "I ran into an issue updating the delivery account.\n\nPlease try again." **STOP AND YIELD.** Do not hallucinate data.
+3. Retain: additionalCriteria.
+4. Immediately call the summarize_history tool.
 
 ## Summarization Requirements
 
