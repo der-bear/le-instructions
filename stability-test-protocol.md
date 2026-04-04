@@ -201,9 +201,13 @@ Execute these steps in order. For each step, the table shows what to do, what sh
 
 ### Phase 1 — Create Client
 
+**Platform action names:**
+- Stabilized (Version A): **Create Single Client (Original)**
+- Rework (Version B): **Create Single Client (Reworked)**
+
 | Step | User Action | Expected AI Behavior | Verification |
 |------|-------------|----------------------|--------------|
-| 1 | Start the "Create Single Client" flow | AI loads the action file and Phase 1 resource | The setup prompt appears |
+| 1 | Start the flow via the corresponding action's "Start Chat" button | AI loads the action file and Phase 1 resource | The setup prompt appears |
 | 2 | Type: `StabilityTest-{RR}, stability{RR}@test.com` | AI displays exactly: "Great - first we'll set up your Client, Delivery Method, and Delivery Account.\n\nTo create a new client, please provide:\n\n1. Company Name\n2. Contact Email" THEN collects the values and calls create_client silently | **Check P1-PROMPT**: The intro prompt appears exactly ONCE (not duplicated). AI does not ask for the fields again. |
 | 3 | (no action — AI proceeds) | AI calls create_client, then summarize_history, then loads Phase 2 | Client created silently. No error messages. |
 
@@ -493,12 +497,13 @@ These are intentional structural differences. When evaluating results, do NOT co
 |--------|------------|--------|
 | Format | XML-style: `<summary><completed>...</completed><current_state>...</current_state><next_instructions>...</next_instructions></summary>` | Markdown-style: `# Phase N Complete`, `# Current System State` with `* key: value` bullets, `# Next Instructions` |
 
-### State Machine Style
+### Instruction Format
 
 | Aspect | Stabilized | Rework |
 |--------|------------|--------|
-| Instruction format | Linear imperative: PROMPT, ASK, WAIT, TOOL, RETAIN in sequence | Numbered states with explicit IF guards: "State 1: Missing X", "State 2: Create Y". Each state has `STOP AND YIELD` directive. |
-| Known risk | Steps sometimes run out of order (but less often due to simpler structure) | F5/F13: LLM may skip states or evaluate out of order despite explicit numbering |
+| Instruction format | Linear imperative with STEP markers: STEP 1, STEP 2, etc. Uses PROMPT, ASK, WAIT, TOOL, RETAIN notation. | Flat steps within states: Step 1, Step 2, etc. Uses prose ("Call the tool", "Prompt the user exactly as follows"). STOP AND YIELD directive at each user interaction. |
+| Phase 5 structure | Single flat sequence (STEP 1-11) with inline tool calls and criteria loop | Single flat state (Steps 1-10) with inline tool calls. Criteria builder in separate Phase 5c resource. |
+| Known risk | Steps sometimes run out of order (less often due to simpler notation) | LLM may skip non-interactive steps (tool calls) between user prompts |
 
 ---
 
@@ -515,3 +520,148 @@ These are intentional structural differences. When evaluating results, do NOT co
 5. **Rework criteria gate:** The rework version has an extra interaction before field suggestions: "Would you like to add additional lead criteria, or skip?" If this appears, select "Add criteria" and note that it appeared. This is expected rework behavior, not a failure.
 
 6. **Screenshots:** For any FAIL, capture a screenshot of the failure point. Name it `{version}-run{RR}-{checkpoint}.png` (e.g., `rework-run07-P5-ENUM.png`).
+
+---
+
+## Part 2: Edge Case Test Battery (50 runs per version)
+
+After completing Part 1 (50 standard runs), execute these edge case scenarios 50 times each. Use the same run numbering (EC-01 through EC-50).
+
+### Edge Case Scenario — Content Type Mismatch + Complex Posting Instructions
+
+This scenario tests guardrails around content type detection, parse failure recovery, hierarchical posting instructions, and criteria processing.
+
+### Exact Test Data
+
+#### Phase 1-2: Same as Part 1
+Use `EdgeCase-{RR}, edgecase{RR}@test.com`. Select first lead type.
+
+#### Phase 3 — Schedule + Delivery Type
+Select: **24/7 delivery** (fast path)
+Select: **Webhook**
+
+#### Phase 3 — Webhook URL
+Type: `https://httpbin.org/post`
+
+#### Phase 3 — Field Mapping Choice
+Select: **I'll provide instructions**
+
+#### Phase 3 — Content Type: SELECT XML (intentional mismatch)
+Select: **XML**
+
+#### Phase 3 — Paste JSON as XML (content type mismatch test)
+Paste exactly (this is valid JSON, NOT XML — tests mismatch detection):
+```
+{
+  "lead": {
+    "contact": {
+      "first_name": "John",
+      "last_name": "Doe",
+      "email": "john@example.com",
+      "primary_phone": "2065551234"
+    },
+    "address": {
+      "street": "123 Main St",
+      "city": "Seattle",
+      "state": "WA",
+      "zip": "98101"
+    },
+    "loan_details": {
+      "loan_amount": 250000,
+      "property_value": 420000,
+      "loan_type": ["Refinance"],
+      "credit_rating": "Excellent"
+    }
+  }
+}
+```
+
+**Expected behavior:**
+1. AI detects JSON pasted as XML → "I couldn't parse this as valid XML"
+2. Shows ActionSet: "Re-paste XML schema" | "Switch content type"
+3. Select: **Switch content type**
+4. Content type choice re-appears
+5. Select: **JSON**
+6. AI prompts for JSON schema
+7. Paste the SAME JSON again
+8. AI parses successfully, shows mapping preview
+
+#### Phase 3 — After Successful Parse
+Continue through mapping preview → connection test (Skip) → Phase 4 summary
+
+#### Phase 5 — Full Account Setup (same as Part 1)
+Price: `$50`
+Exclusivity: **Shared**
+Order System: **Yes**
+Target States: `New York, California, Arizona` (tests 3-state normalization: NY, CA, AZ)
+
+#### Phase 5 — Complex Criteria Sequence
+
+**Criterion 1** (enumerated field — test ChoiceSet):
+```
+property type
+```
+Select first enum value from dropdown.
+
+**Criterion 2** (range/between operator):
+```
+loan amount between 100000 and 500000
+```
+
+**Criterion 3** (invalid field name — test error recovery):
+```
+favorite color blue
+```
+Expected: "I couldn't find that field" error message with recovery options.
+Then type: `skip` to test GLOBAL EXIT (rework) or "done" (stabilized).
+
+**OR if field is found**, type `done` to exit loop.
+
+#### Phase 6-8
+Continue → Activate
+
+### Edge Case Checkpoints
+
+| Column | Full Name | What to Check |
+|--------|-----------|---------------|
+| EC-MISMATCH | Content type mismatch detected | AI shows "I couldn't parse as valid XML" (NOT hangs, NOT auto-fixes to JSON) |
+| EC-SWITCH | Switch content type works | Content type choice re-appears after "Switch content type" |
+| EC-REPARSE | JSON re-parse succeeds | Same JSON parses successfully when correct content type (JSON) is selected |
+| EC-HIERARCHY | Nested JSON structure preserved | Mapping preview shows fields from nested paths (lead.contact.first_name, lead.address.state) |
+| EC-3STATES | 3-state normalization | "New York, California, Arizona" normalized to NY, CA, AZ (all 3 matched) |
+| EC-ENUM | Enum criterion ChoiceSet | "property type" triggers ChoiceSet dropdown with enum values |
+| EC-BETWEEN | Between operator parsed | "loan amount between 100000 and 500000" parsed with Between operator |
+| EC-NOTFOUND | Invalid field handled gracefully | "favorite color blue" → error message with recovery, NOT treated as valid field |
+| EC-EXIT | Exit from criteria works | "skip"/"done" exits the criteria loop cleanly |
+| EC-COMPLETE | Flow completes end-to-end | Activation succeeds without errors |
+
+### Edge Case Scoring Matrix
+
+### Version: _________________ (stabilized / rework)
+
+| Run | EC-MISMATCH | EC-SWITCH | EC-REPARSE | EC-HIERARCHY | EC-3STATES | EC-ENUM | EC-BETWEEN | EC-NOTFOUND | EC-EXIT | EC-COMPLETE | Notes |
+|-----|-------------|-----------|------------|--------------|------------|---------|------------|-------------|---------|-------------|-------|
+| EC-01 | | | | | | | | | | | |
+| EC-02 | | | | | | | | | | | |
+| EC-03 | | | | | | | | | | | |
+| EC-04 | | | | | | | | | | | |
+| EC-05 | | | | | | | | | | | |
+
+(Continue to EC-50)
+
+### Edge Case Aggregate Summary
+
+| Metric | Stabilized | Rework |
+|--------|-----------|--------|
+| Total runs | 50 | 50 |
+| EC-MISMATCH pass rate | | |
+| EC-SWITCH pass rate | | |
+| EC-REPARSE pass rate | | |
+| EC-HIERARCHY pass rate | | |
+| EC-3STATES pass rate | | |
+| EC-ENUM pass rate | | |
+| EC-BETWEEN pass rate | | |
+| EC-NOTFOUND pass rate | | |
+| EC-EXIT pass rate | | |
+| EC-COMPLETE pass rate | | |
+| Full PASS rate (all 10 checks) | | |
