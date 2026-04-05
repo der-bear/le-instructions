@@ -27,11 +27,13 @@ Accept typed equivalents for every card choice.
 
 ## PROCESS
 - Build and retain `deliveryDays` and `deliveryScheduleDisplay` before creation:
+  - `deliveryDays` must remain a native array of exactly 7 objects with `weekDay`, `allow`, `startTime`, and `endTime`. Do not pass summary text or a JSON string into the DTO.
   - For `24/7 delivery`, build exactly 7 entries with `allow=true`.
   - For `Specific hours only`, parse the user's schedule into exactly 7 entries using `timeOffset` when known, otherwise `-08:00`.
 - If `deliveryTypeChoice="Webhook"`, route to the webhook phase instead of creating the method here.
 
 ## TOOL
+- `createDeliveryMethodDto` must be a nested native object, not a JSON string.
 ### Portal
 - Call `create_delivery_method` with:
   - `clientUID={clientUID}`

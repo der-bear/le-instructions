@@ -23,7 +23,7 @@ Rejected:
 
 ## Round 2 — Global Instruction Scope
 Decision:
-- Keep `system/1-global.md` as general policy only.
+- Keep `system/min-1-global.md` as general policy only.
 - Move phase mechanics into phase files.
 
 Adopted:

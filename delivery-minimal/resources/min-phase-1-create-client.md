@@ -21,6 +21,8 @@ Rules:
 - Normalize `email` by trimming whitespace and lowercasing the domain portion.
 
 ## TOOL
+- Build `createClientDto` as a nested native object, not a JSON string or top-level loose fields.
+- `password` must be an actual generated 14-character string value, not the literal placeholder text.
 - Call `create_client` with:
   - `createClientDto={companyName={companyName}, email={email}, clientStatus="New", clientAutomationType="Price", username={email}, password=<fresh random 14-character password>, timeZoneName="Pacific Standard Time", timeOffset=-8}`
 - Retain:

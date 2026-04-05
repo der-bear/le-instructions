@@ -13,7 +13,7 @@ Select an existing client, load the client profile, summarize the result, and ha
   1. Call `get_clients` and retain `clientsList`.
   2. If `clientsList` is empty, tell the user no clients were found and stop.
   3. Ask: "Which client would you like to create a delivery method for?"
-  4. Prefer a compact dropdown via `display_adaptive_card`.
+  4. If using `display_adaptive_card`, render a compact `Input.ChoiceSet` of clients plus `Action.Submit` with no extra submit `data`. The submitted value must be only `clientUID`.
   5. Accept typed company name or typed `clientUID` as fallback.
   6. If the typed match is ambiguous or low confidence, re-display the selector and wait again.
 

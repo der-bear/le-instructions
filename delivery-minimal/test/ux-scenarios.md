@@ -65,4 +65,48 @@
 3. The agent offers only:
    - `Fix criteria`
    - `Continue with geography only`
-4. The builder never mutates the account.
+4. `Fix criteria` returns to the criteria builder instead of stalling in Phase 4.
+5. `Continue with geography only` clears extra criteria and proceeds with geography-only account creation.
+
+## Scenario 10 — Webhook Review Revisions
+1. User provides a valid webhook spec and reaches the plain-text review summary.
+2. The agent offers only:
+   - `Create method`
+   - `Revise URL`
+   - `Revise spec`
+   - `Change content type`
+   - `Skip mapping`
+3. Each revision choice resets only the intended webhook inputs.
+4. The method is not created until the user explicitly chooses `Create method`.
+
+## Scenario 11 — Malformed JSON Repair
+1. User pastes JSON with missing outer braces, a trailing comma, and single quotes.
+2. The agent applies one lossless repair pass.
+3. If the repaired spec is usable, the flow continues without forcing a re-paste.
+4. If it is still unusable, the agent offers only:
+   - `Re-paste excerpt`
+   - `Change content type`
+   - `Skip mapping`
+5. `Re-paste excerpt` returns to the posting-instructions step while keeping the accepted URL and current content type.
+
+## Scenario 12 — Partial State Match Rejected
+1. User selects `Specific states`.
+2. User enters one valid state and one invalid state.
+3. The agent rejects the full input instead of silently keeping the valid subset.
+4. The agent offers only:
+   - `Re-enter states`
+   - `All states`
+
+## Scenario 13 — Enum Criterion Exit
+1. User requests extra criteria and names an enumerated field without a value.
+2. The agent shows a compact ChoiceSet plus Submit with no extra submit data.
+3. If the user types `continue`, the builder exits cleanly with the criteria collected so far.
+4. If the user types `continue with geography only`, the builder clears all compiled criteria and returns to Phase 4.
+
+## Scenario 14 — Activation Failure Recovery
+1. The user chooses `Activate now`.
+2. The activation call fails.
+3. The agent offers only:
+   - `Retry activation`
+   - `Keep inactive`
+4. Retry resends the full client DTO with a fresh password.

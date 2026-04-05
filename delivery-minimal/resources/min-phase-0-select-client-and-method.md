@@ -13,7 +13,7 @@ Select an existing client and delivery method, retain the account-creation conte
   1. Call `get_clients` and retain `clientsList`.
   2. If `clientsList` is empty, tell the user no clients were found and stop.
   3. Ask: "Which client would you like to create a delivery account for?"
-  4. Prefer a compact dropdown via `display_adaptive_card`.
+  4. If using `display_adaptive_card`, render a compact `Input.ChoiceSet` of clients plus `Action.Submit` with no extra submit `data`. The submitted value must be only `clientUID`.
   5. Accept typed company name or typed `clientUID` as fallback.
   6. If the typed match is ambiguous or low confidence, re-display the selector and wait again.
 
@@ -33,15 +33,17 @@ Select an existing client and delivery method, retain the account-creation conte
 ## ASK
 - If no delivery methods exist, tell the user this client has no delivery methods and stop.
 - Ask: "Which delivery method would you like to use?"
-- Prefer a compact dropdown via `display_adaptive_card`.
+- If using `display_adaptive_card`, render a compact `Input.ChoiceSet` of delivery methods plus `Action.Submit` with no extra submit `data`. The submitted value must be only `deliveryMethodUID`.
 - Accept typed method name or typed `deliveryMethodUID` as fallback.
 - If the typed match is ambiguous or low confidence, re-display the selector and wait again.
 
 ## TOOL
-- Retain:
+- Resolve the chosen method against `deliveryMethodsList` before continuing.
+- Retain the selected row's:
   - `deliveryMethodUID`
   - `deliveryMethodName`
   - `leadTypeUID`
+- If the selected method cannot be resolved cleanly to exactly one row, re-display the selector and wait again.
 
 ## FAILURE
 - If `get_client` fails, ask the user to retry or choose another client.

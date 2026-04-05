@@ -27,7 +27,9 @@ Present a short plain-text summary of the completed setup, then activate the cli
 ## TOOL
 ### Activate now
 - `update_client` is a replace-style mutation. Resend all client fields in `updateClientDto`, even unchanged ones.
+- `updateClientDto` must be a nested native object inside the tool call, not top-level loose fields and not a JSON string.
 - Use a fresh generated password because the Phase 1 password is not retained as durable context.
+- `password` must be an actual fresh generated 14-character string value on every activation attempt.
 - Call `update_client` with:
   - `clientUID={clientUID}`
   - `updateClientDto={companyName={companyName}, email={email}, clientStatus="Active", clientAutomationType="Price", username={email}, password=<fresh random 14-character password>, timeZoneName={timeZoneName}, timeOffset={timeOffset}}`
@@ -37,8 +39,12 @@ Present a short plain-text summary of the completed setup, then activate the cli
 - Reply in plain text that setup is complete and the client remains inactive for now.
 
 ## FAILURE
-- If activation fails, ask whether to retry activation or keep the client inactive.
-- If the user chooses retry, call `update_client` again with the full DTO and a fresh password.
+- If activation fails, ask only:
+  - `Retry activation`
+  - `Keep inactive`
+- Accept typed equivalents for both choices.
+- If the user chooses `Retry activation`, call `update_client` again with the full DTO and a fresh password.
+- If the user chooses `Keep inactive`, reply in plain text that setup is complete and the client remains inactive for now.
 
 ## NEXT
 End the conversation after the activation choice is resolved.

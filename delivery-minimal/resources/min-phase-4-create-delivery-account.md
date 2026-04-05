@@ -37,24 +37,38 @@ Rules:
 
 ## TOOL
 After all visible inputs are known and any optional criteria work is complete, run one contiguous tool block.
+- `createDeliveryAccountDto` must be a nested native object, not a JSON string.
+- `criteriaPayload` must be a native array of criterion objects, not a JSON string.
 
-1. If `geographyChoice="Specific states"` or lead-field metadata is otherwise needed, call `get_lead_type(leadTypeUID)` and retain `leadTypeName` and `leadFields`.
-2. If `geographyChoice="Specific states"`, detect the state field in this priority order:
+1. Verify that `deliveryMethodUID` and `leadTypeUID` are both present before any create call. If either value is missing, stop, tell the user the delivery-method context is missing, and do not guess or create the account.
+2. If `geographyChoice="Specific states"` or lead-field metadata is otherwise needed, call `get_lead_type(leadTypeUID)` and retain `leadTypeName` and `leadFields`.
+3. If `geographyChoice="Specific states"`, detect the state field in this priority order:
    - `leadFieldSpecialBit` in `State` or `StandardState`
    - exact `leadFieldName="state"` case-insensitive
    - `leadFieldName` contains `state`
-3. If the match is ambiguous, ask one focused fallback question.
-4. If ambiguity still remains, ask whether to continue without state targeting or cancel.
-5. If `geographyChoice="Specific states"`, call `get_usa_states()` and match the normalized input.
-6. If no states match, ask the user to re-enter the states or switch to `All states`.
-7. Build `criteriaPayload`:
-   - prepend the state criterion when needed
+4. If the match is ambiguous, ask one focused fallback question.
+5. If ambiguity still remains, offer only:
+   - `Continue without state targeting`
+   - `Cancel`
+6. Ambiguity outcomes:
+   - `Continue without state targeting` → set `geographyChoice="All states"`, clear `targetStates`, and continue with no state criterion
+   - `Cancel` → clear `geographyChoice` and `targetStates`, return to the geography-choice step, and do not create the account
+7. If `geographyChoice="Specific states"`, call `get_usa_states()` and match the normalized input.
+8. Reject partial state matches. If any entered state is unmatched, treat the full input as invalid rather than silently using only the matched subset.
+9. If no states match or the input is only partially valid, offer only:
+   - `Re-enter states`
+   - `All states`
+10. Invalid-state outcomes:
+   - `Re-enter states` → clear `targetStates`, return to the states step, and do not create the account yet
+   - `All states` → set `geographyChoice="All states"`, clear `targetStates`, and continue with no state criterion
+11. Build `criteriaPayload`:
+   - prepend the state criterion when needed as `{leadFieldUID: stateFieldUID, type:"FieldValue", operator:"In", value:"<pipe-delimited stateUID string>"}`
    - append `compiledCriteria` if any
    - use `[]` when there are no criteria
-8. Call `create_delivery_account` with:
+12. Call `create_delivery_account` with:
    - `clientUID={clientUID}`
    - `createDeliveryAccountDto={deliveryMethodUID={deliveryMethodUID}, price={price}, deliveryAccountType="WebAndChatLeads", status="Open", name="{companyName}-Account", automationEnabled=true, isExclusive={isExclusive}, useOrder={useOrder}, dayMax=50, hourMax=-1, weekMax=-1, monthMax=-1, criteria={criteriaPayload}}`
-9. Retain:
+13. Retain:
    - `deliveryAccountUID`
    - `price`
    - `geographyChoice`
@@ -62,12 +76,15 @@ After all visible inputs are known and any optional criteria work is complete, r
    - `additionalCriteriaSummary`
    - `isExclusive`
    - `useOrder`
-10. Validate that `deliveryAccountUID` is a positive value. If it is missing or invalid, treat the create step as failed and retry or ask the user how to proceed.
+14. Validate that `deliveryAccountUID` is a positive value. If it is missing or invalid, treat the create step as failed and retry or ask the user how to proceed.
 
 ## FAILURE
 - If criteria compilation is ambiguous or invalid, offer only:
   - `Fix criteria`
   - `Continue with geography only`
+- Criteria-failure outcomes:
+  - `Fix criteria` → load and execute mcp://resource/min-phase-4b-criteria-builder again. Do not create the account in the same turn.
+  - `Continue with geography only` → clear `compiledCriteria`, retain `additionalCriteriaSummary="None"`, retain `extraCriteriaStatus="done"`, retain `addExtraCriteriaChoice="No"`, and continue Phase 4 with geography-only criteria.
 - If the create call can be safely repaired, repair once silently.
 - If it still fails, ask whether to retry with the same inputs or revise the last account setting.
 
