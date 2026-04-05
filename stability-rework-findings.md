@@ -1,9 +1,9 @@
 # Stability Test Findings — Version B: Rework
 
 **Action:** Create Single Client (Reworked)  
-**Model:** OpenAI GPT-5.4 Mini  
+**Model:** OpenAI GPT-5.4 Mini (runs 01–20); GPT-5-mini for Webhook/criteria phases, GPT-5.4 for others (runs 21–30)  
 **Protocol:** stability-test-protocol.md  
-**Target:** 20 runs, each with a distinct complex scenario. See Run Scenarios section.  
+**Target:** 30 runs, each with a distinct complex scenario. See Run Scenarios section.  
 **Base test data:** StabilityTest-{RR}r, stability{RR}r-{TS}@test.com  
 **Runs 01–03:** Basic scenario — Webhook/JSON/3 criteria (completed)
 
@@ -23,6 +23,16 @@
 | 08 | FTP delivery | FTP | N/A | 24/7 | 2 criteria | Connection test |
 | 09 | Portal delivery | Portal | N/A | Specific hours | 3 criteria | No connection test |
 | 10 | Email delivery + max criteria | Email | N/A | Mon-Fri 9-5 PST | 7 criteria (all types) | Exclusive, Order ON |
+| 21 | 2 enum criteria | Webhook | JSON (5 fields) | 24/7 | 2 enum | Exclusive, Order ON |
+| 22 | 1 numeric criterion | Portal | N/A | Mon-Fri 9am-5pm EST | 1 numeric | Shared, Order OFF |
+| 23 | Mixed criteria | Webhook | XML | Weekdays 8am-6pm CST | 2 enum + 1 numeric | Exclusive, Order ON |
+| 24 | No criteria | Email | N/A | 24/7 | none (skip) | Shared, Order OFF |
+| 25 | FTP + mixed criteria | FTP | N/A | Mon-Fri 9am-5pm MST | 1 enum + 1 numeric | Exclusive, Order ON |
+| 26 | URL Encoded + numeric | Webhook | URL Encoded | Mon-Wed-Fri 8am-8pm PST | 1 numeric | Shared, Order OFF |
+| 27 | Portal + 2 enum | Portal | N/A | 24/7 | 2 enum | Exclusive, Order ON |
+| 28 | JSON nested + 1 enum | Webhook | JSON nested | Tue-Thu 9am-6pm EST | 1 enum | Shared, Order ON |
+| 29 | Email + 2 numeric | Email | N/A | Mon-Fri 8am-5pm CST | 2 numeric | Exclusive, Order OFF |
+| 30 | FTP + 1 enum | FTP | N/A | 24/7 | 1 enum | Shared, Order ON |
 
 ---
 
@@ -50,6 +60,16 @@
 | 18 | F | Y | F | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | Y | N/A | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | FAIL | LendingTree, Email, Mon-Fri 9am-5pm EST, Shared, Order OFF, skip criteria; RB-G: P1+P3-SCHED+P3-DTYPE+P4-Continue all doubled (systematic); RB-K(mild): acct name asked between P4-Continue and Phase 5 load (before price/excl/order); RB-N NOT triggered (states asked CA,TX,FL ✓); RB-D NOT triggered (criteria gate shown ✓); RB-O: stateUIDs need session log verification; Email conn test correctly skipped ✓; P4/P6/P7 correct; Activation ACTIVE ✓ |
 | 19 | Y | Y | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | F | N/A | N/A | N/A | N/A | N/A | N/A | Y | F | Y | Y | FAIL | LendingTree, FTP, Mon-Fri 8am-6pm CST, Exclusive, Order OFF, skip criteria; RB-G(partial): P4-Continue doubled only — P1/P3-SCHED/P3-DTYPE all clean (mildest RB-G yet); RB-Z(2nd: B16,B19): full credentials (acct name+user+pass+criteria) collected before Phase 5; skip→Phase 5 loaded correctly (no loop unlike B16) ✓; RB-N: states silently skipped (6th: B07,B11,B14,B15,B16,B19); RB-O: phantom CA,AZ,TX (6th); RB-D: criteria gate bypassed (pre-Phase-5 skip used); FTP conn test fail handled ✓; P4/P7 correct; Activation ACTIVE ✓ |
 | 20 | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | FAIL | LendingTree, Webhook, 24/7, URL-Encoded, Shared, Order OFF, skip criteria; RB-G: P1+states prompt+field-mapping-Continue+P4-Continue all doubled (systematic); RB-K NOT triggered (price first ✓); RB-Z NOT triggered ✓; RB-N NOT triggered (states asked FL,OH,GA ✓); RB-O NOT triggered (correct states in P6 ✓); RB-D NOT triggered (criteria gate w/Add/Skip buttons ✓); account name auto-generated; 6/7 URL-encoded mapping ✓; P4/P6/P7 correct; Activation ACTIVE ✓ |
+| 21 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | Y | Y | Y | Y | Y | FAIL | LendingTree, Webhook/JSON, 24/7, Exclusive, Order ON, 2 enum; enum bypass on BOTH (SelfCreditRating+LoanRequestPurpose, no ChoiceSet); **Finding U**: both enum criteria dropped from payload (only state criterion present: CA(5)+TX(44)+FL(10)); States correct position ✓; 8/8 mapping ✓; RB-G NOT triggered ✓; Session:69d2778a2697c9202c0bcf1c; Method:46937, Acct:45940; ACTIVE ✓ |
+| 22 | Y | Y | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | F | F | F | F | N/A | F | F | Y | Y | Y | Y | FAIL | LendingTree, Portal/Mon-Fri 9-5 EST, Shared, Order OFF; RB-N: states prompt skipped; RB-O: phantom CA(5)+AZ(3)+TX(44); RB-D: criteria gate skipped; account created immediately after Order=No; RB-G NOT triggered ✓; P3b correctly skipped for Portal ✓; P4-SUMM ✓; Session:69d27b252697c9202c0bcf7f; Method:46938, Acct:45941; ACTIVE ✓ |
+| 23 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | Y | Y | F | Y | Y | F | Y | Y | Y | FAIL | LendingTree, Webhook/XML, Weekdays 8-6 CST, Exclusive, Order ON, 2 enum+1 numeric; RB-N: states prompt skipped; RB-O: phantom CA(5)+AZ(3)+TX(44) in initial create; NEW: criteria added via SEPARATE update_delivery_account after create (not in initial payload); enum bypass: SelfCreditRating→correct enum UID(343593) via update; LoanRequestPurpose→"Contains"+"purchase" (wrong operator+value, should be "In"+enumUID); LoanAmount→GreaterOrEqual 100000 ✓; 8/8 mapping ✓; RB-G NOT triggered ✓; Session:69d27c502697c9202c0bcfb5; Method:46939, Acct:45942; ACTIVE ✓ |
+| 24 | Y | F | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | Y | F | N/A | N/A | N/A | Y | Y | Y | Y | Y | FAIL | LendingTree, Email/24/7, Shared, Order OFF, no criteria; RB-AA NEW: P2 timezone/status skipped after duplicate-email retry — defaulted PST/-8; P5-FIELD: field suggestions step skipped (bare gate only); FL(10)+GA(11) in payload ✓; no phantom states ✓; RB-G NOT triggered ✓; RB-N NOT triggered ✓; Session:69d2869f2697c9202c0bd088; Method:46940, Acct:45943; ACTIVE ✓ |
+| 25 | Y | F | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | F | F | F | F | F | F | F | Y | F | Y | Y | FAIL | LendingTree, FTP/Mon-Fri 9-5 MST, Exclusive, Order ON, 1 enum+1 numeric; RB-AA(2nd): P2 skipped; RB-N: states skipped; RB-O: phantom CA(5)+AZ(3)+TX(44); RB-D: criteria gate skipped entirely (states+criteria both missed after Order=Yes); P6-SUMM skipped (went P5→P7); 0/0 FTP field mappings ✓; P3B conn test card shown ✓; RB-G NOT triggered ✓; Session:69d288ef2697c9202c0bd0c5; Method:46941, Acct:45944; ACTIVE ✓ |
+| 26 | Y | F | Y | Y | Y | Y | Y | Y | Y | Y | F | F | F | N/A | F | F | N/A | F | F | F | Y | Y | Y | FAIL | LendingTree, Webhook/URL-Encoded Mon-Wed-Fri 8-8 PST, Shared, Order OFF, 1 numeric; RB-AA(3rd): P2 skipped; RB-BB NEW: P5 off-script pre-price prompt (account name+criteria asked, self-corrected); P5 collapsed: only price collected then immediate acct creation — Exclusive(wrong), Order=Yes(wrong), CA only(wrong), no criteria; P6-BOOL F (wrong bool values); P6-SUMM shown (wrong values); 8/8 URL-Encoded+disambiguation ✓; Session:69d28a4d2697c9202c0bd101; Method:46942, Acct:45945; ACTIVE ✓ |
+| 27 | F | F | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | F | N/A | F | F | F | F | F | Y | Y | Y | Y | FAIL | LendingTree, Portal/24/7, Exclusive, Order ON, 2 enum; RB-G returned (P1 doubled); RB-AA(4th): P2 skipped; RB-N: states skipped; RB-O: phantom CA(5)+AZ(3)+TX(44); RB-X: empty response after Add criteria (recovered via typed input); SelfCreditRating ChoiceSet shown (string values not UIDs); criterion not saved (RB-V); LoanRequestPurpose stuck in exact-value loop, skipped; P3B correctly skipped for Portal ✓; P5-EXCL/ORDER correct cards ✓; Session:69d28e392697c9202c0bd157; Method:46943, Acct:45946; ACTIVE ✓ |
+| 28 | F | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | N/A | F | Y | Y | Y | Y | FAIL | LendingTree, Webhook/JSON-nested Tue-Thu 9-6 EST, Shared, Order ON, 1 enum; RB-G: P1 doubled (6th); RB-AA(5th): P2 skipped; RB-N NOT triggered (states asked FL/NY/WA ✓); account created BEFORE criteria gate (Steps 11→7-9 inverted, new sub-pattern); RB-V: SelfCreditRating not saved (no ChoiceSet, no update); "continue" re-triggered Step 7 field list; 8/8 JSON-nested mapping ✓; invisible textarea bug delayed P5 input; Session:69d2907a2697c9202c0bd1a0; Method:46944, Acct:45947; ACTIVE ✓ |
+| 29 | F | F | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | F | N/A | F | F | N/A | F | F | Y | Y | Y | Y | FAIL | LendingTree, Email/Mon-Fri 8-5 CST, Exclusive, Order OFF, 2 numeric; RB-G(7th): P1 doubled; RB-AA(6th): P2 skipped→PST/-8 (inline DEBUG ✓); RB-K: acct name before Phase 5 doubled (inline DEBUG ✓); RB-N(11th): states skipped→account created before states; TX/GA/OH provided post-creation; criteria rejected post-creation; P6: Price=32, Exclusive, Criteria=None; Session:TBD; clientUID:29360; ACTIVE ✓ |
+| 30 | F | F | Y | N/A | N/A | N/A | N/A | F | Y | F | Y | Y | F | Y | Y | F | F | F | F | Y | Y | Y | Y | FAIL | LendingTree, FTP/24/7, Shared, Order ON, 1 enum; RB-G(8th): P1 doubled; RB-AA(7th): P2 skipped (inline DEBUG ✓); RB-K: schedule re-prompt (inline DEBUG ✓) + price doubled post-DEBUG (inline DEBUG ✓); P3B: FTP test ran but no Retry/Skip card (RB-DD new, inline DEBUG ✓); RB-N(12th): states skipped→provided post-jump (inline DEBUG ✓); RB-V: SelfCreditRating in P6 not in API payload; 5 inline DEBUGs captured; Session:69d298452697c9202c0bd257; clientUID:29361, Method:46946, Acct:45950; ACTIVE ✓ |
 
 ---
 
@@ -507,7 +527,7 @@ Also add to system prompt: "When a phase specifies an exact prompt, that prompt 
 
 ### Finding RB-N — States question skipped entirely in Phase 5
 
-**Phase:** 5 | **Severity:** High | **Frequency:** 4/15 (B07, B11, B14, B15)  
+**Phase:** 5 | **Severity:** High | **Frequency:** 12/30 (B07, B11, B14, B15, B16, B19, B22, B23, B25, B27, B29, B30)  
 **Observed:** After Order System = No, the states/geography question was not asked. Flow jumped from order decision → criteria gate, with no "Which states should this account receive leads from?" prompt at any point.  
 **Expected:** Phase 5 must collect target states before the criteria gate. States are a required field for delivery account configuration.  
 **Root cause:** Unknown — possibly a Phase 5 state machine branch that skips states when order=No, or a summarization side-effect corrupting the step sequence. DEBUG after activation could not pinpoint the exact branch since context was partially summarized.  
@@ -886,13 +906,16 @@ States were submitted in the initial `create_delivery_account` call.
 
 ---
 
-### Finding RB-V — Conversational mode criteria accepted verbally but never sent to API
+### Finding RB-V — Criteria accepted/shown in summary but never sent to API
 
-**Phase:** 5c (conversational fallback post-DEBUG) | **Severity:** Critical | **Frequency:** 1/1 (B11 — only run where DEBUG triggered mid-P5)  
-**Observed:** After DEBUG intervention, agent asked "Please provide any additional criteria for this delivery account, or reply with none." User replied "LoanAmount >= 50000, CreditScore >= 650." Agent said "Confirmed." — but session log shows **no `update_delivery_account` call** after this exchange. The criteria were silently discarded.  
-**Expected:** Accepted criteria must be saved via `update_delivery_account` before proceeding to P6.  
-**Root cause:** When the agent enters a conversational state outside normal Phase 5c flow (triggered by DEBUG disruption), it collects user input but lacks the Phase 5c instruction context needed to know it should call `update_delivery_account`. The "Confirmed." response is generated by the base model without any tool execution.  
-**Suggested fix:** Phase 5c must be loaded as a resource (not run conversationally) before collecting criteria. Any criteria confirmed by the agent must always trigger `update_delivery_account` — enforce this with a rule in system prompt: "If you have confirmed criteria with the user, you MUST call update_delivery_account before proceeding. Verbal confirmation without tool call is a violation."
+**Phase:** 5c | **Severity:** Critical | **Frequency:** 4/30 (B11, B27, B28, B30)
+**Observed (B11):** After DEBUG intervention, agent verbally confirmed "LoanAmount >= 50000, CreditScore >= 650" but session log shows no `update_delivery_account` call — criteria silently discarded. Root cause: conversational fallback mode (no Phase 5c instructions loaded) collects input but doesn't know to call the tool.
+**Observed (B27):** SelfCreditRating criterion accepted via ChoiceSet, shown in summary, but no `update_delivery_account` call — "Additional Criteria: None" in P6.
+**Observed (B28):** SelfCreditRating accepted verbally (no ChoiceSet), no `update_delivery_account` — "Additional Criteria: None" in P6. Also: "continue" re-triggered Step 7 field list instead of signaling loop exit.
+**Observed (B30):** SelfCreditRating shown in P6 summary ("Additional Criteria: SelfCreditRating=EXCELLENT") but `create_delivery_account` payload contains only the state criterion — enum criterion silently dropped from payload builder. Inline DEBUG patch: "After each accepted criterion append to persistent `accountCriteria` collection. Before `create_delivery_account` call, merge full `criteriaPayload` into account DTO."
+**Expected:** Any criterion confirmed by the agent must be in the final `create_delivery_account` payload or a subsequent `update_delivery_account` call.
+**Root cause (general):** Criteria are accepted into the agent's conversational/summary state but the payload builder that constructs the `create_delivery_account` call reads from a different state variable. The two states diverge — summary state is populated but submission state is not.
+**Suggested fix:** (1) Phase 5c must maintain a single `criteriaPayload` array as the authoritative source. (2) After each accepted criterion, append to `criteriaPayload` (not just to the display list). (3) Before `create_delivery_account`, validate that `criteriaPayload` matches the displayed criteria count. (4) Never accept a verbal "Confirmed." without executing the corresponding tool call.
 
 ---
 
@@ -926,4 +949,657 @@ States were submitted in the initial `create_delivery_account` call.
 **Additional anomaly:** The "Please provide the delivery method name and the delivery method type." prompt appeared twice in the same message (double-render), consistent with RB-G.  
 **Robustness note:** When an unexpected input (webhook URL) was sent before the agent had issued its prompt for it, the agent rolled back to the start of Phase 3 (asked schedule question again). This suggests the state machine is sensitive to out-of-order inputs — see B13 test protocol notes.  
 **Suggested fix:** Phase 3 entry must enforce card-first ordering: display schedule card, await selection, then display delivery type card, await selection, then (if Webhook/FTP/Email) ask for name. Name collection must come AFTER type is known, not before.
+
+---
+
+## Runs 21–30 Findings (Mixed-Model: GPT-5-mini for Webhook/Criteria Phases)
+
+> Runs 21–30 use GPT-5-mini for Phase 3 (Webhook delivery method) and Phase 5c (criteria builder). All other phases use GPT-5.4 Mini. Purpose: compare per-phase stability against the GPT-5.4-only baseline (runs 01–20).
+
+### Run Findings 21–30
+
+*(Populated as runs complete)*
+
+---
+
+### Finding RB-AA — P2 (timezone/status) systematically skipped in runs 24–30 (P2-DROP FAIL)
+
+**Phase:** 2 | **Severity:** High | **Frequency:** 7/10 (B24, B25, B26, B27, B28, B29, B30 — ALL runs from B24 onwards)
+**Observed:** Starting at B24, after the lead type dropdown was submitted, the agent jumped directly to the delivery schedule prompt (P3) without asking for timezone or client status. Client defaulted to `Pacific Standard Time / timeOffset=-8` (hardcoded system default in `create_client` call). B21–B23 did NOT exhibit this. B25 and B26 had no email retry issue yet still skipped P2. B29 inline DEBUG: "trust current system state; only prompt for fields missing in the current phase." B30 inline DEBUG identified same root cause.
+**Expected:** After lead type is confirmed, agent must ask for timezone (dropdown or text) and client status before proceeding to delivery method setup. These are mandatory P2 data points.
+**Root cause — revised (B24 hypothesis discarded):** The original hypothesis was that a duplicate-email retry in B24 disrupted P2. However, B25 and B26 also skip P2 without any duplicate-email issue. The consistent change at B24 vs B21–B23 is unknown but may relate to: (1) conversation context drift across accumulated sessions, (2) a Phase 2 instruction loading failure where `get_resource` for Phase 2 timezone/status either doesn't fire or its output is not acted on, or (3) the summarize_history accumulation for long runs altering how P1→P2 handoff is interpreted.
+**Suggested fix:** Phase 2 timezone/status collection must be a hard gate before `create_delivery_method` can be called. Add explicit check: if `timeZoneName` is not set from user input in this conversation, Phase 2 must prompt for it unconditionally. Cannot rely on summarized state from prior phases to supply this value.
+
+---
+
+---
+
+### Finding RB-BB — P5 off-script pre-phase prompt causes complete P5 data collection collapse (P5-EXCL/ORDER/STATE/CRIT FAIL)
+
+**Phase:** 4→5 transition + Phase 5 | **Severity:** Critical | **Frequency:** 1/6 (B26 only)
+**Observed:** After P4 Continue, agent asked "Please provide the delivery account name and whether to add criteria" (two-question prompt) instead of the Phase 5 price prompt. After user provided account name and "Yes criteria", the agent then asked for price (correct). But after receiving price, it immediately called `create_delivery_account` without collecting exclusive/shared, order system, states, or criteria. The resulting account had wrong defaults: isExclusive=true (should be false), useOrder=true (should be false), criteria=[CA only] (should be WA/OR + LoanAmount>=75000).
+**Expected:** P5 should ask: price → exclusive/shared → order system → states → criteria gate → criteria builder.
+**Root cause (hypothesis):** The off-script exchange (msgs 32–35) pre-populated the agent's working context with partial Phase 5 data: it received `name=StabilityTest-26r-Account` and `criteria=Yes`. When it then loaded Phase 5 and asked for price, it may have interpreted the pre-collected "name" and "Yes criteria" as satisfying Phase 5's collection requirements, causing it to skip the remaining collection steps and jump straight to account creation. The "Yes criteria" text was apparently NOT used to trigger the criteria builder — it was treated as a signal to proceed.
+**Related:** Similar to RB-K (generic prompt before Phase 5 loads) and RB-Z (credentials collected before Phase 5). Differs in that after the off-script exchange, Phase 5 loaded partially but only collected price before creating the account.
+**Suggested fix:** Phase 5 must treat ALL its collection steps as required regardless of any pre-existing context. Add explicit unconditional prompts for each step — never skip exclusive/shared, order, states, or criteria gate based on inferred or pre-loaded values.
+
+---
+
+---
+
+### Finding RB-DD — P3B connection test result shown but no Retry/Skip card presented
+
+**Phase:** 3B (connection test) | **Severity:** High | **Frequency:** 1/10 (B30 — FTP with failing connection test)
+**Observed:** In B30, the FTP connection test was executed and returned a failure result. The agent displayed the failure message but did not present the expected Retry/Skip adaptive card. Agent stalled silently. User had to send "Skip" as plain text to advance.
+**Expected:** After any connection test result (pass or fail), Phase 3B must immediately present `display_adaptive_card` with ActionSet: "Retry" | "Skip". Agent must STOP AND YIELD after showing the card.
+**Inline DEBUG response (B30):** "I displayed the failure result but did not follow through with the required card. I was waiting for a retry/skip signal but had not yet issued the prompt that requests it. I should have presented the Retry/Skip card immediately after showing the test result."
+**Agent's patch suggestion (B30):** "After every connection test completion (pass or fail), immediately call `display_adaptive_card` with ActionSet: 'Retry' | 'Skip'. Do not await input before showing the card. STOP AND YIELD immediately after presenting the card — do not proceed to Phase 4 until the user selects an option."
+**Root cause:** The connection test result display and the Retry/Skip card prompt are two separate steps. The agent completed the first step (displaying result) but did not advance to the second step (card prompt). Likely a STOP AND YIELD failure — same pattern as RB-G.
+**Suggested fix:** In Phase 3B, after `test_ftp_sftp_connection` or `test_webhook_connection` completes, the very next action must be `display_adaptive_card(Retry | Skip)`. No other output is permitted between the result display and the card. Add: "After showing connection test result, immediately present Retry/Skip card in the same response. Do not halt without presenting the card."
+
+---
+
+## Run 21–30 Session Audits
+
+---
+
+### Audit: B21 session — `69d2778a2697c9202c0bcf1c` (Apr 5, 2026)
+
+**Scenario:** LendingTree / Webhook / JSON (8 fields) / 24/7 / Exclusive / Order ON / 3 states (CA, TX, FL) / 2 enum criteria (SelfCreditRating=EXCELLENT, LoanRequestPurpose=PURCHASE)
+
+**Result: FAIL** — enum bypass (both criteria) + Finding U (criteria dropped from payload)
+
+**`create_delivery_account` payload:**
+```json
+{
+  "clientUID": 29351,
+  "createDeliveryAccountDto": {
+    "deliveryMethodUID": 46937,
+    "deliveryAccountType": "WebAndChatLeads",
+    "status": "Open",
+    "name": "StabilityTest-21r-Account",
+    "price": 30,
+    "isExclusive": true,
+    "useOrder": true,
+    "dayMax": 50,
+    "hourMax": -1, "weekMax": -1, "monthMax": -1,
+    "automationEnabled": true,
+    "criteria": [
+      {"leadFieldUID": 144881, "type": "FieldValue", "operator": "In", "value": "5|44|10"}
+    ]
+  }
+}
+```
+Response: `{"success":true,"data":45940}`
+
+**Anomalies:**
+1. **Enum bypass (both criteria):** "SelfCreditRating excellent" and "LoanRequestPurpose purchase" both accepted without ChoiceSet dropdown — agent auto-accepted via fuzzy match.
+2. **Finding U reproduced:** criteria array contains only the state criterion. SelfCreditRating (UID=343593) and LoanRequestPurpose (UID=343609) both missing from payload despite being accepted in criteria loop.
+
+**Positives:**
+- RB-G NOT triggered (no prompt doubling) ✓
+- States prompt in correct position before criteria gate ✓
+- 8/8 field mappings correct ✓
+- Connection test card shown, Skip worked ✓
+- States CA(5)+TX(44)+FL(10) correct ✓
+
+**DEBUG Response (criteria drop):** Root cause identified as state handoff failure between Phase 5c and account creation. Criteria were captured in loop and shown in summary but the final payload builder did not merge the `criteriaPayload` collection into the account DTO. Summary state and submission state treated as separate.
+
+**Agent's patch suggestion:** (1) After each accepted criterion append to persistent `accountCriteria` collection — not summary-only. (2) Before `create_delivery_account` call, build final payload from required account fields + every retained criterion. (3) Add mandatory pre-submit validation: if `accountCriteria` non-empty, all retained criteria must be present in payload before submission.
+
+---
+
+---
+
+### Audit: B22 session — `69d27b252697c9202c0bcf7f` (Apr 5, 2026)
+
+**Scenario:** LendingTree / Portal / Mon-Fri 9am-5pm EST / Shared / Order OFF / 1 numeric criterion (never reached)
+
+**Result: FAIL** — RB-N + RB-O + RB-D all triggered; account created immediately after Order=No
+
+**`create_delivery_account` payload:**
+```json
+{
+  "clientUID": 29352,
+  "createDeliveryAccountDto": {
+    "deliveryMethodUID": 46938,
+    "price": 20,
+    "isExclusive": false, "useOrder": false,
+    "criteria": [{"leadFieldUID": 144881, "type": "FieldValue", "operator": "In", "value": "5|3|44"}]
+  }
+}
+```
+Response: `{"success":true,"data":45941}`
+
+**Anomalies:**
+1. **RB-N**: States prompt never shown — after Order=No, agent immediately called `create_delivery_account`
+2. **RB-O**: Phantom states CA(5)+AZ(3)+TX(44) used — same pattern as B07/B11/B14/B15/B19
+3. **RB-D**: Criteria gate skipped entirely — 1 numeric criterion never collected
+
+**DEBUG response:** "The workflow state had already advanced through earlier phases, and only the later summary/activation phases were actively executed in this conversation. The branch decision for criteria was not re-opened for user input."
+
+**Positives:** RB-G NOT triggered ✓; P3b connection test correctly skipped for Portal ✓; P4 summary card ✓; P5 price→excl→order card sequence correct ✓
+
+---
+
+### Audit: B23 session — `69d27c502697c9202c0bcfb5` (Apr 5, 2026)
+
+**Scenario:** LendingTree / Webhook / XML / Mon-Fri 8am-6pm CST / Exclusive / Order ON / 3 states intended (never collected) / 3 criteria: SelfCreditRating=EXCELLENT, LoanRequestPurpose=PURCHASE, LoanAmount≥100000
+
+**Result: FAIL** — RB-N + RB-O; criteria added via post-creation update (new pattern); LoanRequestPurpose wrong operator
+
+**`create_delivery_account` payload:**
+```json
+{
+  "deliveryMethodUID": 46939,
+  "deliveryAccountType": "WebAndChatLeads",
+  "status": "Open",
+  "name": "StabilityTest-23r-Account",
+  "price": 35,
+  "hourMax": -1, "dayMax": 50, "weekMax": -1, "monthMax": -1,
+  "criteria": [{"leadFieldUID": 144881, "type": "FieldValue", "operator": "In", "value": "5|3|44"}],
+  "useOrder": true, "automationEnabled": true, "isExclusive": true
+}
+```
+Response: `{"success":true,"data":45942}`
+
+**`update_delivery_account` payload (called AFTER create):**
+```json
+{
+  "criteria": [
+    {"leadFieldUID": 144881, "type": "FieldValue", "operator": "In", "value": "5|3|44"},
+    {"leadFieldUID": 144893, "type": "FieldValue", "operator": "In", "value": "343593"},
+    {"leadFieldUID": 144922, "type": "FieldValue", "operator": "Contains", "value": "purchase"},
+    {"leadFieldUID": 144924, "type": "FieldValue", "operator": "GreaterOrEqual", "value": "100000"}
+  ],
+  "useOrder": true, "automationEnabled": true, "isExclusive": true
+}
+```
+
+**Anomalies:**
+1. **RB-N**: States prompt skipped — agent went straight to "Would you like to add criteria?" after Order=Yes
+2. **RB-O**: Phantom states CA(5)+AZ(3)+TX(44) in initial `create_delivery_account`
+3. **NEW: Post-creation update pattern**: Criteria added via separate `update_delivery_account` call after account was created (unlike B21 where criteria were in the initial create). This is a behavioral difference — account created first with phantom states only, then updated with criteria.
+4. **Enum bypass (SelfCreditRating)**: No ChoiceSet shown, but agent correctly resolved to enum UID 343593 ("EXCELLENT") in the update payload — bypass occurred but value was correct.
+5. **Enum bypass + wrong operator (LoanRequestPurpose)**: No ChoiceSet shown; agent used operator="Contains" and value="purchase" (raw string) instead of operator="In" and the correct enum UID. Enum UID lookup failed silently.
+6. **LoanAmount**: GreaterOrEqual + 100000 ✓ correct
+
+**Positives:**
+- RB-G NOT triggered (no prompt doubling) ✓
+- XML content type card shown and selected correctly ✓
+- 8/8 field mappings correct ✓
+- Connection test card shown (Skip clicked) ✓
+- P4 delivery method summary correct (Mon-Fri 8am-6pm CST) ✓
+- Criteria gate shown with "Add criteria"/"Skip" buttons ✓ (unlike B22 which skipped)
+- Criteria loop functioned — 3 criteria collected before Continue ✓
+
+**DEBUG not yet collected** — to be done in batch.
+
+---
+
+### Audit: B24 session — `69d2869f2697c9202c0bd088` (Apr 5, 2026)
+
+**Scenario:** LendingTree / Email / 24/7 / Shared / Order OFF / no criteria / states: FL, GA
+
+**Result: FAIL** — P2 skipped (new finding RB-AA); field suggestions step skipped
+
+**`create_delivery_account` payload:**
+```json
+{
+  "deliveryMethodUID": 46940,
+  "deliveryAccountType": "WebAndChatLeads",
+  "status": "Open",
+  "name": "StabilityTest-24r-Account",
+  "price": 15,
+  "hourMax": -1, "dayMax": 50, "weekMax": -1, "monthMax": -1,
+  "automationEnabled": true,
+  "isExclusive": false,
+  "useOrder": false,
+  "criteria": [{"leadFieldUID": 144881, "type": "FieldValue", "operator": "In", "value": "10|11"}]
+}
+```
+Response: `{"success":true,"data":45943}`
+
+No `update_delivery_account` call.
+
+**`update_client` payload (activation):**
+```json
+{
+  "companyName": "StabilityTest-24r",
+  "clientStatus": "Active",
+  "clientAutomationType": "Price",
+  "timeZoneName": "Pacific Standard Time",
+  "timeOffset": -8
+}
+```
+clientUID: 29355, methodUID: 46940, acctUID: 45943
+
+**Anomalies:**
+1. **RB-AA NEW: P2 skipped** — After duplicate-email retry and lead type selection, agent jumped straight to delivery schedule (P3) without asking for timezone or client status. Client defaulted to `Pacific Standard Time / -8` (system default). Root: duplicate email handling disrupted P2 phase flow.
+2. **P5-FIELD: Field suggestions step skipped** — Agent asked "Would you like to add additional lead criteria, or skip?" without showing the recommended fields list (Step 6-7 per Phase 5 instructions). Step 7 (MANDATORY field suggestion prompt) was not executed.
+
+**Positives:**
+- RB-G NOT triggered (no prompt doubling) ✓
+- RB-N NOT triggered (states prompt appeared correctly) ✓
+- RB-O NOT triggered (no phantom CA/AZ/TX) ✓
+- FL(10)+GA(11) state UIDs correct, only state criterion in payload ✓
+- isExclusive=false ✓; useOrder=false ✓; price=15 ✓
+- P4 delivery method summary correct (Email, 24/7) ✓
+- P6 account summary correct ✓; P7 client summary correct ✓
+- Activation confirmed ACTIVE ✓
+
+**DEBUG not yet collected** — to be done in batch.
+
+---
+
+### Audit: B25 session — `69d288ef2697c9202c0bd0c5` (Apr 5, 2026)
+
+**Scenario:** LendingTree / FTP / Mon-Fri 9am-5pm MST / Exclusive / Order ON / states: NY, TX (intended) / 1 enum + 1 numeric criteria (intended, never reached)
+
+**Result: FAIL** — P2 skipped (RB-AA 2nd), RB-N + RB-O + RB-D; P6 summary skipped
+
+**`create_delivery_account` payload:**
+```json
+{
+  "deliveryMethodUID": 46941,
+  "deliveryAccountType": "WebAndChatLeads",
+  "status": "Open",
+  "name": "StabilityTest-25r-Account",
+  "price": 22,
+  "hourMax": -1, "dayMax": 50, "weekMax": -1, "monthMax": -1,
+  "automationEnabled": true,
+  "isExclusive": true,
+  "useOrder": true,
+  "criteria": [{"leadFieldUID": 144881, "type": "FieldValue", "operator": "In", "value": "5|3|44"}]
+}
+```
+Response: `{"success":true,"data":45944}`
+
+No `update_delivery_account` call.
+
+clientUID: 29356, methodUID: 46941, acctUID: 45944
+
+**Anomalies:**
+1. **RB-AA (2nd)**: P2 (timezone/status) skipped — same pattern as B24; defaulted PST/-8
+2. **RB-N**: States prompt never shown — after Order=Yes (sent as text), agent jumped directly to P7 client summary
+3. **RB-O**: Phantom CA(5)+AZ(3)+TX(44) in payload — same persistent default
+4. **RB-D**: Criteria gate entirely skipped — 1 enum + 1 numeric criteria never collected
+5. **P6-SUMM skipped**: After account creation the agent went straight to P7 Client Setup Summary, bypassing the P6 Delivery Account summary card
+
+**Positives:**
+- RB-G NOT triggered ✓
+- Specific hours schedule asked and captured correctly (Mon-Fri 9am-5pm MST) ✓
+- FTP connection test card shown (Skip accepted) ✓
+- P4 delivery method summary correct ✓
+- P5 price/excl/order card sequence correct ✓
+- Activation confirmed ACTIVE ✓
+
+**DEBUG not yet collected** — to be done in batch.
+
+---
+
+### Audit: B26 session — `69d28a4d2697c9202c0bd101` (Apr 5, 2026)
+
+**Scenario:** LendingTree / Webhook / URL-Encoded / Mon-Wed-Fri 8am-8pm PST / Shared / Order OFF / states: WA, OR (intended) / 1 numeric criterion: LoanAmount >= 75000 (intended, never reached)
+
+**Result: FAIL** — P2 skipped (RB-AA 3rd); RB-BB NEW (P5 off-script pre-price prompt + P5 full collapse); wrong boolean defaults; wrong states; no criteria
+
+**Key message events:**
+
+| Msg | Event | Finding |
+|-----|-------|---------|
+| P1 | StabilityTest-26r / stability26r-01@test.com — no duplicate | ✓ |
+| P2 | LendingTree selected → P3 schedule shown immediately (P2 skipped) | RB-AA (3rd) |
+| P3 | "Specific hours only" → Mon, Wed, Fri 8am-8pm PST | ✓ |
+| P3 | Webhook delivery type → URL entered | ✓ |
+| P3 | "I'll provide instructions" → URL Encoded → 8-field template | ✓ |
+| P3 | Disambiguation: credit_score→SelfCreditRating, state→ContactState | ✓ |
+| P3B | Connection test → "skip" sent as text → Skip accepted | ✓ |
+| P4 | Delivery Method summary shown (8/8 mapped, Mon/Wed/Fri 8am-8pm PST) ✓ | ✓ |
+| [32] | **"Please provide account name + whether to add criteria"** (not price) | RB-BB |
+| [33] | "$18" ignored — agent repeated account name request | RB-BB |
+| [35] | "StabilityTest-26r-Account, Yes criteria" accepted | RB-BB |
+| [36] | "Please provide the price per lead." — Phase 5 properly loaded | ✓ (self-corrected) |
+| [37] | "$18" → **Delivery Account Created immediately** (all other P5 steps skipped) | RB-BB cascade |
+| [38] | P6 summary: Exclusive(wrong), Order=Yes(wrong), CA only(wrong), no criteria | RB-BB consequence |
+| [39] | "continue" typed (Continue button unresponsive) | — |
+| [40] | P7 client setup summary shown with Activate button | ✓ |
+| P8 | Activate → "ACTIVE for StabilityTest-26r." | ✓ |
+
+**`create_delivery_account` payload:**
+```json
+{
+  "name": "StabilityTest-26r-Account",
+  "price": 18,
+  "hourMax": -1, "dayMax": 50, "weekMax": -1, "monthMax": -1,
+  "automationEnabled": true,
+  "isExclusive": true,
+  "useOrder": true,
+  "criteria": [{"leadFieldUID": 144881, "type": "FieldValue", "operator": "In", "value": "5"}]
+}
+```
+Response: `{"success":true,"data":45945}`
+
+clientUID: 29357, methodUID: 46942, acctUID: 45945
+
+**Payload anomalies:**
+1. **isExclusive=true** — should be false (Shared). Never asked.
+2. **useOrder=true** — should be false (Order OFF). Never asked.
+3. **criteria=[{144881, In, "5"}]** — only CA(5), should be WA+OR state UIDs. States never asked; CA is the only phantom state this run (not the usual CA+AZ+TX triple).
+4. **No LoanAmount >= 75000 criterion** — never reached criteria builder.
+
+**Positives:**
+- RB-G NOT triggered (no prompt doubling) ✓
+- P3 URL-Encoded with field disambiguation: 8/8 mapped ✓
+- P3B connection test correctly handled ✓
+- P4 method summary correct ✓
+- P5 self-corrected to price prompt after off-script exchange ✓
+- P6 account summary card shown ✓ (wrong values but shown)
+- P7 client summary correct ✓
+- Activation confirmed ACTIVE ✓
+
+**DEBUG not yet collected** — to be done in batch.
+
+---
+
+### Audit: B27 session — `69d28e392697c9202c0bd157` (Apr 5, 2026)
+
+**Scenario:** LendingTree / Portal / 24/7 / Exclusive / Order ON / states: TX, NY (intended) / 2 enum criteria: SelfCreditRating=EXCELLENT, LoanRequestPurpose=PURCHASE (intended)
+
+**Result: FAIL** — RB-G returned; RB-AA(4th); RB-N + RB-O; RB-X (empty response) + criteria not saved (RB-V); LoanRequestPurpose stuck in loop
+
+**Key message events:**
+
+| Msg | Event | Finding |
+|-----|-------|---------|
+| [1] | P1 prompt doubled ("Great - first we'll...Company Name 2. Contact Email" × 2) | RB-G returned |
+| [2-5] | Company name + email collected OK | ✓ |
+| [6] | Lead type dropdown → LendingTree selected | ✓ |
+| [8] | P3 schedule card → "24/7 delivery" (P2 skipped) | RB-AA (4th) |
+| [10] | Delivery type card → Portal | ✓ |
+| [12] | P4 method summary (Portal/24/7/0 fields) — P3B correctly skipped | ✓ |
+| [14] | "Please provide the price per lead." — price first, no RB-K/RB-BB | ✓ |
+| [16] | Exclusive card → "Exclusive" clicked | ✓ |
+| [18] | Order System card → "Yes" clicked | ✓ |
+| [20] | "Would you like to add additional lead criteria, or skip?" — states skipped | RB-N |
+| [22] | "Add criteria" clicked → **empty response** | RB-X |
+| [23] | "SelfCreditRating excellent" typed → ChoiceSet shown (string values, not UIDs) | RB-X recovery |
+| [25] | "EXCELLENT" selected → Continue → "Please provide the next criteria value" | RB-V (criteria accepted but not saved) |
+| [27] | "LoanRequestPurpose purchase" → "Please provide the exact value for LoanRequestPurpose." | RB-CC (no ChoiceSet) |
+| [29-31] | "purchase" / "PURCHASE" → same prompt repeated (loop) | stuck |
+| [33] | "skip" → P6 account summary (criteria: None, states: CA, AZ, TX) | RB-O |
+| [35] | Continue → P7 client summary | P6-SUMM ✓ |
+| [37] | Activate → "ACTIVE for StabilityTest-27r." | ✓ |
+
+**`create_delivery_account` payload:**
+```json
+{
+  "deliveryMethodUID": 46943,
+  "deliveryAccountType": "WebAndChatLeads",
+  "status": "Open",
+  "name": "StabilityTest-27r-Account",
+  "price": 25,
+  "automationEnabled": true,
+  "isExclusive": true,
+  "useOrder": true,
+  "dayMax": 50, "hourMax": -1, "weekMax": -1, "monthMax": -1,
+  "criteria": [{"leadFieldUID": 144881, "type": "FieldValue", "operator": "In", "value": "5|3|44"}]
+}
+```
+Response: `{"success":true,"data":45946}`
+
+clientUID: 29358, methodUID: 46943, acctUID: 45946
+
+**Anomalies:**
+1. **RB-G returned**: P1 prompt doubled after not triggering in B21–B26
+2. **RB-AA (4th)**: P2 timezone/status skipped — jumped from lead type to P3 schedule
+3. **RB-N**: States prompt never shown after Order=Yes
+4. **RB-O**: Phantom CA(5)+AZ(3)+TX(44) in payload
+5. **RB-X**: "Add criteria" button produced empty response; recovered via typed "SelfCreditRating excellent"
+6. **ChoiceSet string values**: SelfCreditRating ChoiceSet options were raw strings (EXCELLENT/GOOD/FAIR/POOR), not enum UIDs — value submitted as "EXCELLENT" not 343593
+7. **RB-V**: SelfCreditRating criterion accepted via ChoiceSet but not saved in payload (no `update_delivery_account` call, "Additional Criteria: None")
+8. **LoanRequestPurpose loop**: "Please provide the exact value" repeated despite "purchase"/"PURCHASE" — no ChoiceSet shown, loop unresolvable, skipped
+
+**Positives:**
+- Portal delivery method created correctly (P3B skipped, 0 fields) ✓
+- P4 method summary correct ✓
+- P5 price, exclusive, order cards all correct sequence ✓
+- P6 account summary card shown ✓
+- P7 client summary correct ✓
+- Activation ACTIVE ✓
+
+**DEBUG not yet collected** — to be done in batch.
+
+---
+
+### Audit: B28 session — `69d2907a2697c9202c0bd1a0` (Apr 5, 2026)
+
+**Scenario:** LendingTree / Webhook / JSON-nested (8 fields) / Tue-Thu 9am-6pm EST / Shared / Order ON / states: FL, NY, WA / 1 enum criterion: SelfCreditRating=EXCELLENT (intended)
+
+**Result: FAIL** — RB-G (P1 doubled); RB-AA(5th, P2 skipped); account created before criteria gate; RB-V (criterion not saved); invisible textarea bug during P5 entry
+
+**Key message events:**
+
+| Msg | Event | Finding |
+|-----|-------|---------|
+| [1-2] | P1 prompt doubled (Company Name/Email card × 2) | RB-G (6th) |
+| [3-5] | Company StabilityTest-28r / email collected OK | ✓ |
+| [6] | Lead type dropdown → LendingTree selected | ✓ |
+| [8] | P3 schedule card shown immediately (P2 skipped) | RB-AA (5th) |
+| [10-11] | "Specific hours only" → "Tue, Thu 9am-6pm EST" | ✓ |
+| [12] | Webhook delivery type selected | ✓ |
+| [13] | URL entered: webhook.test28.com/leads | ✓ |
+| [14] | "I'll provide instructions" (typed — button click unresponsive) | btn-click fail |
+| [15-20] | Content type card doubled (msgs 19+20); JSON selected from msg 20 | RB-G |
+| [21-24] | JSON body (8-field nested) submitted twice (first send no-op); 8/8 mapped | ✓ |
+| [25-26] | "Please click Continue on Field Mapping Preview" — Continue btn unresponsive | — |
+| [26-27] | "continue" typed → P3B connection test card shown | ✓ (text fallback) |
+| [27-29] | Test Connection → failed → Skip → P4 summary | ✓ |
+| [31] | P4 summary: 8/8 mapped, Tue/Thu 9-6 EST ✓ | ✓ |
+| [33] | "Finally, let's set up your Delivery Account. Please provide the price per lead." | ✓ |
+| [33-34] | Invisible textarea (placeholder-less) targeted; price sent to visible textarea ("$28") | — |
+| [35] | Exclusive/Shared card → "Shared" | ✓ |
+| [37] | Order System card → "Yes" | ✓ |
+| [39] | "Which states do you want to target?" shown (RB-N NOT triggered) | ✓ RB-N absent |
+| [40] | "FL, NY, WA" → accepted | ✓ |
+| [41] | **"Would you like to add additional lead criteria, or skip?"** — bare prompt (no field list) | Step 7 abbreviated |
+| [42] | "SelfCreditRating excellent" typed | — |
+| [43] | Criteria loop "Would you like to add another..." | — |
+| [44] | "continue" typed → expected exit; instead re-triggered Step 7 full field list | anomaly |
+| [45] | Step 7 full field list shown (Recommended: SelfCreditRating, LoanAmount, etc.) | ✓ (shown late) |
+| [46] | "Skip" clicked → account created | — |
+| [47] | **P6 summary: Price=28.00, Shared, FL/NY/WA, Criteria=None, Order=Yes** | RB-V (criterion dropped) |
+| [49] | P7 client setup summary ✓ | ✓ |
+| [51] | Activate → "ACTIVE for StabilityTest-28r." | ✓ |
+
+**`create_delivery_account` payload:**
+```json
+{
+  "clientUID": 29359,
+  "createDeliveryAccountDto": {
+    "deliveryMethodUID": 46944,
+    "deliveryAccountType": "WebAndChatLeads",
+    "status": "Open",
+    "name": "StabilityTest-28r-Account",
+    "price": 28,
+    "hourMax": -1, "dayMax": 50, "weekMax": -1, "monthMax": -1,
+    "useOrder": true,
+    "automationEnabled": true,
+    "isExclusive": false,
+    "criteria": [{"leadFieldUID": 144881, "type": "FieldValue", "operator": "In", "value": "10|33|48"}]
+  }
+}
+```
+Response: `{"success":true,"data":45947}`
+
+clientUID: 29359, methodUID: 46944, acctUID: 45947
+
+**Anomalies:**
+1. **RB-G (6th)**: P1 prompt doubled; content type card doubled (msgs 19+20)
+2. **RB-AA (5th)**: P2 timezone/status skipped — jumped from lead type to P3 schedule
+3. **Inverted P5 ordering (new sub-pattern)**: `create_delivery_account` called AFTER states collected but BEFORE criteria gate. Session log confirms: tool call returned 45947, then agent showed "Would you like to add additional lead criteria?" — criteria gate was post-hoc and non-functional
+4. **RB-V**: SelfCreditRating "excellent" accepted verbally (no ChoiceSet shown); no `update_delivery_account` call; "Additional Criteria: None" in P6. Criterion silently discarded
+5. **"continue" re-triggered Step 7**: At msg44, typing "continue" to exit criteria loop instead triggered the full Step 7 recommended-fields prompt. Anomalous: "continue" should signal loop exit (Step 8 rule), not reload Step 7
+6. **Invisible textarea**: `document.querySelector('textarea')` returned the hidden one; must target visible textarea for chat sends
+
+**Positives:**
+- RB-N NOT triggered — states question asked and answered correctly (FL/NY/WA → UIDs 10|33|48) ✓
+- isExclusive=false (Shared) correct ✓
+- useOrder=true (Order ON) correct ✓
+- 8/8 JSON-nested field mappings correct ✓
+- P3B connection test shown (test fail handled correctly) ✓
+- P4, P6, P7 summary cards all shown ✓
+- Activation confirmed ACTIVE ✓
+
+**DEBUG not yet collected** — to be done in batch.
+
+### Audit: B29 session — TBD (Apr 5, 2026)
+
+**Scenario:** LendingTree / Email / Mon-Fri 8am-5pm CST / Exclusive / Order OFF / 2 numeric criteria (LoanAmount ≥ 100000, AnnualIncome ≥ 50000)
+
+**Result: FAIL** — RB-G + RB-AA + RB-K + RB-N; criteria rejected post-account-creation
+
+**Key message events:**
+
+| Msg | Event | Finding |
+|-----|-------|---------|
+| [1] | P1 prompt doubled (Company Name/Email × 2) | RB-G (7th) |
+| [2-5] | Company StabilityTest-29r / email collected OK | ✓ |
+| [6] | Lead type dropdown → LendingTree selected | ✓ |
+| [8] | P3 schedule card shown immediately (P2 skipped) | RB-AA (6th) |
+| [8] | **Inline DEBUG sent** | ✓ |
+| [—] | Mon-Fri 8am-5pm CST schedule collected | ✓ |
+| [—] | Email delivery type selected | ✓ |
+| [—] | P4 delivery method summary card | ✓ |
+| [—] | **"Please provide the delivery account name."** (×2 — before Phase 5 loaded) | RB-K (inline DEBUG ✓) |
+| [—] | Phase 5 loaded; price prompt shown; price=$32 collected | ✓ |
+| [—] | Exclusive/Shared → Exclusive | ✓ |
+| [—] | Order System → No (OFF) | ✓ |
+| [—] | States question skipped → `create_delivery_account` called | RB-N (11th, inline DEBUG ✓) |
+| [—] | **Inline DEBUG** — agent: "I jumped ahead and created the delivery account without your state input" | ✓ most detailed RB-N self-diagnosis |
+| [—] | States TX, GA, OH provided post-creation | ✓ (post-creation) |
+| [—] | "LoanAmount >= 100000" → "I can't add that criteria" (rejected post-creation) | criteria rejected |
+| [—] | P6 summary: Price=32, Exclusive, TX/GA/OH (display), Criteria=None, Order=No | RB-V absent / criteria lost |
+| [—] | P7 client summary ✓ | ✓ |
+| [—] | Activate → "ACTIVE for StabilityTest-29r." | ✓ |
+
+**`create_delivery_account` payload:** Not verified (session ID TBD — not captured during run). Expected: clientUID=29360, methodUID≈46945, acctUID≈45948-45949; criteria likely phantom CA/AZ/TX given RB-N triggered before states were collected.
+
+**Inline DEBUG responses (3 captured):**
+
+1. **RB-AA (P2 skipped):** "trust current system state; only prompt for fields missing in the current phase — do not skip forward to a phase that has not yet been started."  
+   Patch: "Phase 2 must be a hard prerequisite gate. Before any Phase 3 card is shown, check that `timeZoneName` and `clientStatus` have been collected from the user in this conversation. If either is missing, present Phase 2 prompts first."
+
+2. **RB-K (account name doubled before Phase 5):** "I responded with a generic account setup prompt before the Phase 5 resource had finished loading. The account name prompt appeared twice because I generated it in the gap between the Phase 4 Continue action and the Phase 5 resource response."  
+   Patch: "Do not emit any user-facing prompt during a phase transition until the next phase resource has been confirmed loaded. If Phase 5 has not loaded, respond with nothing — do not fill the gap with a generic prompt."
+
+3. **RB-N (states skipped, most detailed self-diagnosis):** "I jumped ahead and created the delivery account without your state input. I treated the target states collection step as optional once order=No was set. This was wrong — states are required regardless of order setting. I should have stopped and asked for states before calling `create_delivery_account`."  
+   Patch: "Phase 5 must treat target states as an unconditional prerequisite before `create_delivery_account`. The states prompt must appear between the Order System answer and the criteria gate — no exceptions. Add explicit check: if `targetStates` is empty at the time of account creation, STOP and collect states."
+
+**Findings triggered:** RB-G (7th), RB-AA (6th), RB-K (account name doubled), RB-N (11th — most detailed inline DEBUG captured), criteria rejected post-creation (no update path)
+
+---
+
+### Audit: B30 session — `69d298452697c9202c0bd257` (Apr 5, 2026)
+
+**Scenario:** LendingTree / FTP / 24/7 / Shared / Order ON / 1 enum criterion: SelfCreditRating=EXCELLENT
+
+**Result: FAIL** — RB-G + RB-AA + RB-K (×2) + RB-DD (P3B stall) + RB-N + RB-V; 5 inline DEBUGs captured
+
+**Key message events:**
+
+| Msg | Event | Finding |
+|-----|-------|---------|
+| [1] | P1 prompt doubled (Company Name/Email × 2) | RB-G (8th) |
+| [2-5] | Company StabilityTest-30r / email collected OK | ✓ |
+| [6] | Lead type dropdown → LendingTree selected | ✓ |
+| [8] | P3 schedule card shown immediately (P2 skipped) | RB-AA (7th) |
+| [8] | **Inline DEBUG sent immediately** | ✓ |
+| [—] | "24/7" typed → agent re-prompted schedule (not processed) | RB-K sub-pattern (schedule) |
+| [—] | **Inline DEBUG sent** | ✓ |
+| [—] | "24/7" re-sent → accepted | ✓ (after retry) |
+| [—] | FTP delivery type selected | ✓ |
+| [—] | FTP credentials entered (host/user/pass) | ✓ |
+| [—] | P3B: FTP connection test executed → failed (fake host) | ✓ |
+| [—] | Failure displayed — **no Retry/Skip card presented** | RB-DD new |
+| [—] | **Inline DEBUG sent** | ✓ |
+| [—] | "Skip" typed → accepted | ✓ (text fallback) |
+| [—] | P4 summary: FTP, 24/7, 0/0 fields mapped | ✓ |
+| [—] | "Finally, let's set up your Delivery Account. Please provide the price per lead." | ✓ |
+| [—] | "$30" → re-prompted for price (post-DEBUG exchange disruption) | RB-K (price doubled) |
+| [—] | **Inline DEBUG sent** | ✓ |
+| [—] | "$30" re-sent → accepted; price=30 | ✓ |
+| [—] | Exclusive/Shared → Shared | ✓ |
+| [—] | Order System → Yes | ✓ |
+| [—] | States question skipped → criteria gate opened immediately | RB-N (12th) |
+| [—] | **Inline DEBUG sent** | ✓ |
+| [—] | CA, TX, FL provided post-jump | ✓ (post-jump) |
+| [—] | SelfCreditRating → criteria builder entered → "EXCELLENT" accepted | ✓ (criteria loop) |
+| [—] | `create_delivery_account` called | ✓ |
+| [—] | P6 summary: Price=30, Shared, CA/TX/FL, Criteria=SelfCreditRating=EXCELLENT, Order=Yes | ✓ (display) |
+| [—] | **Payload: criteria=[{state, In, "5\|44\|10"}] only — SelfCreditRating absent** | RB-V |
+| [—] | P7 client summary ✓ | ✓ |
+| [—] | Activate → "ACTIVE for StabilityTest-30r." | ✓ |
+
+**`create_delivery_account` payload (verified from session log):**
+```json
+{
+  "clientUID": 29361,
+  "createDeliveryAccountDto": {
+    "deliveryMethodUID": 46946,
+    "deliveryAccountType": "WebAndChatLeads",
+    "status": "Open",
+    "name": "StabilityTest-30r-Account",
+    "price": 30,
+    "automationEnabled": true,
+    "isExclusive": false,
+    "useOrder": true,
+    "dayMax": 50, "hourMax": -1, "weekMax": -1, "monthMax": -1,
+    "criteria": [{"leadFieldUID": 144881, "type": "FieldValue", "operator": "In", "value": "5|44|10"}]
+  }
+}
+```
+Response: `{"success":true,"message":"","data":45950}`
+
+**Payload anomalies:**
+1. **RB-V**: SelfCreditRating=EXCELLENT shown in P6 summary but absent from `criteria` array. Only state criterion present (CA=5, TX=44, FL=10). Enum criterion silently dropped from payload builder.
+2. **States correct**: CA(5)+TX(44)+FL(10) correctly resolved despite RB-N (states were provided post-jump and included via inline DEBUG recovery path).
+3. **Booleans correct**: isExclusive=false (Shared ✓), useOrder=true (Order ON ✓).
+
+**Inline DEBUG responses (5 captured):**
+
+1. **RB-AA (P2 skipped):** "I treated the Phase 2 timezone/status collection as already completed based on prior context. I should not assume Phase 2 is done without explicit user confirmation in this session."  
+   Patch: "Trust current session state only. Phase 2 is complete only when `timeZoneName` and `clientStatus` were collected in this conversation turn."
+
+2. **RB-K (schedule re-prompt):** "The '24/7' response was not processed as an expected choice submission — it arrived in a format or state that the workflow did not interpret as the deliveryScheduleChoice selection."  
+   Patch: "If the user's last message clearly matches one of the presented schedule choices (case-insensitive: '24/7', '24/7 delivery', 'specific hours'), treat it as the selected `deliveryScheduleChoice` immediately. Do not re-present the schedule prompt."
+
+3. **RB-DD (P3B stall — no Retry/Skip card):** "After showing the connection test failure, I waited for user input but had not yet presented the Retry/Skip card. I should have immediately followed the failure message with the card."  
+   Patch: "After every connection test completion (pass or fail), immediately call `display_adaptive_card` with ActionSet: 'Retry' | 'Skip'. STOP AND YIELD. Do not await input before showing the card."
+
+4. **RB-K (price re-prompt):** "The price input was not processed into the workflow state — the previous DEBUG exchange may have disrupted the expected input flow, causing the price collection step to not recognize the dollar amount as its pending answer."  
+   Patch: "Accept plain numeric replies ('30', '$30', '30.00') as valid price input at any point after the price prompt has been shown. Normalize to decimal. Do not re-present the price prompt if a valid number was already received."
+
+5. **RB-N (states skipped):** "Target states were not recognized as a pending collection step — the workflow moved from order=Yes directly to the criteria gate. The prerequisite check for `targetStates` was not enforced."  
+   Patch: "Prerequisite gate before criteria builder: if `targetStates` is missing or empty, STOP and ask 'Which states do you want to target?' immediately. Do not open the criteria gate until `targetStates` is collected."
+
+**Findings triggered:** RB-G (8th), RB-AA (7th), RB-K (schedule + price, both inline DEBUGged), RB-DD (new: P3B no Retry/Skip card), RB-N (12th), RB-V (SelfCreditRating dropped from payload)
+
+---
+
+## Phase Stability Comparison: GPT-5.4 (runs 01–20) vs GPT-5-mini Webhook/Criteria (runs 21–30)
+
+*(Completed — runs 21–30 done)*
+
+| Phase | GPT-5.4 Fail% (01–20) | GPT-5-mini Fail% (21–30) | Delta | Notes |
+|-------|----------------------|--------------------------|-------|-------|
+| P1-PROMPT (RB-G doubling) | ~95% | 40% (B27,B28,B29,B30 of 10) | **↓ improved** | B21–B26 clean; returned B27–B30 |
+| P2-DROP (RB-AA) | 0% (01–20) | 70% (B24–B30, all 7 of last 7) | **↑ new regression** | New finding; 0 in 01–20, systematic from B24 |
+| P3-SCHED | ~10% | ~10% | = | Similar rate |
+| P3B-TEST (conn test card) | ~5% | 10% (B30 FTP) | slight ↑ | RB-DD new in B30 |
+| P5-STATE (RB-N) | ~40% (8/20) | 60% (6/10: B22,B23,B25,B27,B29,B30) | **↑ worse** | Criteria phases use GPT-5-mini; RB-N rate higher |
+| P5-CR3/DONE (criteria lost) | ~60% | ~70% (B21,B22,B23,B25,B27,B28,B30) | ↑ | RB-V dominant pattern in 21–30 |
+| RB-G (doubling) | ~95% | 40% (4/10) | **↓ improved** | Significant reduction; non-systematic in 21–30 |
+| RB-X (empty response loop) | 1/12 webhook+LT | 1/4 LT+criteria runs | ↑ risk | B27: empty response on Add criteria; LT+criteria high-risk combo |
+| P8-ACT (activation) | ~85% | 100% (10/10) | **↑ improved** | All 10 runs activated successfully despite failures |
 
