@@ -1,9 +1,9 @@
 # Stability Test Findings — Version A: Stabilized (Original)
 
 **Action:** Create Single Client (Original)  
-**Model:** OpenAI GPT-5.4 Mini  
+**Model:** OpenAI GPT-5.4 Mini (runs 01–20); GPT-5-mini for Webhook/criteria phases, GPT-5.4 for others (runs 21–30)  
 **Protocol:** stability-test-protocol.md  
-**Target:** 10 runs, each with a distinct complex scenario. See Run Scenarios section.  
+**Target:** 30 runs, each with a distinct complex scenario. See Run Scenarios section.  
 **Base test data:** StabilityTest-{RR}, stability{RR}-{TS}@test.com  
 **Runs 01–03:** Basic scenario — Webhook/JSON/3 criteria (completed)
 
@@ -23,6 +23,16 @@
 | 08 | FTP delivery | FTP | N/A | 24/7 | 2 criteria | Connection test |
 | 09 | Portal delivery | Portal | N/A | Specific hours | 3 criteria | No connection test |
 | 10 | Email delivery + max criteria | Email | N/A | Mon-Fri 9-5 PST | 7 criteria (all types) | Exclusive, Order ON |
+| 21 | 2 enum criteria | Webhook | JSON (5 fields) | 24/7 | 2 enum | Exclusive, Order ON |
+| 22 | 1 numeric criterion | Portal | N/A | Mon-Fri 9am-5pm EST | 1 numeric | Shared, Order OFF |
+| 23 | Mixed criteria | Webhook | XML | Weekdays 8am-6pm CST | 2 enum + 1 numeric | Exclusive, Order ON |
+| 24 | No criteria | Email | N/A | 24/7 | none (skip) | Shared, Order OFF |
+| 25 | FTP + mixed criteria | FTP | N/A | Mon-Fri 9am-5pm MST | 1 enum + 1 numeric | Exclusive, Order ON |
+| 26 | URL Encoded + numeric | Webhook | URL Encoded | Mon-Wed-Fri 8am-8pm PST | 1 numeric | Shared, Order OFF |
+| 27 | Portal + 2 enum | Portal | N/A | 24/7 | 2 enum | Exclusive, Order ON |
+| 28 | JSON nested + 1 enum | Webhook | JSON nested | Tue-Thu 9am-6pm EST | 1 enum | Shared, Order ON |
+| 29 | Email + 2 numeric | Email | N/A | Mon-Fri 8am-5pm CST | 2 numeric | Exclusive, Order OFF |
+| 30 | FTP + 1 enum | FTP | N/A | 24/7 | 1 enum | Shared, Order ON |
 
 ---
 
@@ -46,6 +56,20 @@
 | 14 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | Y | Y | Y | Y | Y | Y | Y | Y | F | FAIL | LendingTree, Webhook/JSON, 24/7, Shared, Order OFF; full state names input ("New York, California, Texas"); Finding V×2 (P3 JSON schema prompt doubled + P5 price prompt doubled — 4th run, 2 instances); P5-NORM: FAIL — P6 displayed "New York, California, Texas" un-normalized (Finding J — display-only; API received UIDs 33\|5\|44 ✓); no criteria (Skip); P8-ACT FAIL (platform activate_client tool error — 3 retries, all failed); Method ID:46919, Acct:45922 |
 | 15 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | FAIL | LendingTree, Webhook/JSON, Mon-Fri 9am-5pm CST, Exclusive, Order OFF; Finding V (delivery method name prompt doubled — new location, 5th run); Finding P reproduced (states skipped — 3rd occurrence); Finding Q (phantom CA=5 in state criterion — no states were collected); **P5-CR3: PASS** — LoanAmount GreaterOrEqual 50000 persisted in payload (first ever criterion persistence, U NOT reproduced); P6 showed Additional Criteria: "loan amount at least 50000" ✓; payload criteria=[{state:CA=5 phantom},{LoanAmount≥50000}]; contact field exclusion violated; Method ID:46920, Acct:45923; ACTIVE ✓ |
 | 16 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | FAIL | LendingTree, Webhook/JSON, Mon-Fri 9am-5pm PST, Shared, Order OFF; Finding D (3rd occurrence — new trigger: "I'll provide instructions" click → Phase 2 regression, recovered by re-providing JSON); states OR/WA properly collected; **P5-CR3: PASS** — LoanAmount GreaterOrEqual 100000 persisted (U NOT reproduced 2nd consecutive run); payload criteria=[OR=38\|WA=48, LoanAmount≥100000]; contact field exclusion violated; Method ID:46921, Acct:45924; ACTIVE ✓ |
+| 17 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | FAIL | LendingTree, FTP/24/7, Exclusive, Order OFF; **Finding P reproduced** (states prompt skipped — 4th occurrence); **Finding Q** (phantom CA=5 in criteria; get_usa_states ran but user never provided states); **P5-CR3: PASS** — SelfCreditRating=EXCELLENT persisted (UID 343593, U NOT reproduced 3rd consecutive); contact field exclusion violated; P6 Target States blank but payload has CA=5 phantom; payload criteria=[{state:CA=5},{SelfCreditRating=343593}]; Method ID:46922, Acct:45925; ACTIVE ✓ |
+| 18 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | FAIL | LendingTree, Email/Mon-Fri 9am-5pm PST, Shared, Order ON; **Finding P reproduced** (5th occurrence — states skipped after Order System); **Finding Q** (phantom CA=5); **P5-CR3: PASS** — both criteria persisted (LoanRequestPurpose=PURCHASE UID 343609 + Bankruptcy=NEVER UID 343607; U NOT reproduced 4th consecutive); enum bypass: both typed criteria fuzzy-matched without dropdown; contact field exclusion violated; P6 Target States blank (P/Q artifact); payload criteria=[{state:CA=5 phantom},{UID:144921=343609},{UID:144894=343607}]; Method ID:46923, Acct:45926; ACTIVE ✓ |
+| 19 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | Y | Y | Y | F | Y | Y | Y | Y | Y | FAIL | LendingTree, Webhook/XML, 24/7, Exclusive, Order ON; **Finding P reproduced** (6th occurrence); **Finding Q** (phantom CA=5); **P5-CR3: FAIL** — LoanAmount ≥75000 shown in P6 display but dropped from payload (**U reproduced — 4-run non-reproduction streak broken**); P6 Target States blank (P/Q artifact); no contact fields in first 5 suggested (TimeToContact/SelfCreditRating/Bankruptcy/LoanRequestType/AnnualIncome); XML: 9/9 mapped; payload criteria=[{state:CA=5 phantom only}]; Method ID:46924, Acct:45927; ACTIVE ✓ |
+| 20 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | FAIL | LendingTree, Portal/Mon-Fri 9am-5pm PST, Shared, Order OFF; Finding V (schedule prompt doubled — 6th occurrence); Finding P (7th); Finding Q (phantom CA=5); P5-CR3: PASS — SelfCreditRating=EXCELLENT persisted in payload (UID 343593; U NOT reproduced — 5th non-reproduction); enum bypass (typed without dropdown); contact exclusion violated (TrackingNumber/RequestAssignmentDate/FirstName/LastName/ContactAddress); P6 display: blank Target States + blank Additional Criteria (display artifact only — criterion WAS in payload); Session:69d22bb72697c9202c0bcaa0; Method ID:46925, Acct:45928; ACTIVE ✓ |
+| 21 | | | | | | | | | | | | | | | | | | | | | | | | — | LendingTree, Webhook/JSON 24/7, Exclusive, Order ON, 2 enum criteria |
+| 22 | Y | Y | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | FAIL | LendingTree, Portal/Mon-Fri 9am-5pm EST (timezone→UTC-08:00 bug), Shared, Order OFF; **V TRIPLED** (schedule card×3 + delivery type card×2); timezone normalization error Eastern→UTC-08:00; text fallbacks accepted; P NOT reproduced (NY=33\|OH=36 ✓); P5-CR3: PASS (LoanAmount GreaterOrEqual 50000, UID 144924); Session:69d2395b2697c9202c0bcb60; Method:46927, Acct:45930; ACTIVE ✓ |
+| 23 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | FAIL | LendingTree, Webhook/XML, Weekdays 8am-6pm CST, Exclusive, Order ON; **W4** (content type card not rendered after webhook URL — agent frozen ~3min, text fallback "XML" unblocked); P/Q/U/V NOT reproduced; 8/8 mapping ✓; FL(10)+TX(44) ✓; all 3 criteria in payload (SelfCreditRating=343593, LoanRequestPurpose=343609, LoanAmount≥75000); no contact field violations ✓; Session:69d23ebe2697c9202c0bcc0a; Method:46928, Acct:45931; ACTIVE ✓ |
+| 24 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | PASS | LendingTree, Email/24/7, Shared, Order OFF, no criteria; P/Q/V/W1 NOT reproduced; states CA(5)+WA(48) ✓; Skip accepted (additionalCriteria=None); clean field suggestions (no contact fields) ✓; Session:69d243962697c9202c0bcc57; Method:46929, Acct:45932; ACTIVE ✓ |
+| 25 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | FAIL | LendingTree, FTP/Mon-Fri 9am-5pm MST, Exclusive, Order ON; **P reproduced** (states prompt skipped in P5, reappeared AFTER criteria loop — resequenced); states AZ(3)+NM(32) correctly persisted as first criterion despite resequencing ✓; both additional criteria in payload (SelfCreditRating=343593, LoanAmount≥100000) ✓; Q/U/V not reproduced ✓; 0/0 FTP field mapping (correct) ✓; no contact fields in suggestions ✓; Session:69d245e72697c9202c0bcc8c; Method:46930, Acct:45933; ACTIVE ✓ |
+| 26 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | FAIL | LendingTree, Webhook/URL-Encoded Mon-Wed-Fri 8-8 PST, Shared, Order OFF, 1 numeric; **W4-variant** (content type card resequenced — appeared AFTER instructions text, not before; ~3.5 min freeze after "I'll provide instructions" click); P/Q/U/V NOT reproduced ✓; OR(38)+WA(48) ✓; LoanAmount≥50000 in payload ✓; 8/8 URL-Encoded mapping ✓; no contact fields in suggestions ✓; Session:69d24a392697c9202c0bccd6; Method:46931, Acct:45934; ACTIVE ✓ |
+| 27 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | Y | Y | Y | Y | Y | Y | FAIL | LendingTree, Portal/24/7, Exclusive, Order ON, 2 enum; P/Q/U-drop/V/W4 NOT reproduced ✓; FL(10)+TX(44) ✓; SelfCreditRating In+UID(343593) ✓; **LoanRequestPurpose=Equal+string("PURCHASE") ✗** (operator/value mismatch — should be In+UID 343609); pre-creation confirmation prompt shown before create_delivery_account call; Session:69d250b32697c9202c0bcd29; Method:46932, Acct:45935; ACTIVE ✓ |
+| 28 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | FAIL | LendingTree, Webhook/JSON-nested Tue-Thu 9-6 EST, Shared, Order ON, 1 enum; **V** reproduced (schedule card + delivery type card doubled — 8th+ occurrences, both bypassed via text); **P resequenced** (states appeared AFTER criteria loop, WA(48)+OR(38) still correct); **content type step skipped** (URL→mapping directly, JSON auto-detected); 9/9 JSON-nested mapping ✓; SelfCreditRating In+343593 ✓; display label "at least EXCELLENT" bug (payload correct); Session:69d264132697c9202c0bcd6a; Method:46933, Acct:45937; ACTIVE ✓ |
+| 29 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | FAIL | LendingTree, Email/Mon-Fri 8-5 CST, Exclusive, Order OFF, 2 numeric; **email address prompt skipped** (delivery type→P4 directly, no email addr collected); states in correct position ✓; GA(11)+FL(10)+NC(34) ✓; LoanAmount GreaterOrEqual 100000 ✓; AnnualIncome GreaterOrEqual 50000 ✓; P/Q/U/V NOT reproduced ✓; Session:69d26cba2697c9202c0bcdfc; Method:46934, Acct:45938; ACTIVE ✓ |
+| 30 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | FAIL | LendingTree, FTP/24/7, Shared, Order ON, 1 enum; **enum bypass** (SelfCreditRating "excellent" fuzzy-matched without dropdown); "at least EXCELLENT" display label bug (payload correct In+343593); P/Q/U/V NOT reproduced ✓; TX(44)+CO(6)+MN(24) ✓; Session:69d26f8b2697c9202c0bce64; Method:46936, Acct:45939; ACTIVE ✓ |
 
 ---
 
@@ -1828,23 +1852,275 @@ State UIDs: 38=OR, 48=WA ✓. LoanAmount criterion persisted ✓.
 
 ---
 
-## 15-Run Summary — Version A Stabilized
+### Run 17
 
-**All 16 runs completed. All 16 FAILed (no clean pass).**
+**Started:** 2026-04-05  
+**Company:** StabilityTest-17  
+**Email:** stability17-01@test.com  
+**Scenario:** LendingTree, FTP/24/7, Exclusive, Order OFF; 1 enum criterion (SelfCreditRating=EXCELLENT); planned states ID/MT  
+**Session:** `69d221662697c9202c0bc9d0`
 
-### Finding Frequency (16 runs)
+#### Phase 1 — Create Client
+- **P1-PROMPT: Y** — Agent asked for company name and email together. No doubling.
+
+#### Phase 2 — Lead Type
+- **P2-DROP: Y** — LendingTree (5689) selected via dropdown card. No Finding D triggered.
+
+#### Phase 3 — Schedule + FTP + Field Mapping
+- **P3-SCHED: Y** — 24/7 selected.
+- **P3-WURL: Y** — FTP server/username/password accepted (ftp.test17.com, ftpuser17).
+- **P3-JSON / P3-TABLE / P3-COUNT: Y** — FTP delivery; no field mapping step. P4 summary showed "0 of 0 fields mapped" (expected for FTP).
+
+#### Phase 3b — Connection Test
+- **P3B-TEST: Y** — Connection test prompt appeared; Skip chosen.
+
+#### Phase 4 — Method Summary
+- **P4-SUMM: Y** — "Delivery Method Created" card. Method ID: 46922.
+
+#### Phase 5 — Account Setup + Criteria
+- **P5-PRICE: Y** — $30 accepted.
+- **P5-EXCL: Y** — Exclusive selected.
+- **P5-ORDER: Y** — Order System OFF (No).
+- **P5-STATE: FAIL** — **Finding P reproduced (4th occurrence).** After Order System selection, agent jumped directly to criteria builder without asking for target states. No states prompt shown to user.
+- **P5-NORM: FAIL** — States never collected (consequence of Finding P).
+- **P5-FIELD: Y** — Criteria suggestion card appeared: TrackingNumber, RequestAssignmentDate, FirstName, LastName, ContactAddress, ContactCity. Contact field exclusion violated again.
+- **P5-CR1: Y** — Typed "SelfCreditRating Excellent"; agent matched SelfCreditRating as enumerated field.
+- **P5-ENUM: Y** — Enum dropdown showed: NOTPROVIDED, EXCELLENT, GOOD, FAIR, POOR. Selected EXCELLENT (UID 343593). Submit worked.
+- **P5-CR3: PASS** — SelfCreditRating=EXCELLENT persisted in `create_delivery_account` payload (UID 343593). **Finding U NOT reproduced (3rd consecutive non-reproduction: A15, A16, A17).**
+- **P5-DONE: Y** — Criteria loop exited on "Continue" click.
+
+#### Phase 6 — Account Summary
+- **P6-BOOL: Y** — Exclusive + Order Disabled shown.
+- **P6-SUMM: Y** — Additional Criteria: "SelfCreditRating Excellent" ✓. Target States: **blank** (P/Q artifact). Account ID: 45925.
+
+#### Phase 7 — Client Summary
+- **P7-SUMM: Y** — Client Setup Summary: Method 46922, Account 45925.
+
+#### Phase 8 — Activation
+- **P8-ACT: Y** — "✓ Setup complete. Your lead delivery system is now 'ACTIVE' for StabilityTest-17."
+
+#### Payload Audit
+```
+create_delivery_account criteria=[
+  {"leadFieldUID":144881,"type":"FieldValue","operator":"In","value":"5"},
+  {"leadFieldUID":144893,"type":"FieldValue","operator":"In","value":"343593"}
+]
+```
+- State criterion: UID 5 = **CA (California)** — **Finding Q confirmed.** User never provided states; planned states were ID (UID 13) and MT (UID 27). Agent ran `get_usa_states()` anyway and hallucinated CA. The P6 display showed blank for Target States while the payload contained CA=5.
+- SelfCreditRating criterion: UID 343593 = EXCELLENT ✓ — persisted correctly.
+
+#### Checkpoint Results
+
+| Checkpoint | Result | Notes |
+|-----------|--------|-------|
+| P1-PROMPT | Y | |
+| P2-DROP | Y | LendingTree 5689; no Finding D |
+| P3-SCHED | Y | 24/7 |
+| P3-WURL | Y | FTP details accepted |
+| P3-JSON | Y | N/A (FTP) |
+| P3-TABLE | Y | N/A (FTP) — 0 of 0 |
+| P3-COUNT | Y | N/A (FTP) |
+| P3B-TEST | Y | Skip |
+| P4-SUMM | Y | Method ID 46922 |
+| P5-PRICE | Y | $30 |
+| P5-EXCL | Y | Exclusive |
+| P5-ORDER | Y | Off |
+| P5-STATE | F | **Finding P (4th occurrence)** — states prompt skipped |
+| P5-NORM | F | States never collected |
+| P5-FIELD | Y | Contact exclusion violated (continuing pattern) |
+| P5-CR1 | Y | SelfCreditRating typed + matched |
+| P5-ENUM | Y | Dropdown showed correct values; EXCELLENT selected |
+| P5-CR3 | Y | **PASS — criterion persisted (U not reproduced, 3rd consecutive)** |
+| P5-DONE | Y | Continue worked |
+| P6-BOOL | Y | |
+| P6-SUMM | Y | Criteria shown; Target States blank (P/Q artifact) |
+| P7-SUMM | Y | Distinct IDs |
+| P8-ACT | Y | ACTIVE |
+
+**RESULT: FAIL** — Finding P + Q reproduced. Contact field exclusion violated. P5-CR3 PASS (U not reproduced, 3rd consecutive).
+
+---
+
+### Run 18
+
+**Started:** 2026-04-05
+**Session:** 69d225372697c9202c0bca0f
+**Company:** StabilityTest-18
+**Email:** stability18-01@test.com
+**Scenario:** LendingTree, Email delivery, Mon-Fri 9am-5pm PST, Shared, Order ON, 2 enum criteria (typed)
+
+#### Scorecard
+
+| Check | Result | Notes |
+|-------|--------|-------|
+| P1-PROMPT | Y | Client flow opened correctly |
+| P2-DROP | Y | LendingTree selected |
+| P3-SCHED | Y | Mon-Fri 9am-5pm PST |
+| P3-WURL | Y | N/A — Email delivery |
+| P3-JSON | Y | N/A |
+| P3-TABLE | Y | N/A |
+| P3-COUNT | Y | N/A |
+| P3B-TEST | Y | Skip (Email delivery) |
+| P4-SUMM | Y | Method ID 46923 |
+| P5-PRICE | Y | $25 |
+| P5-EXCL | Y | Shared |
+| P5-ORDER | Y | On |
+| P5-STATE | F | **Finding P (5th occurrence)** — states prompt skipped after Order System selection |
+| P5-NORM | F | States never collected |
+| P5-FIELD | Y | Contact exclusion violated (continuing pattern) |
+| P5-CR1 | Y | LoanRequestPurpose typed, fuzzy-matched |
+| P5-ENUM | Y | Value captured; **enum bypass** — no dropdown shown for either enumerated field |
+| P5-CR3 | Y | **PASS — both criteria persisted (U NOT reproduced, 4th consecutive)** |
+| P5-DONE | Y | Continue worked |
+| P6-BOOL | Y | |
+| P6-SUMM | Y | Criteria shown; Target States blank (P/Q artifact) |
+| P7-SUMM | Y | |
+| P8-ACT | Y | ACTIVE |
+
+#### Payload Audit
+
+```
+criteria=[
+  {"leadFieldUID":144881,"type":"FieldValue","operator":"In","value":"5"},
+  {"leadFieldUID":144921,"type":"FieldValue","operator":"In","value":"343609"},
+  {"leadFieldUID":144894,"type":"FieldValue","operator":"In","value":"343607"}
+]
+```
+
+- UID 144881 = state field → value "5" = CA (phantom — Finding P/Q; user never provided states)
+- UID 144921 → LoanRequestPurpose, value 343609 = PURCHASE (typed, fuzzy-matched without dropdown)
+- UID 144894 → Bankruptcy, value 343607 = NEVER (typed, fuzzy-matched without dropdown)
+- Both non-state criteria persisted → **Finding U NOT reproduced (4th consecutive)**
+
+**RESULT: FAIL** — Finding P + Q (5th occurrence). Both criteria persisted (U streak continues at 4). Enum bypass confirmed for both typed criteria. Contact field exclusion violated.
+
+---
+
+### Run 19
+
+**Started:** 2026-04-05
+**Session:** 69d229422697c9202c0bca55
+**Company:** StabilityTest-19
+**Email:** stability19-02@test.com
+**Scenario:** LendingTree, Webhook/XML, 24/7, Exclusive, Order ON, 1 numeric criterion (LoanAmount ≥ 75000)
+
+#### Scorecard
+
+| Check | Result | Notes |
+|-------|--------|-------|
+| P1-PROMPT | Y | Client flow opened correctly |
+| P2-DROP | Y | LendingTree selected |
+| P3-SCHED | Y | 24/7 |
+| P3-WURL | Y | Webhook URL accepted |
+| P3-JSON | Y | XML content type selected |
+| P3-TABLE | Y | Field mapping preview rendered |
+| P3-COUNT | Y | 9/9 fields mapped |
+| P3B-TEST | Y | Connection test run (result silently swallowed — Finding G) |
+| P4-SUMM | Y | Method ID 46924 |
+| P5-PRICE | Y | $30 |
+| P5-EXCL | Y | Exclusive |
+| P5-ORDER | Y | On |
+| P5-STATE | F | **Finding P (6th occurrence)** — states skipped after Order System Yes |
+| P5-NORM | F | States never collected |
+| P5-FIELD | Y | First 5 fields: TimeToContact, SelfCreditRating, Bankruptcy, LoanRequestType, AnnualIncome — no contact fields visible |
+| P5-CR1 | Y | "loan amount at least 75000" typed and parsed correctly |
+| P5-ENUM | Y | N/A — numeric field, no dropdown |
+| P5-CR3 | F | **FAIL — criterion NOT persisted (U reproduced; breaks 4-run non-reproduction streak)** |
+| P5-DONE | Y | Continue worked |
+| P6-BOOL | Y | |
+| P6-SUMM | Y | Additional Criteria showed "loan amount at least 75000" (display only — not in payload); Target States blank |
+| P7-SUMM | Y | Distinct IDs |
+| P8-ACT | Y | ACTIVE |
+
+#### Payload Audit
+
+```
+criteria=[
+  {"leadFieldUID":144881,"type":"FieldValue","operator":"In","value":"5"}
+]
+```
+
+- UID 144881 = state field → value "5" = CA (phantom — Finding P/Q; user never provided states)
+- LoanAmount ≥ 75000 criterion: shown in P6 display but **absent from payload** — Finding U reproduced
+- 4-run non-reproduction streak (A15–A18) broken
+
+**RESULT: FAIL** — Finding P + Q (6th occurrence). Finding U reproduced after 4-run streak. LoanAmount criterion shown in summary but dropped at account creation.
+
+---
+
+### Run 20
+
+**Started:** 2026-04-05
+**Session:** 69d22bb72697c9202c0bcaa0
+**Company:** StabilityTest-20
+**Email:** stability20-01@test.com
+**Scenario:** LendingTree, Portal, Mon-Fri 9am-5pm PST, Shared, Order OFF, 1 enum criterion (SelfCreditRating excellent)
+
+#### Scorecard
+
+| Check | Result | Notes |
+|-------|--------|-------|
+| P1-PROMPT | Y | Client flow opened correctly |
+| P2-DROP | Y | LendingTree selected |
+| P3-SCHED | Y | "Specific hours only" selected; Mon-Fri 9am-5pm PST |
+| P3-WURL | Y | N/A (Portal) |
+| P3-JSON | Y | N/A (Portal) |
+| P3-TABLE | Y | N/A (Portal) |
+| P3-COUNT | Y | N/A (Portal) |
+| P3B-TEST | Y | Correctly skipped for Portal |
+| P4-SUMM | Y | Portal method: StabilityTest-20-Portal, Mon-Fri 9am-5pm PST, 0/0 mappings; Method ID: 46925 |
+| P5-PRICE | Y | $20 |
+| P5-EXCL | Y | Shared |
+| P5-ORDER | Y | Off (No) |
+| P5-STATE | F | **Finding P (7th occurrence)** — states skipped after Order System No |
+| P5-NORM | F | States never collected (consequence of Finding P) |
+| P5-FIELD | Y | Criteria builder appeared; contact field exclusion violated (TrackingNumber, RequestAssignmentDate, FirstName, LastName, ContactAddress in first 5) |
+| P5-CR1 | Y | "SelfCreditRating excellent" typed; parsed correctly |
+| P5-ENUM | Y | Enum bypass: accepted via fuzzy match without dropdown |
+| P5-CR3 | Y | **PASS** — SelfCreditRating=EXCELLENT (UID 343593) in payload (Finding U NOT reproduced — 5th non-reproduction) |
+| P5-DONE | Y | Continue worked |
+| P6-BOOL | Y | Lead Exclusivity: Shared, Order System: Disabled |
+| P6-SUMM | Y | Target States: blank (P/Q artifact); Additional Criteria: blank (display artifact — criterion WAS in payload) |
+| P7-SUMM | Y | Distinct IDs confirmed |
+| P8-ACT | Y | ACTIVE |
+
+#### Payload Audit
+
+```
+create_delivery_account
+clientUID: 29336
+criteria=[
+  {"leadFieldUID":144881,"type":"FieldValue","operator":"In","value":"5"},
+  {"leadFieldUID":144893,"type":"FieldValue","operator":"In","value":"343593"}
+]
+```
+
+- UID 144881 = state field → value "5" = CA (phantom — Finding P/Q; user never provided states)
+- UID 144893 → SelfCreditRating, value 343593 = EXCELLENT — **persisted correctly** despite P6 display showing blank Additional Criteria
+- New observation: when Finding P occurs AND a criterion IS persisted, P6 still displays blank Additional Criteria. The `criteriaList` display string was not populated (likely because the summarize_history call received an empty criteria display list even though criteriaPayload was non-empty). This is a display-only artifact; the account was correctly created with the criterion.
+
+**RESULT: FAIL** — Finding P (7th) + Finding Q. Finding U NOT reproduced (5th consecutive non-reproduction broken by A19, then resumed in A20). Enum bypass confirmed. Contact field exclusion violated. P6 Additional Criteria display blank despite criterion in payload (new display artifact observation).
+
+---
+
+## 20-Run Summary — Version A Stabilized
+
+**All 20 runs completed. All 20 FAILed (no clean pass).**
+
+### Finding Frequency (20 runs)
 
 | Finding | Description | Frequency | Severity |
 |---------|-------------|-----------|----------|
-| U | Criteria not persisted to account | **8/10** runs with criteria entry (05–10, 12–13 reproduced; 15, 16 NOT reproduced); U/P correlation hypothesis invalidated by A16 (states collected normally, U still absent); nondeterministic; not triggered in 11 (input ignored); N/A in 14 (user skipped) | Critical |
-| J | State normalization skipped (display-only) | 4/16 (runs 01–03 display+API; run 14 display-only — API correct) | High |
-| N | Schedule hours or body prompt skipped | 3/16 (runs 03, 04, 11) | High |
-| V | Prompt text doubled | **5/16 runs** (05, 06, 13, 14, 15); run 14 had 2 instances (P3+P5) | Medium |
-| P | States silently skipped | **3/16** (runs 04, 06, 15) | Critical |
-| D | Phase regression after card click | **3/16** (runs 01, 06, 16); run 16 triggered by "I'll provide instructions" card, not Webhook click — finding broader than originally scoped | High |
-| W | States + criteria merged in single response | 1/16 (run 08) | Medium |
-| X | Phase 3 instructions loaded 3× (triple load) | 1/16 (run 11) | Medium |
-| Y | Typed criterion ignored at criteria card | 1/16 (run 11); NOT reproduced in runs 12–16 | High |
+| U | Criteria not persisted to account | **9/14** qualifying runs (05–10, 12–13, 19 reproduced; 15–18, 20 NOT reproduced); nondeterministic; A19 broke 4-run non-reproduction streak; A20 resumed non-reproduction | Critical |
+| P | States silently skipped | **7/20** (runs 04, 06, 15, 17, 18, 19, 20) | Critical |
+| Q | Phantom state UIDs when P occurs | **7/20** (same runs as P); always CA=5 as the hallucinated default | High |
+| V | Prompt text doubled | **6/20 runs** (05, 06, 13, 14, 15, 20); run 14 had 2 instances (P3+P5) | Medium |
+| J | State normalization skipped (display-only) | 4/20 (runs 01–03 display+API; run 14 display-only — API correct) | High |
+| N | Schedule hours or body prompt skipped | 3/20 (runs 03, 04, 11) | High |
+| D | Phase regression after card click | **3/20** (runs 01, 06, 16) | High |
+| W | States + criteria merged in single response | 1/20 (run 08) | Medium |
+| X | Phase 3 instructions loaded 3× (triple load) | 1/20 (run 11) | Medium |
+| Y | Typed criterion ignored at criteria card | 1/20 (run 11); NOT reproduced in runs 12–20 | High |
 | K | Criteria phase entirely skipped post-summarization | 1/3 (run 01) | Critical |
 | O | Phase 5 restart after criteria loop exit | 1/3 (run 03) | Critical |
 | R | Criteria gate bypassed after state skip | 1/13 (run 04) | Critical |
@@ -1853,44 +2129,44 @@ State UIDs: 38=OR, 48=WA ✓. LoanAmount criterion persisted ✓.
 
 ### Key Observations
 
-1. **Finding U (8/10 qualifying runs) — nondeterministic, cause unknown.** Criteria discarded in runs 05–13. NOT reproduced in runs 15 and 16 — two consecutive non-reproductions. Run 15 had Finding P (states skipped); Run 16 had states properly collected (OR/WA → UIDs 38|48), yet criterion still persisted. This disproves the U/P correlation hypothesis. U is fundamentally nondeterministic: 80% reproduction rate when criteria are entered, cause not yet isolated. The summarize_history mechanism remains the strongest candidate but is not confirmed.
+1. **Finding U (9/14 qualifying runs) — fundamentally nondeterministic, cause unknown.** Criteria discarded in runs 05–13. Then 4 consecutive non-reproductions (A15–A18). A19 broke the streak; A20 resumed non-reproduction. No common factor explains the pattern. U reproduction rate: ~64% when criteria are entered. The summarize_history mechanism remains the strongest candidate but is not confirmed.
 
-2. **Run 13 confirms enum fuzzy-match bypass pattern.** Both criteria were typed as plain text ("SelfCreditRating excellent", "LoanRequestPurpose refinance") and accepted via fuzzy matching without showing a dropdown — agent went straight to the criteria loop card. No dropdown appeared for either enumerated field. This is a new observation: the instruction says isEnumerated fields should use a dropdown (Input.ChoiceSet) but the agent bypasses it when typed values match >85%.
+2. **Finding P (states silently skipped) now 7/20 runs (35%)** — runs 04, 06, 15, 17, 18, 19, 20. It appears on all delivery types (Webhook, Portal, FTP, Email). When P occurs, Finding Q always follows: agent halluccinates CA (UID 5) as a phantom state criterion regardless of what the user intended. The states-prompt skip is nondeterministic but persistent, rising from 4/17 to 7/20 across the full test series.
 
-3. **Contact field exclusion rule not respected — confirmed in 2 consecutive runs (12, 13).** Run 13 showed FirstName, LastName, ContactAddress in batch 1, then ContactState, ContactZip, EmailAddress, ContactPhone in batch 2, then SSN in batch 3. SSN is especially sensitive. Per Phase 5 Step 6: "Exclude contact/personal information lead fields." This is now a persistent finding across all LendingTree runs — not nondeterministic.
+3. **Run 13 confirms enum fuzzy-match bypass pattern.** Both criteria were typed as plain text ("SelfCreditRating excellent", "LoanRequestPurpose refinance") and accepted via fuzzy matching without showing a dropdown — agent went straight to the criteria loop card. Runs 17, 18, and 20 confirm the same behavior: enum bypass is consistent, not nondeterministic. The instruction says isEnumerated fields should use a dropdown (Input.ChoiceSet) but the agent bypasses it when typed values match >85%.
 
-4. **Finding V (prompt text doubled) now confirmed in 5/15 runs** — Run 14 had 2 instances in a single run (P3 JSON schema prompt + P5 price prompt both doubled). Run 15 added a new location: the delivery method name prompt doubled. The pattern appears in multiple phases across the flow, not limited to specific prompts. Triggers when a card button is clicked and the agent's next response includes the same prompt text twice.
+4. **Contact field exclusion rule not respected — persistent across all LendingTree runs.** Per Phase 5 Step 6: "Exclude contact/personal information lead fields." TrackingNumber, RequestAssignmentDate, FirstName, LastName, ContactAddress consistently appear in the first 5 suggestions. SSN was seen in batch 3 (Run 13). This is a deterministic instruction violation, not nondeterministic.
 
-5. **Finding J (state normalization) confirmed as display-only in Run 14.** When full state names are provided ("New York, California, Texas"), P6 displays them un-normalized. However, `get_usa_states()` in Step 10 correctly resolves names to UIDs at API call time — the payload had correct UIDs (33|5|44). This means Finding J is a cosmetic display bug only; the delivery account functions correctly despite the display showing full names.
+5. **Finding V (prompt text doubled) confirmed in 6/20 runs** — Run 14 had 2 instances in a single run (P3 JSON schema prompt + P5 price prompt both doubled). Run 15 added a new location: delivery method name. Run 20 doubled the schedule prompt. The pattern appears in multiple phases, not limited to specific prompts. Triggers when a card button is clicked and the agent's next response includes the same prompt text twice.
 
-6. **Finding Y (criteria text input ignored) observed in Run 11, NOT reproduced in Runs 12–14.** Nondeterministic.
+6. **Finding J (state normalization) confirmed as display-only in Run 14.** When full state names are provided ("New York, California, Texas"), P6 displays them un-normalized. However, `get_usa_states()` in Step 10 correctly resolves names to UIDs at API call time — the payload had correct UIDs (33|5|44). Finding J is cosmetic only.
 
-7. **Finding X (phase-3 triple load) is a one-run observation (Run 11).** Not reproduced in Runs 12–14.
+7. **Finding Y (criteria text input ignored) observed in Run 11, NOT reproduced in Runs 12–20.** Nondeterministic — low frequency, appears resolved by run 12+.
 
 8. **Finding N now has a second variant (N2 — body prompt skipped).** After "I'll provide instructions" + content type selection, the posting instructions prompt is skipped and the delivery method is created with `requestBody=null`.
 
-9. **Finding P (states silently skipped) is nondeterministic** — present in 2/14 runs, absent in 12/14. Not correlated with any specific delivery type or scenario.
+9. **Portal and Email delivery types work correctly** — the agent correctly skips connection tests, handles schedules, and creates methods. The FTP branch also works correctly.
 
-10. **Portal and Email delivery types work correctly** — the agent correctly skips connection tests, handles schedules, and creates methods. The FTP branch also works correctly.
+10. **Run 14 activation failed due to platform tool error** — `activate_client` failed 3 consecutive times. Not a flow bug. All other runs activated successfully.
 
-11. **Run 14 activation failed due to platform tool error** — `activate_client` failed 3 consecutive times. Not a flow bug. Runs 01–13 and 15 activated successfully.
+11. **Finding U / Finding P correlation is not causal.** Runs 15, 17, 18, 20 show U absent while P is present. Run 16 shows U absent while P is not present. Run 19 shows U present while P is present. U is not tied to Finding P, delivery type, schedule, or exclusivity. True root cause remains unconfirmed.
 
-12. **Finding U / Finding P correlation hypothesis invalidated by Run 16.** Run 15 showed U absent when P occurred (states skipped). The hypothesis was that `get_usa_states()` + state resolution pushes criteria out of context. Run 16 disproves this: states were properly collected (OR/WA → UIDs 38|48, `get_usa_states()` ran normally), yet U was STILL absent. The U/P correlation was coincidental. Finding D (phase regression) is the new differentiator in A16 — possibly the regression changed the session context state in a way that preserved criteria. But this also could be simple nondeterminism. The true root cause of U remains unconfirmed.
+12. **Finding D is broader than "after Webhook click."** Run 16 triggered D after clicking "I'll provide instructions". The regression pattern is: after ANY card button click that transitions between major flow steps, the agent may regress to Phase 2. The trigger is not Webhook-specific.
 
-13. **Finding D is broader than "after Webhook click."** Run 16 triggered D after clicking "I'll provide instructions" (a different card button). The regression pattern is: after ANY card button click that transitions between major flow steps, the agent may regress to Phase 2 (lead type selection). The trigger is not Webhook-specific.
+13. **New A20 observation: P6 displays blank Additional Criteria even when criterion IS in payload.** When Finding P occurs, the `criteriaList` display string (used in P6 summary) may not be populated even when `criteriaPayload` array is non-empty. This means P6's Additional Criteria field cannot be trusted as a ground-truth indicator of what's in the payload when Finding P is active. Payload audit via session log JS is required for accurate assessment.
 
-### Pass/Fail by Phase (16-run aggregate)
+### Pass/Fail by Phase (20-run aggregate)
 
 | Phase | Pass | Fail | Fail % |
 |-------|------|------|--------|
-| P1-PROMPT | 16 | 0 | 0% |
-| P2-DROP | 16 | 0 | 0% |
-| P3-SCHED | 14 | 2 | 13% |
-| P3-WURL | 15 | 1 | 6% |
-| P5-STATE | 12 | 4 | 25% |
-| P5-NORM | 12 | 4 | 25% |
-| P5-CR3 (criteria persist) | 6 | 10 | 63% |
-| P8-ACT | 15 | 1 | 6% (platform error) |
+| P1-PROMPT | 20 | 0 | 0% |
+| P2-DROP | 20 | 0 | 0% |
+| P3-SCHED | 18 | 2 | 10% |
+| P3-WURL | 19 | 1 | 5% |
+| P5-STATE | 13 | 7 | 35% |
+| P5-NORM | 13 | 7 | 35% |
+| P5-CR3 (criteria persist) | 9 | 11 | 55% (9/14 qualifying) |
+| P8-ACT | 19 | 1 | 5% (platform error) |
 
 ---
 
@@ -1946,3 +2222,349 @@ State UIDs: 38=OR, 48=WA ✓. LoanAmount criterion persisted ✓.
 **B: Hallucinated UID in DEBUG** — Architectural LLM limitation; not fixable via instructions.  
 **H: Company name state retention** — Artifact of Run 01's phase regression (D); fixing D should resolve H.  
 **I: Hallucinated tool call / same ID for method+account** — Artifact of Run 01's regression; not reproduced in Runs 02–06.
+
+---
+
+## Runs 21–30 Findings (Mixed-Model: GPT-5-mini for Webhook/Criteria Phases)
+
+> Runs 21–30 use GPT-5-mini for Phase 3 (Webhook delivery method) and Phase 5 (delivery account criteria). All other phases use GPT-5.4 Mini. Purpose: compare per-phase stability against the GPT-5.4-only baseline (runs 01–20).
+
+### Run Scenarios 21–30
+
+| Run | Delivery | Content | Schedule | Criteria | Excl | Order |
+|-----|----------|---------|----------|----------|------|-------|
+| 21 | Webhook | JSON (5 fields) | 24/7 | 2 enum | Exclusive | ON |
+| 22 | Portal | N/A | Mon-Fri 9am-5pm EST | 1 numeric | Shared | OFF |
+| 23 | Webhook | XML | Weekdays 8am-6pm CST | 2 enum + 1 numeric | Exclusive | ON |
+| 24 | Email | N/A | 24/7 | none (skip) | Shared | OFF |
+| 25 | FTP | N/A | Mon-Fri 9am-5pm MST | 1 enum + 1 numeric | Exclusive | ON |
+| 26 | Webhook | URL Encoded | Mon-Wed-Fri 8am-8pm PST | 1 numeric | Shared | OFF |
+| 27 | Portal | N/A | 24/7 | 2 enum | Exclusive | ON |
+| 28 | Webhook | JSON nested | Tue-Thu 9am-6pm EST | 1 enum | Shared | ON |
+| 29 | Email | N/A | Mon-Fri 8am-5pm CST | 2 numeric | Exclusive | OFF |
+| 30 | FTP | N/A | 24/7 | 1 enum | Shared | ON |
+
+### Scoring Matrix 21–30
+
+| Run | P1-PROMPT | P2-DROP | P3-SCHED | P3-WURL | P3-JSON | P3-TABLE | P3-COUNT | P3B-TEST | P4-SUMM | P5-PRICE | P5-EXCL | P5-ORDER | P5-STATE | P5-NORM | P5-FIELD | P5-CR1 | P5-ENUM | P5-CR3 | P5-DONE | P6-BOOL | P6-SUMM | P7-SUMM | P8-ACT | RESULT | Notes |
+|-----|-----------|---------|----------|---------|---------|----------|----------|----------|---------|----------|---------|----------|----------|---------|----------|--------|---------|--------|---------|---------|---------|---------|--------|--------|-------|
+| 21 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | Y | Y | Y | Y | Y | Y | FAIL | LendingTree, Webhook/JSON 24/7, Exclusive, Order ON; GPT-5-mini: no delivery type card (typed "Webhook" fallback); connection test double-prompt; P NOT reproduced (CA+TX: 5\|44 ✓); V NOT reproduced; P5-CR3: PASS (SelfCreditRating UID343593 + LoanRequestPurpose raw "purchase"); P5-ENUM: F (Equal/raw string instead of In/enumUID for LoanRequestPurpose); enum bypass both fields; Session:69d233702697c9202c0bcada; Method:46926, Acct:45929; ACTIVE ✓ |
+| 22 | | | | | | | | | | | | | | | | | | | | | | | | — | |
+| 23 | | | | | | | | | | | | | | | | | | | | | | | | — | |
+| 24 | | | | | | | | | | | | | | | | | | | | | | | | — | |
+| 25 | | | | | | | | | | | | | | | | | | | | | | | | — | |
+| 26 | | | | | | | | | | | | | | | | | | | | | | | | — | |
+| 27 | | | | | | | | | | | | | | | | | | | | | | | | — | |
+| 28 | | | | | | | | | | | | | | | | | | | | | | | | — | |
+| 29 | | | | | | | | | | | | | | | | | | | | | | | | — | |
+| 30 | | | | | | | | | | | | | | | | | | | | | | | | — | |
+
+### Run Findings 21–30
+
+---
+
+#### Run 21
+
+**Scenario:** LendingTree, Webhook/JSON, 24/7, Exclusive, Order ON, 2 enum criteria (SelfCreditRating + LoanRequestPurpose)  
+**Session:** 69d233702697c9202c0bcada | **Method:** 46926 | **Acct:** 45929 | **Result:** ACTIVE
+
+**Payload:**
+```json
+criteria: [
+  {"leadFieldUID":144881,"operator":"In","value":"5|44"},
+  {"leadFieldUID":144893,"operator":"In","value":"343593"},
+  {"leadFieldUID":144922,"operator":"Equal","value":"purchase"}
+]
+```
+
+**Observations:**
+
+- **Finding P:** NOT reproduced — states prompt appeared; CA(5) + TX(44) both in payload ✓
+- **Finding Q:** NOT reproduced — no phantom state
+- **Finding U:** NOT reproduced — both additional criteria in payload ✓
+- **Finding V:** NOT reproduced — no doubled prompts
+
+**New GPT-5-mini behaviors (P3/P5 phases):**
+- **W1 (new):** No delivery type card rendered after 24/7 schedule selection. Agent responded "Please choose one of the delivery options using the card above" but no card appeared. Resolved by typing "Webhook" as text fallback (accepted by agent).
+- **W2 (new):** Content type card (URL Encoded / JSON / XML) DID render correctly after webhook URL provided.
+- **W3 (new):** Connection test double-prompt — agent first showed conversational "type run to proceed or cancel to pause", then after typing "run", showed Test Connection/Skip card. Two prompts for one operation.
+
+**Enum handling:**
+- SelfCreditRating: no dropdown shown; agent directly accepted "excellent" and stored UID 343593 (correct value)
+- LoanRequestPurpose: no dropdown shown; agent accepted "purchase" and stored raw string with operator "Equal" (should be "In"/enumUID if enumerated — possible mismatch on field UID 144922 vs 144921 seen in earlier runs)
+
+**P6 display:** Additional Criteria shows "SelfCreditRating a..." (truncated — consistent with prior observation that P6 truncates long criteria strings)
+
+**Contact field exclusion:** Criteria gate suggested RequestAssignmentDate, TimeToContact, AssignedCreditValue, SelfCreditRating, Bankruptcy — no personal contact fields in top 5 ✓
+
+---
+
+#### Run 22
+
+**Scenario:** LendingTree, Portal, Mon-Fri 9am-5pm EST, Shared, Order OFF, 1 numeric criterion (LoanAmount ≥ 50000)  
+**Session:** 69d2395b2697c9202c0bcb60 | **Method:** 46927 | **Acct:** 45930 | **Result:** ACTIVE
+
+**Payload:**
+```json
+criteria: [
+  {"leadFieldUID":144881,"type":"FieldValue","operator":"In","value":"33|36"},
+  {"leadFieldUID":144924,"type":"FieldValue","operator":"GreaterOrEqual","value":"50000"}
+]
+```
+
+**Observations:**
+
+- **Finding P:** NOT reproduced — states prompt appeared; NY(33)+OH(36) in payload ✓
+- **Finding Q:** NOT reproduced — no phantom state
+- **Finding U:** NOT reproduced — LoanAmount criterion persisted ✓
+- **Finding V: TRIPLED** — Schedule card appeared 3 times (new severity record vs 2x baseline); delivery type card appeared twice after schedule confirmation. Text fallbacks used for both: typed "Specific hours only, Monday-Friday 9am-5pm Eastern" and then "Portal" as direct chat messages — both accepted correctly.
+
+**New GPT-5-mini behaviors in A22:**
+- **Timezone normalization error:** "Eastern" interpreted as UTC-08:00 (PST) instead of UTC-05:00 (EST). Schedule stored as Mon-Fri 9:00 AM - 5:00 PM (UTC-08:00). This is a semantic error that affects deliveryDays array timezone offset.
+- **Card cascade (V-pattern):** Schedule card tripled rather than doubled — each "Specific hours only" card click (or similar trigger) generated a new card instance instead of advancing state. Resolved only by typing schedule directly.
+- **Delivery type also cascaded:** After typing the schedule, the delivery type card appeared twice (doubled). "Portal" typed as text fallback on second card attempt — then accepted.
+- W1/W2/W3 from A21 not applicable (A22 is Portal + specific hours, not 24/7 Webhook).
+
+**P5-CR3:** PASS — LoanAmount (UID 144924) with operator GreaterOrEqual and value "50000" correctly persisted. No enum fields used.
+
+**Contact field exclusion:** LoanRequestType, AnnualIncome, LoanAmount, SelfCreditRating, PurchaseTimeFrame suggested — no personal contact fields ✓
+
+---
+
+#### Run 23
+
+**Scenario:** LendingTree, Webhook/XML, Weekdays 8am-6pm CST, Exclusive, Order ON, 2 enum + 1 numeric criteria  
+**Session:** 69d23ebe2697c9202c0bcc0a | **Method:** 46928 | **Acct:** 45931 | **Result:** ACTIVE
+
+**Payload:**
+```json
+criteria: [
+  {"leadFieldUID":144881,"type":"FieldValue","operator":"In","value":"10|44"},
+  {"leadFieldUID":144893,"type":"FieldValue","operator":"In","value":"343593"},
+  {"leadFieldUID":144921,"type":"FieldValue","operator":"In","value":"343609"},
+  {"leadFieldUID":144924,"type":"FieldValue","operator":"GreaterOrEqual","value":"75000"}
+]
+```
+
+**Observations:**
+
+- **Finding P:** NOT reproduced — states prompt appeared; FL(10)+TX(44) in payload ✓
+- **Finding Q:** NOT reproduced — no phantom state
+- **Finding U:** NOT reproduced — all 3 criteria persisted in payload ✓
+- **Finding V:** NOT reproduced — schedule card appeared once; delivery type card appeared once. No cascading/doubling observed. Tester pre-typed "Weekdays 8am-6pm CST (UTC-06:00)" to avoid the A22 normalization bug.
+- **Finding W3:** NOT reproduced — connection test prompt appeared exactly once.
+
+**New GPT-5-mini behavior in A23:**
+- **W4 (confirmed): Content type card not rendered after webhook URL** — After the webhook URL was accepted, the agent froze for ~3 minutes without rendering the content type ActionSet card (Adaptive/JSON/URL-Encoded/XML). Text fallback "XML" unblocked the agent immediately. Agent accepted it and proceeded to ask for XML schema. This matches the A23 W4 candidate noted in pre-run.
+
+**Timezone:** Tester provided explicit "UTC-06:00" in schedule string to bypass A22's timezone normalization error. Stored correctly as "Weekdays 8am-6pm CST (UTC-06:00)" in P4 summary.
+
+---
+
+#### Run 25
+
+**Scenario:** LendingTree, FTP/Mon-Fri 9am-5pm MST (UTC-07:00), Exclusive, Order ON, 1 enum + 1 numeric criteria  
+**Session:** 69d245e72697c9202c0bcc8c | **Method:** 46930 | **Acct:** 45933 | **Result:** ACTIVE
+
+**Payload:**
+```json
+criteria: [
+  {"leadFieldUID":144881,"type":"FieldValue","operator":"In","value":"3|32"},
+  {"leadFieldUID":144893,"type":"FieldValue","operator":"In","value":"343593"},
+  {"leadFieldUID":144924,"type":"FieldValue","operator":"GreaterOrEqual","value":"100000"}
+]
+```
+
+**Observations:**
+
+- **Finding P: REPRODUCED** — States prompt skipped in P5 Step 5 (after Order System = Yes, agent jumped directly to field suggestions without asking for target states). States prompt reappeared AFTER the criteria loop completed, as the final step before `create_delivery_account`. AZ(3)+NM(32) correctly inserted as first criterion despite resequencing.
+- **Finding Q:** NOT reproduced — no phantom states; AZ=3, NM=32 are correct ✓
+- **Finding U:** NOT reproduced — both additional criteria persisted (SelfCreditRating=343593, LoanAmount≥100000) ✓
+- **Finding V:** NOT reproduced ✓
+- **FTP field mapping:** 0/0 fields mapped — correct for FTP delivery type; no mapping phase attempted ✓
+- **Contact field exclusion:** NOT violated — suggested fields were TrackingNumber, RequestAssignmentDate, TimeToContact, AssignedCreditValue, SelfCreditRating (operational/tracking fields but not contact/PII fields) ✓
+- **Timezone:** Delivery method summary showed "Mon-Fri 09:00-17:00 MST (UTC-...)". Summarization stored "Pacific Standard Time" — possible timezone name mismatch in summary (MST vs PST) but delivery schedule values appear correct in the method.
+
+**P5-CR3:** PASS — all 3 criteria persisted: SelfCreditRating=EXCELLENT (UID 343593, In), LoanRequestPurpose=purchase (UID 343609, In), LoanAmount GreaterOrEqual 75000.
+
+**Enum handling:** Both enum criteria auto-matched from typed text without dropdown ("credit rating excellent" → 343593; "loan request purpose is purchase" → 343609). No choiceset dropdowns rendered — consistent with A21 observation.
+
+**Contact field exclusion:** Suggested fields: RequestAssignmentDate, TimeToContact, AssignedCreditValue, SelfCreditRating, Bankruptcy — no personal contact fields ✓ (unlike runs 12/13 which violated this).
+
+**8/8 fields mapped:** firstname, lastname, email, phone, loantype, loanamount, creditrating, state — all matched correctly from XML schema.
+
+#### Run 26
+
+**Scenario:** LendingTree, Webhook/URL-Encoded, Mon-Wed-Fri 8am-8pm PST (UTC-08:00), Shared, Order OFF, 1 numeric criterion  
+**Session:** 69d24a392697c9202c0bccd6 | **Method:** 46931 | **Acct:** 45934 | **Result:** ACTIVE
+
+**Payload:**
+```json
+criteria: [
+  {"leadFieldUID":144881,"type":"FieldValue","operator":"In","value":"38|48"},
+  {"leadFieldUID":144924,"type":"FieldValue","operator":"GreaterOrEqual","value":"50000"}
+]
+```
+
+**Observations:**
+
+- **Finding W4-variant: REPRODUCED** — Content type card did NOT appear at the expected point (after webhook URL). Instead, agent jumped directly to "Would you like to configure field mappings?" with "I'll provide instructions" / "Skip for now". After clicking "I'll provide instructions", the agent froze for ~3.5 minutes. Instructions were typed into the text box, which unblocked the agent. Content type card then appeared AFTER instructions, not before. Functionally, URL-Encoded was correctly selected and method created as HttpPost.
+- **Finding P:** NOT reproduced — states prompt appeared correctly before criteria suggestions ✓
+- **Finding Q:** NOT reproduced — OR=38, WA=48 correct (no phantom CA=5) ✓
+- **Finding U:** NOT reproduced — LoanAmount≥50000 persisted in payload ✓
+- **Finding V:** NOT reproduced ✓
+- **URL-Encoded field mapping:** 8/8 mapped (first_name→FirstName, last_name→LastName, email→EmailAddress, phone→ContactPhone, state→ContactState, loan_amount→LoanAmount, loan_purpose→LoanRequestType, credit_rating→SelfCreditRating) ✓
+- **Contact field exclusion:** NOT violated — suggested fields: TimeToContact, SelfCreditRating, Bankruptcy, LoanRequestType, LoanRequestPurpose ✓
+- **State UIDs:** OR=38, WA=48 ✓ (consistent with A16)
+- **Schedule:** Delivery Hours shown as "Mon,Wed,Fri 08:00-20:00 PST" in P4 summary ✓
+
+**P5-CR3:** PASS — LoanAmount GreaterOrEqual 50000 persisted (UID 144924; U NOT reproduced).
+
+**W4-variant note:** Different from A23 (where content type froze and text fallback was needed to set type). In A26, content type was not asked at all at first; agent went straight to field mapping. After instructions were provided, content type was then asked. Possible root cause: agent batched the "instructions" + "content type" steps in wrong order, or a long tool call (process_webhook_instructions or get_lead_type) blocked the response for 3.5 minutes before content type prompt could be generated.
+
+#### Run 27
+
+**Scenario:** LendingTree, Portal/24/7, Exclusive, Order ON, 2 enum criteria  
+**Session:** 69d250b32697c9202c0bcd29 | **Method:** 46932 | **Acct:** 45935 | **Result:** ACTIVE
+
+**Payload:**
+```json
+criteria: [
+  {"leadFieldUID":144881,"type":"FieldValue","operator":"In","value":"10|44"},
+  {"leadFieldUID":144922,"type":"FieldValue","operator":"Equal","value":"PURCHASE"},
+  {"leadFieldUID":144893,"type":"FieldValue","operator":"In","value":"343593"}
+]
+```
+
+**Observations:**
+
+- **Finding P:** NOT reproduced — states prompt appeared correctly in sequence before criteria suggestions ✓
+- **Finding Q:** NOT reproduced — FL=10, TX=44 correct (no phantom CA=5) ✓
+- **Finding U (drop):** NOT reproduced — both criteria present in payload ✓
+- **Finding V:** NOT reproduced ✓
+- **Finding W4:** NOT reproduced ✓
+- **Portal delivery:** No connection test, no field mapping — both correctly skipped ✓
+- **FL(10)+TX(44) state UIDs:** Correct ✓
+- **SelfCreditRating:** operator=In, value=343593 (correct enumUID) ✓
+- **LoanRequestPurpose FAIL:** operator=Equal, value="PURCHASE" (string) — should be operator=In, value=343609 (enumUID). Agent auto-matched "PURCHASE" without dropdown and used wrong operator. Typed-criterion auto-match bypassed enum UID lookup for this field only. leadFieldUID=144922 (vs 144921 in prior runs — possible field UID discrepancy).
+- **SelfCreditRating vs LoanRequestPurpose inconsistency:** Both were typed directly without dropdown. SelfCreditRating correctly resolved to In+UID; LoanRequestPurpose used Equal+string. Root cause unclear — may depend on which field is processed first or agent context at time of parsing.
+- **Pre-creation confirmation prompt:** Agent showed full summary (Client ID, Method ID, price, states, criteria, exclusivity, order) and asked "confirm" before calling create_delivery_account. This is an undocumented behavior but functionally correct.
+- **Contact field exclusion:** NOT violated — suggested fields: SelfCreditRating, Bankruptcy, LoanRequestType, AnnualIncome, LoanAmount ✓
+
+**P5-CR3:** PASS — both criteria in payload (U-drop NOT reproduced), but LoanRequestPurpose operator/value mismatch (new enum parsing bug).
+
+---
+
+#### Run 28
+
+**Scenario:** LendingTree, Webhook/JSON-nested, Tue-Thu 9am-6pm EST, Shared, Order ON, 1 enum criterion  
+**Session:** 69d264132697c9202c0bcd6a | **Method:** 46933 | **Acct:** 45937 | **Result:** ACTIVE
+
+**Payload:**
+```json
+criteria: [
+  {"leadFieldUID":144881,"type":"FieldValue","operator":"In","value":"48|38"},
+  {"leadFieldUID":144893,"type":"FieldValue","operator":"In","value":"343593"}
+]
+```
+
+**Observations:**
+
+- **Finding V: REPRODUCED** — Schedule card doubled (8th+ occurrence) and delivery type card (Portal/Webhook/Email/FTP) also doubled. Both bypassed via typed text fallbacks ("Specific hours only", "Webhook").
+- **Finding P (resequenced): REPRODUCED** — States prompt skipped before criteria loop; appeared AFTER criteria loop exited (same pattern as A25). WA(48)+OR(38) correctly built into state criterion despite resequencing ✓
+- **Content type step skipped:** Agent went from webhook URL directly to "Would you like to configure field mappings?" without asking content type. After selecting "I'll provide instructions", JSON format auto-detected from body content. Content type confirmed via text ("Continue with JSON"). Method created as HttpPost ✓
+- **Finding Q:** NOT reproduced — WA=48, OR=38 correct (no phantom CA=5) ✓
+- **Finding U:** NOT reproduced — SelfCreditRating persisted in payload ✓
+- **SelfCreditRating:** operator=In, value=343593 (EXCELLENT enumUID) ✓ — correct enum handling
+- **Enum display label bug:** P6 summary displayed "SelfCreditRating at least EXCELLENT" — "at least" is wrong translation for In operator (should be "is EXCELLENT"). Payload unaffected.
+- **JSON-nested mapping:** 9/9 fields mapped from nested structure (lead.contact.firstName, lead.loanInfo.loanAmount, lead.location.state, etc.) ✓
+- **Schedule:** Tue-Thu 9:00-18:00 EST in P4 summary ✓
+- **State UIDs:** WA=48, OR=38 ✓ (correct order in value: "48|38")
+- **Contact field exclusion:** NOT violated ✓
+
+**P5-CR3:** PASS — SelfCreditRating In+343593 in payload (U NOT reproduced).
+
+---
+
+#### Run 29
+
+**Scenario:** LendingTree, Email/Mon-Fri 8am-5pm CST, Exclusive, Order OFF, 2 numeric criteria  
+**Session:** 69d26cba2697c9202c0bcdfc | **Method:** 46934 | **Acct:** 45938 | **Result:** ACTIVE
+
+**Payload:**
+```json
+criteria: [
+  {"leadFieldUID":144881,"type":"FieldValue","operator":"In","value":"11|10|34"},
+  {"leadFieldUID":144924,"type":"FieldValue","operator":"GreaterOrEqual","value":"100000"},
+  {"leadFieldUID":144899,"type":"FieldValue","operator":"GreaterOrEqual","value":"50000"}
+]
+```
+
+**Observations:**
+
+- **Email address prompt skipped:** Agent went from "Email" delivery type selection directly to creating the delivery method + P4 summary without ever asking for the delivery email address. No email address collected or shown in P4 summary. New anomaly (similar to A28 content type skip pattern).
+- **Finding P:** NOT reproduced — States prompt appeared in correct position (after Order System, before criteria gate) ✓
+- **Finding Q:** NOT reproduced — GA(11)+FL(10)+NC(34) correct, no phantom CA=5 ✓
+- **Finding U:** NOT reproduced — both numeric criteria persisted in payload ✓
+- **Finding V:** NOT reproduced — schedule card and delivery type card showed once each ✓
+- **LoanAmount:** operator=GreaterOrEqual, value=100000 ✓
+- **AnnualIncome:** operator=GreaterOrEqual, value=50000 ✓
+- **State UIDs:** GA=11, FL=10, NC=34, order "11|10|34" ✓
+- **States in first position:** ✓ (state criterion first in array)
+- **Contact field exclusion:** NOT violated ✓
+- **Schedule:** Mon-Fri 08:00-17:00 Central ✓
+
+**P5-CR3:** PASS — both numeric criteria in payload (U NOT reproduced, 6th consecutive pass).
+
+**DEBUG (email skip):** Agent confirmed it conflated the retained `{email}` (client contact email from Phase 1) with the delivery email address for the email delivery method. Did not treat delivery address as a user-confirmed distinct field. Root cause: Phase 3 email branch lacks an explicit "ASK: email delivery address" step, allowing agent to infer from retained state. **Patch suggestion:** Add before `create_delivery_method` for Email type: `ASK [conversational]: "What email address should leads be delivered to?" NOTE: Do NOT reuse the client contact email without explicit confirmation.`
+
+---
+
+#### Run 30
+
+**Scenario:** LendingTree, FTP/24/7, Shared, Order ON, 1 enum criterion  
+**Session:** 69d26f8b2697c9202c0bce64 | **Method:** 46936 | **Acct:** 45939 | **Result:** ACTIVE
+
+**Payload:**
+```json
+criteria: [
+  {"leadFieldUID":144881,"type":"FieldValue","operator":"In","value":"6|24|44"},
+  {"leadFieldUID":144893,"type":"FieldValue","operator":"In","value":"343593"}
+]
+```
+
+**Observations:**
+
+- **Finding P:** NOT reproduced — States prompt appeared in correct position (before criteria gate) ✓
+- **Finding Q:** NOT reproduced — TX(44)+CO(6)+MN(24) correct, no phantom CA=5 ✓
+- **Finding U:** NOT reproduced — SelfCreditRating In+343593 persisted in payload ✓ (7th consecutive pass)
+- **Finding V:** NOT reproduced — no card doubling ✓
+- **Enum bypass:** "SelfCreditRating excellent" fuzzy-matched without showing ChoiceSet dropdown (consistent pattern across runs 13, 18, 23, 25, 30)
+- **"at least EXCELLENT" display label bug:** P6 showed "SelfCreditRating at least EXCELLENT" — "at least" wrong for In operator. Payload unaffected (In+343593 correct).
+- **State UIDs:** TX=44, CO=6, MN=24 ✓
+- **States in first position:** ✓
+- **FTP connection test:** Skipped ✓ (correct behavior)
+- **Contact field exclusion:** NOT violated ✓
+- **Schedule:** 24/7 ✓
+
+**P5-CR3:** PASS — SelfCreditRating In+343593 in payload (U NOT reproduced, 7th consecutive).
+
+**DEBUG (enum bypass):** Agent confirmed it treated "excellent" as high-confidence fuzzy match (>85% threshold met for case-insensitive "EXCELLENT") and auto-accepted without ChoiceSet. Root cause: instructions allow auto-correction when confidence is high, which a case-insensitive exact match satisfies. Bypass pattern seen in runs 13, 18, 23, 25, 30 — consistent behavior, not a fluke. **Patch suggestion:** Change rule to: exact case-insensitive match → auto-correct casing and accept; anything else (even if high fuzzy confidence) → always show ChoiceSet. This makes enumerated field confirmation strictly predictable.
+
+---
+
+## Phase Stability Comparison: GPT-5.4 (runs 01–20) vs GPT-5-mini Webhook/Criteria (runs 21–30)
+
+*(Populated after runs 21–30 complete)*
+
+| Phase | GPT-5.4 Fail% (01–20) | GPT-5-mini Fail% (21–30) | Delta | Notes |
+|-------|----------------------|--------------------------|-------|-------|
+| P3-SCHED | 10% | — | — | |
+| P3-WURL | 5% | — | — | Webhook phases use GPT-5-mini in runs 21–30 |
+| P3-JSON | — | — | — | Webhook phases use GPT-5-mini in runs 21–30 |
+| P3-TABLE | — | — | — | |
+| P3-COUNT | — | — | — | |
+| P5-STATE | 35% | — | — | Criteria phases use GPT-5-mini in runs 21–30 |
+| P5-NORM | 35% | — | — | |
+| P5-CR3 | 55% | — | — | Criteria phases use GPT-5-mini in runs 21–30 |
+| P8-ACT | 5% | — | — | |
