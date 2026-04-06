@@ -11,6 +11,7 @@
 | R1a | 01–20 | GPT-5.4 Mini (all phases) | 30 runs planned, each with a distinct complex scenario |
 | R1b | 21–30 | GPT-5-mini for Webhook/criteria phases, GPT-5.4 for others | Mixed-model comparison |
 | R2 | 01–10 | GPT-5.4 Mini (all phases) | Post-fix (prompt dedup rule added) |
+| R2b | 01–10 | GPT-5-mini for delivery method + delivery account/criteria; GPT-5.4 for others | Combined: R2 instruction fixes + R1b model improvement |
 
 ---
 
@@ -107,6 +108,16 @@
 | 08 | R2 | Y | Y | Y | Y | N/A | N/A | N/A | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | Y | Y | Y | Y | 18/20 (90%) | FTP clean through P4; FTP creds prompt doubled (RA-G); FIX 14 PASS; P5 cards all shown (Excl/Order/States); states+criteria gate merged in one message (RA-NEW-6); field suggestions shown ✓; SelfCreditRating enum dropdown ✓ (UID 343593); "Add another criterion" → create_delivery_account failed prematurely; 2nd criterion LoanAmount showed wrong enum values (SelfCreditRating leak); Additional Criteria: None (RA-U); TX/FL/CA normalized ✓; ACTIVE ✓ |
 | 09 | R2 | Y | Y | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | 14/14 (100%) PASS | Portal + skip criteria; cleanest run in R2; no regression, no hallucination; states prompt doubled (RA-G cosmetic) but functional; NY/OH normalized ✓; Skip criteria → None ✓; ACTIVE ✓ |
 | 10 | R2 | Y | Y | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | 14/14 (100%) PASS | Email + no criteria; clean run; criteria gate skipped (correct for scenario — no user-facing skip needed); states GA/WA not doubled ✓; no prompt doubling anywhere; ACTIVE ✓ |
+| 01 | R2b | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | 23/23 (100%) PASS | First 100% with criteria in stabilized; gpt-5-mini on P3/P5; 9/9 imperfect JSON mapping ✓; all 3 criteria persisted (LoanAmount>=100000, SelfCreditRating=EXCELLENT UID 343593, AnnualIncome>50000); states CA/TX/FL normalized ✓; criteria loop worked (3 iterations + Done); P5-STATE doubled (cosmetic); FIX 14 PASS; ACTIVE ✓ |
+| 02 | R2b | | | | | | | | | | | | | | | | | | | | | | | | | |
+| 03 | R2b | | | | | | | | | | | | | | | | | | | | | | | | | |
+| 04 | R2b | | | | | | | | | | | | | | | | | | | | | | | | | |
+| 05 | R2b | | | | | | | | | | | | | | | | | | | | | | | | | |
+| 06 | R2b | | | | | | | | | | | | | | | | | | | | | | | | | |
+| 07 | R2b | | | | | | | | | | | | | | | | | | | | | | | | | |
+| 08 | R2b | | | | | | | | | | | | | | | | | | | | | | | | | |
+| 09 | R2b | | | | | | | | | | | | | | | | | | | | | | | | | |
+| 10 | R2b | | | | | | | | | | | | | | | | | | | | | | | | | |
 
 † P1-PROMPT = cosmetic checkpoint. Failures are prompt text doubling only (intro text appears twice) — no functional impact, user can still proceed normally. F* = cosmetic failure, not counted in the percentage calculation.
 

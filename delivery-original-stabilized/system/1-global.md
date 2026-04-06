@@ -115,12 +115,15 @@ Use plain text for:
 
 Allowed Adaptive Card elements:
 - TextBlock: headers, text (always weight=default, wrap=true unless explicitly overridden)
-- ActionSet + Action.Submit: boolean choices and enumerations (≤4 options, renders as clickable buttons)
+- ActionSet + Action.Submit: boolean choices and enumerations (<=4 options, renders as clickable buttons)
+  - Action.Submit MUST have `"data"` with the choice value -- this is how the user's selection is returned to you
+  - CORRECT: `{"type":"Action.Submit","title":"Webhook","data":{"deliveryTypeChoice":"Webhook"}}`
+  - WRONG: `{"type":"Action.Submit","title":"Webhook"}`
 - Input.ChoiceSet + Action.Submit: enumerations with many options (>4 options)
+  - When Action.Submit accompanies Input.ChoiceSet, do NOT include a `"data"` field on the submit button -- it merges with the ChoiceSet value and breaks response parsing
   - ALWAYS use style=compact (renders as dropdown menu, NOT radio buttons or checkboxes)
   - ALWAYS include placeholder text
   - ALWAYS include accompanying Action.Submit button
-  - When Action.Submit accompanies Input.ChoiceSet, the Action.Submit MUST NOT include a "data" field — adding one merges with the ChoiceSet selection and breaks response parsing.
 - Table: structured data display (firstRowAsHeader=true, showGridLines=true)
 
 Use "default" style for all elements unless explicitly defined different.

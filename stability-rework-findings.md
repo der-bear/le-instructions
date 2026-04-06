@@ -7,6 +7,7 @@
 **Rounds:**
 - **R1:** Runs 01–12 (plus 13–30), gpt-5.4-mini all phases (runs 01–20); GPT-5-mini for Webhook/criteria phases, GPT-5.4 for others (runs 21–30)
 - **R2:** Runs 01–10, gpt-5.4-mini all phases (post-fix, commit 5200cc3)
+- **R2b:** Runs 01–10, GPT-5-mini for delivery method + delivery account/criteria; GPT-5.4 for others (R2 fixes + R1b model)
 
 ---
 
@@ -98,6 +99,16 @@
 | 08 | R2 | F* | Y | F | Y | N/A | N/A | N/A | Y | Y | Y | Y | Y | F | Y | F | F | F | F | F | Y | Y | Y | Y | 13/20 (65%) | RB-G: P1+P3-SCHED+P5-PRICE all doubled; FTP creds not doubled ✓; FIX 14 PASS; P4-SUMM ✓; RB-N: states skipped (Order→criteria gate directly); states "TX,FL,CA" sent as text → agent treated as criteria gate response, created account immediately; criteria gate+builder completely bypassed; Target States TX/FL/CA recovered ✓; Additional Criteria: None; ACTIVE ✓ |
 | 09 | R2 | F* | Y | F | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | F | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | 12/14 (86%) | RB-G: P1+P3-SCHED+P5-PRICE all doubled; Portal skip criteria; states merged with criteria gate (RB-NEW-R2-4); states loop ×4 — agent kept re-asking despite valid "NY, OH" input; recovered after DEBUG; schedule card buttons not rendered (text fallback); NY/OH normalized ✓; Skip ✓; ACTIVE ✓ |
 | 10 | R2 | F* | Y | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | F | F | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | 12/14 (86%) | RB-G: P1 doubled; Email + no criteria; RB-N: states skipped (Order→criteria builder error directly); criteria builder load failed → Skip accepted → Additional Criteria: None (correct for scenario); Target States blank (no states collected); no criteria gate shown; ACTIVE ✓ |
+| 01 | R2b | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | Y | Y | Y | Y | Y | Y | Y | Y | 22/23 (96%) | gpt-5-mini on P3/P5; P1 NOT doubled (first rework run without RB-G at P1); RA-A: LT card not processed → text fallback → UID asked; 9/9 imperfect JSON ✓; P5-FIELD: jumped to Additional Fields (contact fields shown) instead of recommended; LoanAmount typed criterion silently ignored (re-shown Additional Fields); SelfCreditRating enum dropdown ✓; AnnualIncome accepted; **all 3 criteria persisted** (Loan+Credit+Income); states CA/TX/FL ✓; ACTIVE ✓ |
+| 02 | R2b | | | | | | | | | | | | | | | | | | | | | | | | | |
+| 03 | R2b | | | | | | | | | | | | | | | | | | | | | | | | | |
+| 04 | R2b | | | | | | | | | | | | | | | | | | | | | | | | | |
+| 05 | R2b | | | | | | | | | | | | | | | | | | | | | | | | | |
+| 06 | R2b | | | | | | | | | | | | | | | | | | | | | | | | | |
+| 07 | R2b | | | | | | | | | | | | | | | | | | | | | | | | | |
+| 08 | R2b | | | | | | | | | | | | | | | | | | | | | | | | | |
+| 09 | R2b | | | | | | | | | | | | | | | | | | | | | | | | | |
+| 10 | R2b | | | | | | | | | | | | | | | | | | | | | | | | | |
 
 † P1-PROMPT = cosmetic checkpoint. Failures are prompt text doubling only (intro text appears twice) — no functional impact, user can still proceed normally. F* = cosmetic failure, not counted in the percentage calculation.
 
