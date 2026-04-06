@@ -118,7 +118,7 @@
 
 Note: Some findings could reasonably fall into multiple categories. The 3 findings classified as HALLUCINATE that involve phantom states (RA-Q, RB-O) are closely linked to IGNORE findings (RA-P, RB-N) -- the hallucination is a downstream consequence of the ignored instruction.
 
-**Key insight:** Over two-thirds (68%) of all failures are IGNORE-type -- the instruction exists and is explicit, but the AI silently skipped it. This indicates that instruction clarity is generally adequate; the fundamental problem is LLM instruction-following reliability, especially under context pressure from summarize_history and long conversations.
+**Key insight:** Three-quarters (75%) of all failures are IGNORE-type — the instruction exists and is explicit, but the AI silently skipped it. Only 2 findings (3.5%) are true instruction gaps (AMBIGUOUS). This indicates that instruction clarity is generally adequate; the fundamental problem is LLM instruction-following reliability, especially under context pressure from summarize_history and long conversations.
 
 ---
 
