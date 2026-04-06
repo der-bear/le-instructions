@@ -14,7 +14,7 @@
 |----------|-----------|
 | **IGNORE** | The instruction IS present in the instruction pack, but the AI silently skipped or failed to follow it |
 | **HALLUCINATE** | The AI generated content/behavior not described in the instructions |
-| **AMBIGUOUS** | The instruction is unclear, contradictory, or has a gap that leads to the failure |
+| **AMBIGUOUS** | The instruction is unclear, contradictory, or has a gap that leads to the failure. Potentially fixable via instruction changes — requires analysis |
 | **PLATFORM** | Non-deterministic card rendering, tool failures, MCP issues, or platform-level bugs |
 
 ### Stabilized Variant (RA-*) Classifications
@@ -344,6 +344,90 @@ All top 5 IGNORE-classified findings were verified against the actual instructio
 - The AI silently violated the instruction
 
 This confirms that the dominant failure mode (68% of findings) is not instruction ambiguity but LLM instruction-following reliability, particularly under context pressure from long conversations and summarize_history operations.
+
+---
+
+## Cross-Variant, Cross-Round Phase Pass Rates
+
+All checkpoints, all rounds, both variants. Denominator excludes N/A runs. Fail% = fail/applicable.
+
+### Stabilized Variant
+
+| Checkpoint | R1a 01-20 (5.4-mini) Pass | R1a Fail% | R1b 21-30 (5-mini mix) Pass | R1b Fail% | R2 01-10 (5.4-mini) Pass | R2 Fail% |
+|------------|---------------------------|-----------|-------------------------------|-----------|---------------------------|----------|
+| P1-PROMPT | 20/20 | 0% | 10/10 | 0% | 8/10 | 20% |
+| P2-DROP | 20/20 | 0% | 10/10 | 0% | 10/10 | 0% |
+| P3-SCHED | 18/20 | 10% | 8/9 | 11% | 7/8 | 13% |
+| P3-WURL | 19/20 | 5% | 9/9 | 0% | 5/6 | 17% |
+| P3-JSON | 8/10 | 20% | 6/6 | 0% | 4/6 | 33% |
+| P3-TABLE | 9/10 | 10% | 6/6 | 0% | 6/6 | 0% |
+| P3-COUNT | 8/10 | 20% | 6/6 | 0% | 6/6 | 0% |
+| P3B-TEST | 20/20 | 0% | 10/10 | 0% | 6/6 | 0% |
+| P4-SUMM | 20/20 | 0% | 10/10 | 0% | 10/10 | 0% |
+| P5-PRICE | 20/20 | 0% | 10/10 | 0% | 8/10 | 20% |
+| P5-EXCL | 20/20 | 0% | 10/10 | 0% | 7/8 | 13% |
+| P5-ORDER | 20/20 | 0% | 10/10 | 0% | 7/8 | 13% |
+| P5-STATE | 10/20 | 50% | 7/9 | 22% | 6/8 | 25% |
+| P5-NORM | 10/20 | 50% | 8/9 | 11% | 5/7 | 29% |
+| P5-FIELD | 16/20 | 20% | 9/9 | 0% | 1/5 | 80% |
+| P5-CR1 | 14/20 | 30% | 8/9 | 11% | 1/5 | 80% |
+| P5-ENUM | 5/8 | 38% | 7/8 | 13% | 1/3 | 67% |
+| P5-CR3 | 4/20 | 80% | 8/9 | 11% | 0/5 | 100% |
+| P5-DONE | 0/20 | 100% | 8/9 | 11% | 4/10 | 60% |
+| P6-BOOL | 20/20 | 0% | 10/10 | 0% | 10/10 | 0% |
+| P6-SUMM | 19/20 | 5% | 10/10 | 0% | 7/8 | 13% |
+| P7-SUMM | 20/20 | 0% | 10/10 | 0% | 8/8 | 0% |
+| P8-ACT | 19/20 | 5% | 10/10 | 0% | 8/8 | 0% |
+
+### Rework Variant
+
+| Checkpoint | R1 01-12 (5.4-mini) Pass | R1 Fail% | R2 01-10 (5.4-mini) Pass | R2 Fail% |
+|------------|--------------------------|----------|---------------------------|----------|
+| P1-PROMPT | 4/12 | 67% | 1/10 | 90% |
+| P2-DROP | 12/12 | 0% | 10/10 | 0% |
+| P3-SCHED | 9/12 | 25% | 5/10 | 50% |
+| P3-WURL | 8/9 | 11% | 8/8 | 0% |
+| P3-JSON | 7/7 | 0% | 7/8 | 13% |
+| P3-TABLE | 5/7 | 29% | 8/8 | 0% |
+| P3-COUNT | 5/6 | 17% | 8/8 | 0% |
+| P3B-TEST | 12/12 | 0% | 8/8 | 0% |
+| P4-SUMM | 11/12 | 8% | 10/10 | 0% |
+| P5-PRICE | 12/12 | 0% | 9/10 | 10% |
+| P5-EXCL | 9/12 | 25% | 9/10 | 10% |
+| P5-ORDER | 12/12 | 0% | 9/10 | 10% |
+| P5-STATE | 7/9 | 22% | 4/10 | 60% |
+| P5-NORM | 5/8 | 38% | 7/8 | 13% |
+| P5-FIELD | 5/12 | 58% | 1/5 | 80% |
+| P5-CR1 | 7/11 | 36% | 2/5 | 60% |
+| P5-ENUM | 1/2 | 50% | 1/3 | 67% |
+| P5-CR3 | 1/12 | 92% | 1/5 | 80% |
+| P5-DONE | 1/12 | 92% | 4/10 | 60% |
+| P6-BOOL | 12/12 | 0% | 10/10 | 0% |
+| P6-SUMM | 9/12 | 25% | 9/10 | 10% |
+| P7-SUMM | 9/9 | 0% | 9/10 | 10% |
+| P8-ACT | 12/12 | 0% | 9/10 | 10% |
+
+### Overall Run Results
+
+| Variant | Round | Runs | Pass | Fail | Avg Score | Best | Worst |
+|---------|-------|------|------|------|-----------|------|-------|
+| Stabilized | R1a (01-20) | 20 | 1 | 19 | ~67% | 24 (100%) | multiple |
+| Stabilized | R1b (21-30) | 10 | 1 | 9 | ~72% | 24 (100%) | 22 |
+| Stabilized | R2 (01-10) | 10 | 2 | 8 | 75% | 09,10 (100%) | 06,07 (57%) |
+| Rework | R1 (01-12) | 12 | 1 | 11 | ~58% | 03 (100%) | 12 (abandoned) |
+| Rework | R2 (01-10) | 10 | 0 | 10 | 75% | 03,04 (86-87%) | 01 (57%) |
+
+### Phase Group Summary (averaged across all rounds)
+
+| Phase Group | Stabilized Avg Pass% | Rework Avg Pass% | Notes |
+|-------------|---------------------|-------------------|-------|
+| P1-P2 (Client+LT) | 97% | 66% | Rework hurt by P1 doubling |
+| P3 (Delivery Method) | 89% | 88% | Both strong; mapping pipeline reliable |
+| P4 (Summary) | 100% | 97% | Near-perfect |
+| P5 early (Price/Excl/Order) | 96% | 90% | Both strong |
+| P5 states (STATE+NORM) | 55% | 47% | Core weakness both variants |
+| P5 criteria (FIELD→DONE) | 39% | 34% | Critical failure zone |
+| P6-P8 (Summary→Activation) | 98% | 93% | Both strong |
 
 ---
 

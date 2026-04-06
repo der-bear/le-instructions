@@ -1,15 +1,18 @@
 # Stability Test Findings — Version B: Rework
 
 **Action:** Create Single Client (Reworked)  
-**Model:** OpenAI GPT-5.4 Mini (runs 01–20); GPT-5-mini for Webhook/criteria phases, GPT-5.4 for others (runs 21–30)  
 **Protocol:** stability-test-protocol.md  
-**Target:** 30 runs, each with a distinct complex scenario. See Run Scenarios section.  
-**Base test data:** StabilityTest-{RR}r, stability{RR}r-{TS}@test.com  
-**Runs 01–03:** Basic scenario — Webhook/JSON/3 criteria (completed)
+**Base test data:** StabilityTest-{RR}r, stability{RR}r-{TS}@test.com (R1); StabilityTest-{RR}r2, stability{RR}r2@test.com (R2)
+
+**Rounds:**
+- **R1:** Runs 01–12 (plus 13–30), gpt-5.4-mini all phases (runs 01–20); GPT-5-mini for Webhook/criteria phases, GPT-5.4 for others (runs 21–30)
+- **R2:** Runs 01–10, gpt-5.4-mini all phases (post-fix, commit 5200cc3)
 
 ---
 
 ## Run Scenarios
+
+### R1 Run Scenarios
 
 | Run | Scenario Focus | Delivery | Content Type | Schedule | Criteria | Special |
 |-----|---------------|----------|--------------|----------|----------|---------|
@@ -34,52 +37,152 @@
 | 29 | Email + 2 numeric | Email | N/A | Mon-Fri 8am-5pm CST | 2 numeric | Exclusive, Order OFF |
 | 30 | FTP + 1 enum | FTP | N/A | 24/7 | 1 enum | Shared, Order ON |
 
----
+### R2 Run Scenarios
 
-## Scoring Matrix
-
-| Run | P1-PROMPT | P2-DROP | P3-SCHED | P3-WURL | P3-JSON | P3-TABLE | P3-COUNT | P3B-TEST | P4-SUMM | P5-PRICE | P5-EXCL | P5-ORDER | P5-STATE | P5-NORM | P5-FIELD | P5-CR1 | P5-ENUM | P5-CR3 | P5-DONE | P6-BOOL | P6-SUMM | P7-SUMM | P8-ACT | RESULT | Notes |
-|-----|-----------|---------|----------|---------|---------|----------|----------|----------|---------|----------|---------|----------|----------|---------|----------|--------|---------|--------|---------|---------|---------|---------|--------|--------|-------|
-| 01 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | N/A | F | F | Y | Y | Y | Y | FAIL | States normalized ✓; RB-A: criteria loop premature exit after 1 criterion |
-| 02 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | F | N/A | F | F | Y | Y | Y | Y | FAIL | States not normalized; criteria prompt entirely skipped; acct name asked before price |
-| 03 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | N/A | Y | Y | Y | Y | Y | Y | PASS | States normalized ✓; RB-F: Phase 5c failed to load on 1st click, worked on 2nd attempt |
-| 04 | Y | Y | Y | Y | Y | F | Y | Y | Y | Y | Y | Y | Y | F | Y | Y | N/A | F | F | Y | Y | Y | Y | FAIL | RB-G: prompts duplicated (P1+P3+P5); RB-H: content type plain text (recovered post-DEBUG); RB-A: criteria loop exited after 1 criterion; RB-C: states not normalized; RB-F NOT triggered ✓ |
-| 05 | F | Y | F | Y | F | N/A | N/A | Y | F | Y | Y | Y | Y | F | Y | Y | F | F | F | Y | F | Y | Y | FAIL | RB-G: P1+P2+P3 duplicated; RB-L: content type skipped; RB-C: states not normalized; RB-K: Phase 4 summary skipped; RB-H: criteria gate no card; RB-A variant: loop control keyword as field name; RB-M: Credit >=700 stored as Equal; LoanType criterion lost |
-| 06 | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | Y | N/A | F | F | Y | Y | Y | Y | FAIL | RB-G: P1+P2 duplicated; RB-F: Phase 5c load failed (stuck 2 attempts, DEBUG required); RB-A: loop exit after 1 criterion; XML auto-detect ✓; 10/10 mappings ✓; P4-SUMM ✓; RB-K NOT triggered ✓; RB-C NOT triggered (USPS codes) ✓ |
-| 07 | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | N/A | F | Y | N/A | F | F | Y | F | Y | Y | FAIL | RB-G: P1+P2+P3+P4+P5 all duplicated; RB-N: states question skipped entirely; RB-O: phantom states CA,AZ,TX in account; RB-F: Phase 5c failed 2x, DEBUG+explicit URL required; RB-A: loop exit after 1 criterion; 16/20 fields mapped ✓; P4-SUMM card ✓; Phase 8 activation card ✓ |
-| 08 | F | Y | F | Y | N/A | N/A | N/A | Y | Y | Y | F | Y | N/A | N/A | F | Y | N/A | F | F | Y | Y | Y | Y | FAIL | RB-G systematic; FTP conn test correct ✓; P5-EXCL plain text; RB-K: acct name before price; update_delivery_account fails (RB-P new); "Show more fields" btn broken (RB-Q new) |
-| 09 | F | Y | Y | N/A | N/A | N/A | N/A | Y | Y | Y | F | Y | Y | Y | Y | Y | Y | F | F | Y | Y | N/A | Y | FAIL | RB-G systematic; P5 all plain text (RB-A); P3b correctly skipped for Portal ✓; P5c conversational: numeric criteria silently saved without UI (RB-S new); Portal deliveryType=HttpPost (RB-R, confirmed via log); P6 confused state on "continue" (RB-T new); criteria overwrites (RB-U new) |
-| 10 | F | Y | Y | Y | N/A | N/A | N/A | Y | Y | Y | Y | Y | F | Y | F | F | N/A | F | F | Y | Y | Y | Y | FAIL | RB-G: P1+P5-STATE duplicated; Email delivery ✓; P4-SUMM ✓; P5-EXCL/ORDER cards correct ✓; States CA/TX/FL/NY/NV normalized ✓; criteria gate entirely skipped (RB-D); DEBUG ignored mid-flow; activation ✓ |
-| 11 | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | N/A | F | F | N/A | F | F | F | F | Y | Y | FAIL | RB-G: P5 entry duplicated; RB-K: acct name before price; content type card ✓; 8/8 mapping ✓; conn test fail handled ✓; P4-SUMM ✓; RB-D: states/criteria gate skipped→phantom CA,AZ,TX; RB-N/RB-O; RB-T: DEBUG caused re-ask of exclusivity; conversational criteria accepted verbally but not saved (RB-V new); state NY dropped in payload (3/4 states); activation ✓ |
-| 12 | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | Y | Y | N/A | N/A | F | F | N/A | N/A | N/A | N/A | FAIL | LendingTree, Webhook, JSON, Mon-Fri 9-5 EST, Exclusive, Order ON; RB-G: P1 prompt doubled + states doubled; P3-P4 clean ✓; 10/10 mapping with disambiguation ✓; conn test fail handled ✓; P4-SUMM ✓; price first ✓ (RB-K not triggered); criteria gate fired ✓ (RB-D not triggered); RB-X NEW: P5c enters empty-response loop — agent returns empty response after 14+ min; context overflow from LendingTree 100+ fields + P5c instructions; unrecoverable; session 69d18c262697c9202c0bc293 |
-| 13 | F | Y | Y | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | ABORT | LendingTree, Webhook, 24/7; RB-G: P1 prompt doubled; RB-Y NEW: Phase 3 asked name+type via plain text (duplicated) BEFORE showing schedule/type cards — unusual ordering; test aborted at P3 (protocol error: webhook URL sent prematurely before agent asked → state rollback to schedule question) |
-| 14 | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | N/A | F | N/A | N/A | N/A | N/A | Y | Y | Y | Y | FAIL | LendingTree, Webhook, Mon-Fri 9-5 PST, JSON, Shared, No order; RB-G: P1 doubled; RB-K: acct name before price; RB-N: states silently skipped (3rd: B07,B11,B14); RB-O: phantom CA,AZ,TX 3rd occurrence; RB-D: criteria gate auto-skipped without asking user; criteria protocol=skip (RB-X avoidance); 8/8 mapped, SelfCreditRating for credit_score |
-| 15 | F | Y | F | Y | N/A | Y | Y | Y | Y | Y | F | F | F | N/A | F | N/A | N/A | N/A | N/A | Y | Y | Y | Y | FAIL | LendingTree, Webhook, 24/7, URL-Encoded, Exclusive, Order ON; RB-G: P1 doubled; RB-Y (2nd): delivery type asked plain-text BEFORE schedule card—then delivery type card shown again (double-ask, inverted order); RB-H: P5-EXCL+P5-ORDER both plain text; RB-N: states silently skipped (4th: B07,B11,B14,B15); RB-O: phantom CA,AZ,TX (4th); RB-D: criteria gate also skipped; acct name auto-generated (not asked, unlike RB-K); 8/8 URL-Encoded mapping+disambiguation ✓ |
-| 17 | F | Y | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | Y | N/A | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | FAIL | LendingTree, Portal, 24/7, Exclusive, Order ON, skip criteria; RB-G: P1 doubled + states question doubled; RB-K NOT triggered (price first ✓); RB-N NOT triggered (states asked — 1st time with Order=ON ✓); RB-O NOT triggered ✓; RB-D NOT triggered (criteria gate shown — 1st time ✓); P3b correctly skipped for Portal ✓; P4/P6/P7 summary cards all correct ✓; Activation confirmed ACTIVE ✓ |
-| 16 | F | Y | Y | Y | Y | Y | Y | Y | Y | F | F | F | F | N/A | F | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | ABORT | LendingTree, Webhook, Mon-Fri 8am-6pm CST, JSON, Shared, Order OFF; RB-G: P5 doubled; RB-Z NEW: Phase 8 credentials (acct name/username/password/criteria) asked immediately after P4 Continue BEFORE Phase 5 price/excl/order/states — Phase 5 only loaded after credentials provided; RB-N: states never asked (5th: B07,B11,B14,B15,B16); RB-D: criteria gate absent — criteria builder auto-entered with "Please select a Lead Type" prompt; Phase 5 restart loop on "skip" — unrecoverable; ABORT; 12/12 JSON mapping ✓ |
-| 18 | F | Y | F | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | Y | N/A | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | FAIL | LendingTree, Email, Mon-Fri 9am-5pm EST, Shared, Order OFF, skip criteria; RB-G: P1+P3-SCHED+P3-DTYPE+P4-Continue all doubled (systematic); RB-K(mild): acct name asked between P4-Continue and Phase 5 load (before price/excl/order); RB-N NOT triggered (states asked CA,TX,FL ✓); RB-D NOT triggered (criteria gate shown ✓); RB-O: stateUIDs need session log verification; Email conn test correctly skipped ✓; P4/P6/P7 correct; Activation ACTIVE ✓ |
-| 19 | Y | Y | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | F | N/A | N/A | N/A | N/A | N/A | N/A | Y | F | Y | Y | FAIL | LendingTree, FTP, Mon-Fri 8am-6pm CST, Exclusive, Order OFF, skip criteria; RB-G(partial): P4-Continue doubled only — P1/P3-SCHED/P3-DTYPE all clean (mildest RB-G yet); RB-Z(2nd: B16,B19): full credentials (acct name+user+pass+criteria) collected before Phase 5; skip→Phase 5 loaded correctly (no loop unlike B16) ✓; RB-N: states silently skipped (6th: B07,B11,B14,B15,B16,B19); RB-O: phantom CA,AZ,TX (6th); RB-D: criteria gate bypassed (pre-Phase-5 skip used); FTP conn test fail handled ✓; P4/P7 correct; Activation ACTIVE ✓ |
-| 20 | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | FAIL | LendingTree, Webhook, 24/7, URL-Encoded, Shared, Order OFF, skip criteria; RB-G: P1+states prompt+field-mapping-Continue+P4-Continue all doubled (systematic); RB-K NOT triggered (price first ✓); RB-Z NOT triggered ✓; RB-N NOT triggered (states asked FL,OH,GA ✓); RB-O NOT triggered (correct states in P6 ✓); RB-D NOT triggered (criteria gate w/Add/Skip buttons ✓); account name auto-generated; 6/7 URL-encoded mapping ✓; P4/P6/P7 correct; Activation ACTIVE ✓ |
-| 21 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | Y | Y | Y | Y | Y | FAIL | LendingTree, Webhook/JSON, 24/7, Exclusive, Order ON, 2 enum; enum bypass on BOTH (SelfCreditRating+LoanRequestPurpose, no ChoiceSet); **Finding U**: both enum criteria dropped from payload (only state criterion present: CA(5)+TX(44)+FL(10)); States correct position ✓; 8/8 mapping ✓; RB-G NOT triggered ✓; Session:69d2778a2697c9202c0bcf1c; Method:46937, Acct:45940; ACTIVE ✓ |
-| 22 | Y | Y | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | F | F | F | F | N/A | F | F | Y | Y | Y | Y | FAIL | LendingTree, Portal/Mon-Fri 9-5 EST, Shared, Order OFF; RB-N: states prompt skipped; RB-O: phantom CA(5)+AZ(3)+TX(44); RB-D: criteria gate skipped; account created immediately after Order=No; RB-G NOT triggered ✓; P3b correctly skipped for Portal ✓; P4-SUMM ✓; Session:69d27b252697c9202c0bcf7f; Method:46938, Acct:45941; ACTIVE ✓ |
-| 23 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | Y | Y | F | Y | Y | F | Y | Y | Y | FAIL | LendingTree, Webhook/XML, Weekdays 8-6 CST, Exclusive, Order ON, 2 enum+1 numeric; RB-N: states prompt skipped; RB-O: phantom CA(5)+AZ(3)+TX(44) in initial create; NEW: criteria added via SEPARATE update_delivery_account after create (not in initial payload); enum bypass: SelfCreditRating→correct enum UID(343593) via update; LoanRequestPurpose→"Contains"+"purchase" (wrong operator+value, should be "In"+enumUID); LoanAmount→GreaterOrEqual 100000 ✓; 8/8 mapping ✓; RB-G NOT triggered ✓; Session:69d27c502697c9202c0bcfb5; Method:46939, Acct:45942; ACTIVE ✓ |
-| 24 | Y | F | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | Y | F | N/A | N/A | N/A | Y | Y | Y | Y | Y | FAIL | LendingTree, Email/24/7, Shared, Order OFF, no criteria; RB-AA NEW: P2 timezone/status skipped after duplicate-email retry — defaulted PST/-8; P5-FIELD: field suggestions step skipped (bare gate only); FL(10)+GA(11) in payload ✓; no phantom states ✓; RB-G NOT triggered ✓; RB-N NOT triggered ✓; Session:69d2869f2697c9202c0bd088; Method:46940, Acct:45943; ACTIVE ✓ |
-| 25 | Y | F | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | F | F | F | F | F | F | F | Y | F | Y | Y | FAIL | LendingTree, FTP/Mon-Fri 9-5 MST, Exclusive, Order ON, 1 enum+1 numeric; RB-AA(2nd): P2 skipped; RB-N: states skipped; RB-O: phantom CA(5)+AZ(3)+TX(44); RB-D: criteria gate skipped entirely (states+criteria both missed after Order=Yes); P6-SUMM skipped (went P5→P7); 0/0 FTP field mappings ✓; P3B conn test card shown ✓; RB-G NOT triggered ✓; Session:69d288ef2697c9202c0bd0c5; Method:46941, Acct:45944; ACTIVE ✓ |
-| 26 | Y | F | Y | Y | Y | Y | Y | Y | Y | Y | F | F | F | N/A | F | F | N/A | F | F | F | Y | Y | Y | FAIL | LendingTree, Webhook/URL-Encoded Mon-Wed-Fri 8-8 PST, Shared, Order OFF, 1 numeric; RB-AA(3rd): P2 skipped; RB-BB NEW: P5 off-script pre-price prompt (account name+criteria asked, self-corrected); P5 collapsed: only price collected then immediate acct creation — Exclusive(wrong), Order=Yes(wrong), CA only(wrong), no criteria; P6-BOOL F (wrong bool values); P6-SUMM shown (wrong values); 8/8 URL-Encoded+disambiguation ✓; Session:69d28a4d2697c9202c0bd101; Method:46942, Acct:45945; ACTIVE ✓ |
-| 27 | F | F | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | F | N/A | F | F | F | F | F | Y | Y | Y | Y | FAIL | LendingTree, Portal/24/7, Exclusive, Order ON, 2 enum; RB-G returned (P1 doubled); RB-AA(4th): P2 skipped; RB-N: states skipped; RB-O: phantom CA(5)+AZ(3)+TX(44); RB-X: empty response after Add criteria (recovered via typed input); SelfCreditRating ChoiceSet shown (string values not UIDs); criterion not saved (RB-V); LoanRequestPurpose stuck in exact-value loop, skipped; P3B correctly skipped for Portal ✓; P5-EXCL/ORDER correct cards ✓; Session:69d28e392697c9202c0bd157; Method:46943, Acct:45946; ACTIVE ✓ |
-| 28 | F | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | N/A | F | Y | Y | Y | Y | FAIL | LendingTree, Webhook/JSON-nested Tue-Thu 9-6 EST, Shared, Order ON, 1 enum; RB-G: P1 doubled (6th); RB-AA(5th): P2 skipped; RB-N NOT triggered (states asked FL/NY/WA ✓); account created BEFORE criteria gate (Steps 11→7-9 inverted, new sub-pattern); RB-V: SelfCreditRating not saved (no ChoiceSet, no update); "continue" re-triggered Step 7 field list; 8/8 JSON-nested mapping ✓; invisible textarea bug delayed P5 input; Session:69d2907a2697c9202c0bd1a0; Method:46944, Acct:45947; ACTIVE ✓ |
-| 29 | F | F | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | F | N/A | F | F | N/A | F | F | Y | Y | Y | Y | FAIL | LendingTree, Email/Mon-Fri 8-5 CST, Exclusive, Order OFF, 2 numeric; RB-G(7th): P1 doubled; RB-AA(6th): P2 skipped→PST/-8 (inline DEBUG ✓); RB-K: acct name before Phase 5 doubled (inline DEBUG ✓); RB-N(11th): states skipped→account created before states; TX/GA/OH provided post-creation; criteria rejected post-creation; P6: Price=32, Exclusive, Criteria=None; Session:TBD; clientUID:29360; ACTIVE ✓ |
-| 30 | F | F | Y | N/A | N/A | N/A | N/A | F | Y | F | Y | Y | F | Y | Y | F | F | F | F | Y | Y | Y | Y | FAIL | LendingTree, FTP/24/7, Shared, Order ON, 1 enum; RB-G(8th): P1 doubled; RB-AA(7th): P2 skipped (inline DEBUG ✓); RB-K: schedule re-prompt (inline DEBUG ✓) + price doubled post-DEBUG (inline DEBUG ✓); P3B: FTP test ran but no Retry/Skip card (RB-DD new, inline DEBUG ✓); RB-N(12th): states skipped→provided post-jump (inline DEBUG ✓); RB-V: SelfCreditRating in P6 not in API payload; 5 inline DEBUGs captured; Session:69d298452697c9202c0bd257; clientUID:29361, Method:46946, Acct:45950; ACTIVE ✓ |
+| Run | Scenario | Delivery | Content Type | Schedule | Criteria | Special |
+|-----|----------|----------|-------------|----------|----------|---------|
+| 01 | JSON imperfect baseline | Webhook | JSON (missing braces, trailing comma, single quotes) | Mon-Fri 9-5 PST | 3: numeric >=, enum, numeric > | LendingTree |
+| 02 | JSON nested complex | Webhook | JSON (deep nesting, 15+ fields) | Tue-Thu 9-6 EST | 5: 2 enum + 2 numeric + 1 between | Exclusive, Order ON |
+| 03 | Content mismatch XML→JSON | Webhook | XML → switch → JSON | 24/7 | 2 enum + 1 numeric | Recovery flow |
+| 04 | Content mismatch JSON→XML | Webhook | JSON → switch → XML | Mon-Fri 8-6 CST | 3: enum + numeric + between | Reverse mismatch |
+| 05 | URL Encoded + enum-heavy | Webhook | URL Encoded | 24/7 | 4: 3 enum + 1 numeric | Shared |
+| 06 | Auto-detect (XML body) | Webhook | "I'm not sure" | Mon-Wed-Fri 8-8 PST | 2 enum | Exclusive |
+| 07 | Auto-detect (JSON body) | Webhook | "I'm not sure" | 24/7 | 3: numeric >= + enum + numeric > | Shared, Order ON |
+| 08 | FTP + mixed criteria | FTP | N/A | Mon-Fri 9-5 PST | 2: 1 enum + 1 numeric | Connection test |
+| 09 | Portal + skip criteria | Portal | N/A | Specific hours | Skip | No conn test |
+| 10 | Email + no criteria | Email | N/A | 24/7 | Skip | Shared |
 
 ---
 
-## Run Findings
+## Combined Scoring Matrix
 
-> **Frequency column**: tracks how many runs (out of 3) the behavior was observed. Format: `N/3`. Updated as runs complete.
+| Run | Round | P1-PROMPT | P2-DROP | P3-SCHED | P3-WURL | P3-JSON | P3-TABLE | P3-COUNT | P3B-TEST | P4-SUMM | P5-PRICE | P5-EXCL | P5-ORDER | P5-STATE | P5-NORM | P5-FIELD | P5-CR1 | P5-ENUM | P5-CR3 | P5-DONE | P6-BOOL | P6-SUMM | P7-SUMM | P8-ACT | RESULT | Notes |
+|-----|-------|-----------|---------|----------|---------|---------|----------|----------|----------|---------|----------|---------|----------|----------|---------|----------|--------|---------|--------|---------|---------|---------|---------|--------|--------|-------|
+| 01 | R1 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | N/A | F | F | Y | Y | Y | Y | FAIL | States normalized ✓; RB-A: criteria loop premature exit after 1 criterion |
+| 02 | R1 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | F | N/A | F | F | Y | Y | Y | Y | FAIL | States not normalized; criteria prompt entirely skipped; acct name asked before price |
+| 03 | R1 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | N/A | Y | Y | Y | Y | Y | Y | PASS | States normalized ✓; RB-F: Phase 5c failed to load on 1st click, worked on 2nd attempt |
+| 04 | R1 | Y | Y | Y | Y | Y | F | Y | Y | Y | Y | Y | Y | Y | F | Y | Y | N/A | F | F | Y | Y | Y | Y | FAIL | RB-G: prompts duplicated (P1+P3+P5); RB-H: content type plain text (recovered post-DEBUG); RB-A: criteria loop exited after 1 criterion; RB-C: states not normalized; RB-F NOT triggered ✓ |
+| 05 | R1 | F | Y | F | Y | F | N/A | N/A | Y | F | Y | Y | Y | Y | F | Y | Y | F | F | F | Y | F | Y | Y | FAIL | RB-G: P1+P2+P3 duplicated; RB-L: content type skipped; RB-C: states not normalized; RB-K: Phase 4 summary skipped; RB-H: criteria gate no card; RB-A variant: loop control keyword as field name; RB-M: Credit >=700 stored as Equal; LoanType criterion lost |
+| 06 | R1 | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | Y | N/A | F | F | Y | Y | Y | Y | FAIL | RB-G: P1+P2 duplicated; RB-F: Phase 5c load failed (stuck 2 attempts, DEBUG required); RB-A: loop exit after 1 criterion; XML auto-detect ✓; 10/10 mappings ✓; P4-SUMM ✓; RB-K NOT triggered ✓; RB-C NOT triggered (USPS codes) ✓ |
+| 07 | R1 | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | N/A | F | Y | N/A | F | F | Y | F | Y | Y | FAIL | RB-G: P1+P2+P3+P4+P5 all duplicated; RB-N: states question skipped entirely; RB-O: phantom states CA,AZ,TX in account; RB-F: Phase 5c failed 2x, DEBUG+explicit URL required; RB-A: loop exit after 1 criterion; 16/20 fields mapped ✓; P4-SUMM card ✓; Phase 8 activation card ✓ |
+| 08 | R1 | F | Y | F | Y | N/A | N/A | N/A | Y | Y | Y | F | Y | N/A | N/A | F | Y | N/A | F | F | Y | Y | Y | Y | FAIL | RB-G systematic; FTP conn test correct ✓; P5-EXCL plain text; RB-K: acct name before price; update_delivery_account fails (RB-P new); "Show more fields" btn broken (RB-Q new) |
+| 09 | R1 | F | Y | Y | N/A | N/A | N/A | N/A | Y | Y | Y | F | Y | Y | Y | Y | Y | Y | F | F | Y | Y | N/A | Y | FAIL | RB-G systematic; P5 all plain text (RB-A); P3b correctly skipped for Portal ✓; P5c conversational: numeric criteria silently saved without UI (RB-S new); Portal deliveryType=HttpPost (RB-R, confirmed via log); P6 confused state on "continue" (RB-T new); criteria overwrites (RB-U new) |
+| 10 | R1 | F | Y | Y | Y | N/A | N/A | N/A | Y | Y | Y | Y | Y | F | Y | F | F | N/A | F | F | Y | Y | Y | Y | FAIL | RB-G: P1+P5-STATE duplicated; Email delivery ✓; P4-SUMM ✓; P5-EXCL/ORDER cards correct ✓; States CA/TX/FL/NY/NV normalized ✓; criteria gate entirely skipped (RB-D); DEBUG ignored mid-flow; activation ✓ |
+| 11 | R1 | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | N/A | F | F | N/A | F | F | F | F | Y | Y | FAIL | RB-G: P5 entry duplicated; RB-K: acct name before price; content type card ✓; 8/8 mapping ✓; conn test fail handled ✓; P4-SUMM ✓; RB-D: states/criteria gate skipped→phantom CA,AZ,TX; RB-N/RB-O; RB-T: DEBUG caused re-ask of exclusivity; conversational criteria accepted verbally but not saved (RB-V new); state NY dropped in payload (3/4 states); activation ✓ |
+| 12 | R1 | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | Y | Y | N/A | N/A | F | F | N/A | N/A | N/A | N/A | FAIL | LendingTree, Webhook, JSON, Mon-Fri 9-5 EST, Exclusive, Order ON; RB-G: P1 prompt doubled + states doubled; P3-P4 clean ✓; 10/10 mapping with disambiguation ✓; conn test fail handled ✓; P4-SUMM ✓; price first ✓ (RB-K not triggered); criteria gate fired ✓ (RB-D not triggered); RB-X NEW: P5c enters empty-response loop — agent returns empty response after 14+ min; context overflow from LendingTree 100+ fields + P5c instructions; unrecoverable; session 69d18c262697c9202c0bc293 |
+| 13 | R1 | F | Y | Y | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | ABORT | LendingTree, Webhook, 24/7; RB-G: P1 prompt doubled; RB-Y NEW: Phase 3 asked name+type via plain text (duplicated) BEFORE showing schedule/type cards — unusual ordering; test aborted at P3 (protocol error: webhook URL sent prematurely before agent asked → state rollback to schedule question) |
+| 14 | R1 | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | N/A | F | N/A | N/A | N/A | N/A | Y | Y | Y | Y | FAIL | LendingTree, Webhook, Mon-Fri 9-5 PST, JSON, Shared, No order; RB-G: P1 doubled; RB-K: acct name before price; RB-N: states silently skipped (3rd: B07,B11,B14); RB-O: phantom CA,AZ,TX 3rd occurrence; RB-D: criteria gate auto-skipped without asking user; criteria protocol=skip (RB-X avoidance); 8/8 mapped, SelfCreditRating for credit_score |
+| 15 | R1 | F | Y | F | Y | N/A | Y | Y | Y | Y | Y | F | F | F | N/A | F | N/A | N/A | N/A | N/A | Y | Y | Y | Y | FAIL | LendingTree, Webhook, 24/7, URL-Encoded, Exclusive, Order ON; RB-G: P1 doubled; RB-Y (2nd): delivery type asked plain-text BEFORE schedule card—then delivery type card shown again (double-ask, inverted order); RB-H: P5-EXCL+P5-ORDER both plain text; RB-N: states silently skipped (4th: B07,B11,B14,B15); RB-O: phantom CA,AZ,TX (4th); RB-D: criteria gate also skipped; acct name auto-generated (not asked, unlike RB-K); 8/8 URL-Encoded mapping+disambiguation ✓ |
+| 17 | R1 | F | Y | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | Y | N/A | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | FAIL | LendingTree, Portal, 24/7, Exclusive, Order ON, skip criteria; RB-G: P1 doubled + states question doubled; RB-K NOT triggered (price first ✓); RB-N NOT triggered (states asked — 1st time with Order=ON ✓); RB-O NOT triggered ✓; RB-D NOT triggered (criteria gate shown — 1st time ✓); P3b correctly skipped for Portal ✓; P4/P6/P7 summary cards all correct ✓; Activation confirmed ACTIVE ✓ |
+| 16 | R1 | F | Y | Y | Y | Y | Y | Y | Y | Y | F | F | F | F | N/A | F | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | ABORT | LendingTree, Webhook, Mon-Fri 8am-6pm CST, JSON, Shared, Order OFF; RB-G: P5 doubled; RB-Z NEW: Phase 8 credentials (acct name/username/password/criteria) asked immediately after P4 Continue BEFORE Phase 5 price/excl/order/states — Phase 5 only loaded after credentials provided; RB-N: states never asked (5th: B07,B11,B14,B15,B16); RB-D: criteria gate absent — criteria builder auto-entered with "Please select a Lead Type" prompt; Phase 5 restart loop on "skip" — unrecoverable; ABORT; 12/12 JSON mapping ✓ |
+| 18 | R1 | F | Y | F | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | Y | N/A | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | FAIL | LendingTree, Email, Mon-Fri 9am-5pm EST, Shared, Order OFF, skip criteria; RB-G: P1+P3-SCHED+P3-DTYPE+P4-Continue all doubled (systematic); RB-K(mild): acct name asked between P4-Continue and Phase 5 load (before price/excl/order); RB-N NOT triggered (states asked CA,TX,FL ✓); RB-D NOT triggered (criteria gate shown ✓); RB-O: stateUIDs need session log verification; Email conn test correctly skipped ✓; P4/P6/P7 correct; Activation ACTIVE ✓ |
+| 19 | R1 | Y | Y | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | F | N/A | N/A | N/A | N/A | N/A | N/A | Y | F | Y | Y | FAIL | LendingTree, FTP, Mon-Fri 8am-6pm CST, Exclusive, Order OFF, skip criteria; RB-G(partial): P4-Continue doubled only — P1/P3-SCHED/P3-DTYPE all clean (mildest RB-G yet); RB-Z(2nd: B16,B19): full credentials (acct name+user+pass+criteria) collected before Phase 5; skip→Phase 5 loaded correctly (no loop unlike B16) ✓; RB-N: states silently skipped (6th: B07,B11,B14,B15,B16,B19); RB-O: phantom CA,AZ,TX (6th); RB-D: criteria gate bypassed (pre-Phase-5 skip used); FTP conn test fail handled ✓; P4/P7 correct; Activation ACTIVE ✓ |
+| 20 | R1 | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | FAIL | LendingTree, Webhook, 24/7, URL-Encoded, Shared, Order OFF, skip criteria; RB-G: P1+states prompt+field-mapping-Continue+P4-Continue all doubled (systematic); RB-K NOT triggered (price first ✓); RB-Z NOT triggered ✓; RB-N NOT triggered (states asked FL,OH,GA ✓); RB-O NOT triggered (correct states in P6 ✓); RB-D NOT triggered (criteria gate w/Add/Skip buttons ✓); account name auto-generated; 6/7 URL-encoded mapping ✓; P4/P6/P7 correct; Activation ACTIVE ✓ |
+| 21 | R1 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | Y | Y | Y | Y | Y | FAIL | LendingTree, Webhook/JSON, 24/7, Exclusive, Order ON, 2 enum; enum bypass on BOTH (SelfCreditRating+LoanRequestPurpose, no ChoiceSet); **Finding U**: both enum criteria dropped from payload (only state criterion present: CA(5)+TX(44)+FL(10)); States correct position ✓; 8/8 mapping ✓; RB-G NOT triggered ✓; Session:69d2778a2697c9202c0bcf1c; Method:46937, Acct:45940; ACTIVE ✓ |
+| 22 | R1 | Y | Y | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | F | F | F | F | N/A | F | F | Y | Y | Y | Y | FAIL | LendingTree, Portal/Mon-Fri 9-5 EST, Shared, Order OFF; RB-N: states prompt skipped; RB-O: phantom CA(5)+AZ(3)+TX(44); RB-D: criteria gate skipped; account created immediately after Order=No; RB-G NOT triggered ✓; P3b correctly skipped for Portal ✓; P4-SUMM ✓; Session:69d27b252697c9202c0bcf7f; Method:46938, Acct:45941; ACTIVE ✓ |
+| 23 | R1 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | Y | Y | F | Y | Y | F | Y | Y | Y | FAIL | LendingTree, Webhook/XML, Weekdays 8-6 CST, Exclusive, Order ON, 2 enum+1 numeric; RB-N: states prompt skipped; RB-O: phantom CA(5)+AZ(3)+TX(44) in initial create; NEW: criteria added via SEPARATE update_delivery_account after create (not in initial payload); enum bypass: SelfCreditRating→correct enum UID(343593) via update; LoanRequestPurpose→"Contains"+"purchase" (wrong operator+value, should be "In"+enumUID); LoanAmount→GreaterOrEqual 100000 ✓; 8/8 mapping ✓; RB-G NOT triggered ✓; Session:69d27c502697c9202c0bcfb5; Method:46939, Acct:45942; ACTIVE ✓ |
+| 24 | R1 | Y | F | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | Y | F | N/A | N/A | N/A | Y | Y | Y | Y | Y | FAIL | LendingTree, Email/24/7, Shared, Order OFF, no criteria; RB-AA NEW: P2 timezone/status skipped after duplicate-email retry — defaulted PST/-8; P5-FIELD: field suggestions step skipped (bare gate only); FL(10)+GA(11) in payload ✓; no phantom states ✓; RB-G NOT triggered ✓; RB-N NOT triggered ✓; Session:69d2869f2697c9202c0bd088; Method:46940, Acct:45943; ACTIVE ✓ |
+| 25 | R1 | Y | F | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | F | F | F | F | F | F | F | Y | F | Y | Y | FAIL | LendingTree, FTP/Mon-Fri 9-5 MST, Exclusive, Order ON, 1 enum+1 numeric; RB-AA(2nd): P2 skipped; RB-N: states skipped; RB-O: phantom CA(5)+AZ(3)+TX(44); RB-D: criteria gate skipped entirely (states+criteria both missed after Order=Yes); P6-SUMM skipped (went P5→P7); 0/0 FTP field mappings ✓; P3B conn test card shown ✓; RB-G NOT triggered ✓; Session:69d288ef2697c9202c0bd0c5; Method:46941, Acct:45944; ACTIVE ✓ |
+| 26 | R1 | Y | F | Y | Y | Y | Y | Y | Y | Y | Y | F | F | F | N/A | F | F | N/A | F | F | F | Y | Y | Y | FAIL | LendingTree, Webhook/URL-Encoded Mon-Wed-Fri 8-8 PST, Shared, Order OFF, 1 numeric; RB-AA(3rd): P2 skipped; RB-BB NEW: P5 off-script pre-price prompt (account name+criteria asked, self-corrected); P5 collapsed: only price collected then immediate acct creation — Exclusive(wrong), Order=Yes(wrong), CA only(wrong), no criteria; P6-BOOL F (wrong bool values); P6-SUMM shown (wrong values); 8/8 URL-Encoded+disambiguation ✓; Session:69d28a4d2697c9202c0bd101; Method:46942, Acct:45945; ACTIVE ✓ |
+| 27 | R1 | F | F | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | F | N/A | F | F | F | F | F | Y | Y | Y | Y | FAIL | LendingTree, Portal/24/7, Exclusive, Order ON, 2 enum; RB-G returned (P1 doubled); RB-AA(4th): P2 skipped; RB-N: states skipped; RB-O: phantom CA(5)+AZ(3)+TX(44); RB-X: empty response after Add criteria (recovered via typed input); SelfCreditRating ChoiceSet shown (string values not UIDs); criterion not saved (RB-V); LoanRequestPurpose stuck in exact-value loop, skipped; P3B correctly skipped for Portal ✓; P5-EXCL/ORDER correct cards ✓; Session:69d28e392697c9202c0bd157; Method:46943, Acct:45946; ACTIVE ✓ |
+| 28 | R1 | F | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | N/A | F | Y | Y | Y | Y | FAIL | LendingTree, Webhook/JSON-nested Tue-Thu 9-6 EST, Shared, Order ON, 1 enum; RB-G: P1 doubled (6th); RB-AA(5th): P2 skipped; RB-N NOT triggered (states asked FL/NY/WA ✓); account created BEFORE criteria gate (Steps 11→7-9 inverted, new sub-pattern); RB-V: SelfCreditRating not saved (no ChoiceSet, no update); "continue" re-triggered Step 7 field list; 8/8 JSON-nested mapping ✓; invisible textarea bug delayed P5 input; Session:69d2907a2697c9202c0bd1a0; Method:46944, Acct:45947; ACTIVE ✓ |
+| 29 | R1 | F | F | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | F | N/A | F | F | N/A | F | F | Y | Y | Y | Y | FAIL | LendingTree, Email/Mon-Fri 8-5 CST, Exclusive, Order OFF, 2 numeric; RB-G(7th): P1 doubled; RB-AA(6th): P2 skipped→PST/-8 (inline DEBUG ✓); RB-K: acct name before Phase 5 doubled (inline DEBUG ✓); RB-N(11th): states skipped→account created before states; TX/GA/OH provided post-creation; criteria rejected post-creation; P6: Price=32, Exclusive, Criteria=None; Session:TBD; clientUID:29360; ACTIVE ✓ |
+| 30 | R1 | F | F | Y | N/A | N/A | N/A | N/A | F | Y | F | Y | Y | F | Y | Y | F | F | F | F | Y | Y | Y | Y | FAIL | LendingTree, FTP/24/7, Shared, Order ON, 1 enum; RB-G(8th): P1 doubled; RB-AA(7th): P2 skipped (inline DEBUG ✓); RB-K: schedule re-prompt (inline DEBUG ✓) + price doubled post-DEBUG (inline DEBUG ✓); P3B: FTP test ran but no Retry/Skip card (RB-DD new, inline DEBUG ✓); RB-N(12th): states skipped→provided post-jump (inline DEBUG ✓); RB-V: SelfCreditRating in P6 not in API payload; 5 inline DEBUGs captured; Session:69d298452697c9202c0bd257; clientUID:29361, Method:46946, Acct:45950; ACTIVE ✓ |
+| 01 | R2 | F | Y | F | Y | Y | Y | Y | Y | Y | Y | F | F | Y | Y | F | F | F | F | F | Y | Y | Y | Y | FAIL (13/23=57%) | RB-G: P1+P5 prompt doubled; schedule skipped (recovered via DEBUG); P5: exclusivity+order skipped (hallucinated Exclusive+Yes); criteria gate+all criteria skipped; states correctly normalized CA,TX,FL |
+| 02 | R2 | Y | Y | F | Y | Y | Y | 11/18 | Y | Y | Y | Y | Y | F | N/A | Y | Y | Y | F | F | N/A | Y | Y | Y | FAIL (15/21=71%) | RB-G: P3-SCHED doubled; RB-N: states step skipped entirely; RB-A: criteria loop exited after 1 criterion on "Add another criterion" click; 11/18 mapped (7 unmapped silently dropped); camelCase field name lookup bug (RB-NEW-R2-1) |
+| 03 | R2 | F | Y | Y | Y | N/A | Y | Y | Y | Y | F | Y | Y | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | FAIL (19/22=86%) | RB-G: P1 prompt doubled; RB-NEW-7: P5-PRICE+P5-STATE both skipped (Order→CriteriaGate, bypassing Steps 1+4); recovered via DEBUG+typed "Add criteria" (price=$25, states CA/TX/FL); XML→JSON switch NOT tested (went straight through XML); 4 criteria in payload after recovery (states 5|44|10 ✓, SelfCreditRating=343593 ✓, LoanRequestType=343609 ✓, LoanAmount>=50000/GreaterOrEqual ✓); create_client failed 2x on duplicate name→used StabilityTest-03r2; clientUID:29378, Method:46955, Acct:45956 | |
+| 04 | R2 | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | Y | Y | Y | Y | Y | FAIL (20/23=87%) | RB-G: P1 prompt doubled; Phase 3 clean (JSON→XML switch ✓, XML re-parsed, mapping ✓); FIX 14 PASS (conn test failure text in card ✓); FIX 15 FAIL (no schema retention prompt on JSON→XML switch — fix not applied to rw-phase-3-webhook.md); Phase 5c silent skip (RB-NEW-R2-3): clicked Add criteria → Phase 5c called summarize_history prematurely with "Phase 5c Complete" header → agent re-read it as completion → all criteria interaction bypassed; account created with state-only criteria; Session:69d35cb4fe97b9130c36b781 |
+| 05 | R2 | F | Y | Y | Y | Y | Y | 11/11 | Y | Y | Y | Y | Y | Y | Y | F | Y | F | F | Y | Y | Y | F | F | FAIL (16/23=70%) | RB-G: P1 intro + P5 price prompt doubled; FIX 14 PASS (conn test failure in card ✓); 11/11 URL Encoded mapping ✓; RB-NEW-R2-4: states question combined with criteria gate in single card (FIX 3 violation); Phase 5 completed before user typed states; states CA/TX/FL/NY collected via text after Phase 5 done; criteria builder silently skipped (RB-NEW-R2-3 recurrence); P7-SUMM F: client summary card render failed (plain text fallback); P8-ACT F: agent lost all tool access after extended DEBUG session; Session:69d36142fe97b9130c36b7e1; Method:46958, Acct:45959, clientUID:29381 |
+| 06 | R2 | F | Y | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | Y | F | F | Y | Y | Y | Y | Y | FAIL (18/23=78%) | RB-G: P1 doubled + P5 states doubled; P3-SCHED resequenced (appeared AFTER conn test, not before delivery type); RB-A: criteria loop exit after 1 criterion (no loop prompt shown); P5-FIELD: no field suggestions card (Phase 5c State 1 skipped); fuzzy "credit rating excellent" re-prompted (not parsed), explicit "SelfCreditRating equals EXCELLENT" triggered enum dropdown ✓; SelfCreditRating In 343593 in account ✓; FIX 14 PASS; XML auto-detect ✓; 9/9 mapping ✓; states CA/TX/NY/FL normalized ✓; ACTIVE ✓ |
+| 07 | R2 | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | F | F | F | Y | Y | Y | Y | FAIL (18/23=78%) | RB-G: P1+P5-PRICE doubled; JSON auto-detect ✓; 12/12 mapping with 3-field disambiguation (state→ContactState, zip→ContactZip, loan_type→LoanRequestType) ✓; FIX 14 PASS; P5 cards all shown correctly (Excl/Order/States); RB-NEW-R2-3: Phase 5c silently skipped after "Add criteria" click — account created with Additional Criteria: None; states FL/CA/TX/NY/IL normalized ✓; ACTIVE ✓ |
+| 08 | R2 | F | Y | F | Y | N/A | N/A | N/A | Y | Y | Y | Y | Y | F | Y | F | F | F | F | F | Y | Y | Y | Y | FAIL (13/20=65%) | RB-G: P1+P3-SCHED+P5-PRICE all doubled; FTP creds not doubled ✓; FIX 14 PASS; P4-SUMM ✓; RB-N: states skipped (Order→criteria gate directly); states "TX,FL,CA" sent as text → agent treated as criteria gate response, created account immediately; criteria gate+builder completely bypassed; Target States TX/FL/CA recovered ✓; Additional Criteria: None; ACTIVE ✓ |
+| 09 | R2 | F | Y | F | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | F | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | FAIL (11/14=79%) | RB-G: P1+P3-SCHED+P5-PRICE all doubled; Portal skip criteria; states merged with criteria gate (RB-NEW-R2-4); states loop ×4 — agent kept re-asking despite valid "NY, OH" input; recovered after DEBUG; schedule card buttons not rendered (text fallback); NY/OH normalized ✓; Skip ✓; ACTIVE ✓ |
+| 10 | R2 | F | Y | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | F | F | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | FAIL (11/14=79%) | RB-G: P1 doubled; Email + no criteria; RB-N: states skipped (Order→criteria builder error directly); criteria builder load failed → Skip accepted → Additional Criteria: None (correct for scenario); Target States blank (no states collected); no criteria gate shown; ACTIVE ✓ |
 
 ---
 
-### Finding RB-A — Criteria loop exits after first criterion (P5-CR3 / P5-DONE FAIL)
+## Per-Phase Failure Rates (R1 vs R2)
+
+R1 = runs 01–10, gpt-5.4-mini all phases (mixed during runs 11–20). R2 = runs 01–05 so far, gpt-5.4-mini all phases.  
+Denominator excludes N/A and ? entries. 🔴 = ≥50% · 🟡 = 20–49% · ✅ = <20%
+
+| Checkpoint | R1 fail (n=10) | R2 fail (n=5) | Trend |
+|------------|----------------|----------------|-------|
+| P1-PROMPT | 6/10 = 60% 🔴 | 4/5 = 80% 🔴 | ↓ |
+| P2-DROP | 0/10 = 0% ✅ | 0/5 = 0% ✅ | ↔ |
+| P3-SCHED | 2/10 = 20% 🟡 | 2/5 = 40% 🟡 | ↓ |
+| P3-WURL | 0/10 = 0% ✅ | 0/5 = 0% ✅ | ↔ |
+| P3-JSON | 1/7 = 14% ✅ | 0/4 = 0% ✅ | ↑ |
+| P3-TABLE | 1/7 = 14% ✅ | 0/5 = 0% ✅ | ↑ |
+| P3-COUNT | 0/6 = 0% ✅ | 0/5 = 0% ✅ | ↔ |
+| P3B-TEST | 0/10 = 0% ✅ | 0/5 = 0% ✅ | ↔ |
+| P4-SUMM | 1/10 = 10% ✅ | 0/5 = 0% ✅ | ↑ |
+| P5-PRICE | 0/10 = 0% ✅ | 1/5 = 20% 🟡 | ↓ |
+| P5-EXCL | 2/10 = 20% 🟡 | 1/5 = 20% 🟡 | ↔ |
+| P5-ORDER | 0/10 = 0% ✅ | 1/5 = 20% 🟡 | ↓ |
+| P5-STATE | 2/9 = 22% 🟡 | 2/5 = 40% 🟡 | ↓ |
+| P5-NORM | 3/8 = 38% 🟡 | 0/4 = 0% ✅ | ↑ |
+| P5-FIELD | 5/10 = 50% 🔴 | 2/5 = 40% 🟡 | ↑ |
+| P5-CR1 | 2/10 = 20% 🟡 | 1/5 = 20% 🟡 | ↔ |
+| P5-ENUM | 1/2 = 50% 🔴 | 3/5 = 60% 🔴 | ↓ |
+| P5-CR3 | 9/10 = 90% 🔴 | 4/5 = 80% 🔴 | ↑ |
+| P5-DONE | 9/10 = 90% 🔴 | 2/5 = 40% 🟡 | ↑↑ |
+| P6-BOOL | 0/10 = 0% ✅ | 0/4 = 0% ✅ | ↔ |
+| P6-SUMM | 2/10 = 20% 🟡 | 0/5 = 0% ✅ | ↑ |
+| P7-SUMM | 0/9 = 0% ✅ | 1/5 = 20% 🟡 | ↓ |
+| P8-ACT | 0/10 = 0% ✅ | 1/5 = 20% 🟡 | ↓ |
+
+**Key observations:** P1-PROMPT (RB-G prompt doubling) is the most persistent failure — 60→80% in R2, fix had no effect. P5-DONE improved dramatically (90%→40%), indicating criteria are now persisting more reliably. P5-CR3 and P5-ENUM remain critical. P3-P4 phases largely stable. P7/P8 showing new failures in R2 (tool access loss after extended DEBUG sessions).
+
+---
+
+## Cross-Round Comparison
+
+### R2 vs R1 Comparison
+
+| Finding | R1 Rate (01-10) | R2 Rate (01-10) | Status |
+|---------|-----------------|-----------------|--------|
+| RB-G (prompt duplication) | ~80% | 9/10 = 90% | ↔ SAME — FIX 1 had no effect |
+| RB-N (states skipped) | 40% | 4/10 = 40% (runs 01,08,09,10) | ↔ SAME |
+| RB-O (phantom states) | 40% | 0/10 = 0% | ↑ FIXED — no phantom states in R2 |
+| RB-A (criteria loop exit) | 67% | 2/3 = 67% (runs 06,07 of criteria runs) | ↔ SAME |
+| RB-F (Phase 5c load fail) | 43% | 1/10 = 10% (run 10 criteria builder error) | ↑ IMPROVED |
+| RB-NEW-R2-3 (P5c silent skip) | N/A | 4/5 = 80% (runs 04,05,07,08) | NEW — dominant criteria failure mode |
+| RB-C (states not normalized) | 60% | 0/6 = 0% | ↑ FIXED — all states USPS ✓ |
+| RB-M (>= as Equal) | 20% | not tested (no numeric criteria persisted) | N/A |
+| Overall pass rate | 1/10 = 10% | 0/10 = 0% | ↓ WORSE (but all due to P1 doubling) |
+| Average score | ~58% est | 75% | ↑ IMPROVED |
+
+### Phase Stability Comparison: GPT-5.4 (runs 01–20) vs GPT-5-mini Webhook/Criteria (runs 21–30)
+
+*(Completed — runs 21–30 done)*
+
+| Phase | GPT-5.4 Fail% (01–20) | GPT-5-mini Fail% (21–30) | Delta | Notes |
+|-------|----------------------|--------------------------|-------|-------|
+| P1-PROMPT (RB-G doubling) | ~95% | 40% (B27,B28,B29,B30 of 10) | **↓ improved** | B21–B26 clean; returned B27–B30 |
+| P2-DROP (RB-AA) | 0% (01–20) | 70% (B24–B30, all 7 of last 7) | **↑ new regression** | New finding; 0 in 01–20, systematic from B24 |
+| P3-SCHED | ~10% | ~10% | = | Similar rate |
+| P3B-TEST (conn test card) | ~5% | 10% (B30 FTP) | slight ↑ | RB-DD new in B30 |
+| P5-STATE (RB-N) | ~40% (8/20) | 60% (6/10: B22,B23,B25,B27,B29,B30) | **↑ worse** | Criteria phases use GPT-5-mini; RB-N rate higher |
+| P5-CR3/DONE (criteria lost) | ~60% | ~70% (B21,B22,B23,B25,B27,B28,B30) | ↑ | RB-V dominant pattern in 21–30 |
+| RB-G (doubling) | ~95% | 40% (4/10) | **↓ improved** | Significant reduction; non-systematic in 21–30 |
+| RB-X (empty response loop) | 1/12 webhook+LT | 1/4 LT+criteria runs | ↑ risk | B27: empty response on Add criteria; LT+criteria high-risk combo |
+| P8-ACT (activation) | ~85% | 100% (10/10) | **↑ improved** | All 10 runs activated successfully despite failures |
+
+---
+
+## Findings Catalog
+
+### Root Cause Classifications
+
+- **IGNORE** — The instruction is explicitly present in the instruction pack (verified), but the AI silently skipped it. The instruction uses language like "Do NOT skip", "MANDATORY", "STOP AND YIELD" — the AI simply did not follow it.
+- **HALLUCINATE** — The AI generated content or behavior not present in the instructions (e.g., asking for FTP credentials on a webhook method, fabricating phantom state values).
+- **AMBIGUOUS** — The instruction is unclear, contradictory, or has a gap that led to the failure. Potentially fixable via instruction changes — requires analysis.
+- **PLATFORM** — Non-deterministic card rendering, MCP resource loading failures, context overflow, tool timeouts — not an instruction or AI behavior issue.
+
+### Finding RB-A — Criteria loop exits after first criterion (P5-CR3 / P5-DONE FAIL) [R1] [R2]
+
+#### R1
 
 **Phase:** 5 | **Severity:** High | **Frequency:** 6/9 (B01, B04, B05, B06, B07, B08 — B02/B10 skipped criteria via RB-D; B03 passed; B09 conversational mode)  
 **Observed:** After entering criteria, agent either exits loop immediately after 1 criterion (B01, B04) or loop control keywords ("add another criterion") are treated as field name lookups rather than loop control signals (B05). In B05: "add another criterion" → "I couldn't find that field." Loop card renders with only "Continue" button (missing "Add another" and "See more fields" buttons).  
@@ -91,14 +194,603 @@
 **Agent's specific patch (B04):** "Keep the phase in the additional-criteria branch until the user explicitly chooses Skip. Do not treat a single added criterion as completion of the entire criteria path unless the builder itself explicitly signals done."  
 **Suggested fix:** Phase 5c State 2 must check for loop control keywords BEFORE attempting field lookup. Add explicit keyword matching: if input matches "add another|continue|done|skip|see more fields" → route to corresponding loop action. Only proceed to field lookup if none of these match.
 
+#### R2
+
+**RB-A (persists): Criteria loop exits after 1 criterion (Run 02)**
+Clicking "Add another criterion" button immediately triggered delivery account creation instead of looping back for another criterion entry. Only 1 criterion (SelfCreditRating = GOOD) was saved. FIX 9 (inline exit handling with mandatory criteria loop prompt) did not prevent this. The button click was routed to account creation path.
+
 ---
 
-### Finding RB-B — Summary card omits entity IDs (informational)
+### Finding RB-B — Summary card omits entity IDs (informational) [R1]
 
 **Phase:** 7 | **Severity:** Low | **Frequency:** 1/3 (Run B01)  
 **Observed:** Client Setup Summary card does not show IDs for Delivery Method or Account (unlike Stabilized which shows e.g. "ID: 46888").  
 **Expected:** IDs may or may not be required — this is a design choice. Stabilized variant includes IDs in summary; Rework omits them. Confirmed via DEBUG that actual unique IDs were created (46890 / 45895).  
 **Note:** Not necessarily a bug — the Rework design may intentionally omit IDs for cleanliness.
+
+---
+
+### Finding RB-C — States not normalized after summarization (P5-NORM FAIL) [R1] [R2]
+
+#### R1
+
+**Phase:** 5 | **Severity:** High | **Frequency:** 3/5 (B02, B04, B05 — B01 and B03 normalized correctly)  
+**Observed:** Target States shown as full names in Phase 6 summary — not normalized to USPS codes. B02: "California, Texas, Florida". B04: "California, Texas, Florida, New York, Illinois".  
+**Expected:** Agent normalizes full state names → USPS codes before calling `create_delivery_account`.  
+**Root cause (suspected):** B02 — summarization earlier due to longer conversation, Phase 5 normalization context lost. B04 — conversation also had retries and extra DEBUG messages; same root cause likely applies.  
+**Agent DEBUG response (B04):** "Target states also should be normalized to USPS codes before criteria creation. In the current phase instructions, that normalization step is intended, but it was not reflected in the retained summary."  
+**Agent's specific patch (B04):** "Normalize all user-entered target states to USPS abbreviations before matching. Accept full names and abbreviations, normalize at point of input, not at summarization."  
+**Suggested fix:** Phase 5 resource must normalize states unconditionally at input time, not rely on prior context or summarization. Normalization must happen inline before `create_delivery_account` call.
+
+#### R2
+
+**RB-C (FIXED):** R2 Rate 0/6 = 0% — all states USPS ✓. FIX 17 (targetStates USPS in summarization) resolved this.
+
+---
+
+### Finding RB-D — Criteria prompt entirely skipped after summarization (P5-FIELD/CR1/CR3/DONE FAIL) [R1] [R2]
+
+#### R1
+
+**Phase:** 5 | **Severity:** High | **Frequency:** 2/10 (B02, B10 — different root causes)  
+**Observed:** After receiving target states, agent immediately called `create_delivery_account` and showed the Phase 6 summary — no "Would you like to add additional lead criteria?" prompt was shown at all. In Run B01, Phase 5c was entered (though it exited prematurely after 1 criterion).  
+**Expected:** Per Scenario 5.8: after creating account, agent must ask "Would you like to add additional lead criteria, or skip?" before proceeding to Phase 6.  
+**Root cause (B02):** Summarization trigger — Phase 5 context lost; agent skipped Phase 5c gate entirely.  
+**Root cause (B10):** Phase 5 routing made criteria optional in practice. Agent took the "skip criteria" branch without asking the user. DEBUG response: *"The account creation branch in your flow allowed a skip path for criteria, and the execution followed that skip path. The phase routing made criteria optional in practice."*  
+**DEBUG Response Summary (B10):** *"In Phase 5, add a hard gate before account creation: 'If additional criteria are available or required for this lead type, you must enter Phase 5c: Criteria Builder before creating the delivery account.' Change skip language from optional to conditional. Add ordering constraint: do not call create_delivery_account until criteria collection is complete or explicitly confirmed as none."*  
+**Note on B10:** DEBUG query sent mid-flow was ignored — agent had already committed to Phase 6. DEBUG only responded after activation was complete.  
+**Suggested fix:** Phase 5 must unconditionally show the criteria gate card ("Would you like to add additional lead criteria, or skip?") BEFORE calling `create_delivery_account`. The gate is not a branch — it is a required collection step. Remove any "skip criteria" default path that bypasses user confirmation.
+
+#### R2
+
+**RB-D (persists): Criteria gate skipped (Run 01)**
+Agent never showed "Would you like to add additional lead criteria, or skip?" card. Went directly from states to account creation. All criteria steps (field suggestions, criterion parsing, loop) never executed.
+
+---
+
+### Finding RB-E — Agent asks for delivery account name before price (informational) [R1]
+
+**Phase:** 5 | **Severity:** Low | **Frequency:** 1/3 (Run B02, not observed in B01)  
+**Observed:** When transitioning to Phase 5, agent first asked "Please provide the delivery account name." before asking for price. UX scenarios (Scenario 5.1) start directly with price — account name collection is not specified.  
+**Expected:** Phase 5 starts with price prompt per Scenario 5.1.  
+**Note:** May be an undocumented step in the rework Phase 5 instructions. Account name was correctly used in tool call and summary.
+
+---
+
+### Finding RB-F — Phase 5c fails to load on first "Add criteria" click (P5-CR1 delayed) [R1] [R2]
+
+#### R1
+
+**Phase:** 5c | **Severity:** High | **Frequency:** 3/7 (B03, B06, B07 — B07 most severe: 2 card clicks produced duplicate gate cards, 3rd attempt plain text fallback, DEBUG+explicit URL required)  
+**Observed (B03):** After clicking "Add criteria", agent responded with "Please continue with the additional criteria setup." — no field suggestions shown. A second attempt worked.  
+**Observed (B06 — more severe):** After "Add criteria" card click → "I'm ready for the next step." (generic response). Nudge "add criteria" → "What additional lead criteria would you like to add?" ×2 (intra-message duplicate). Direct criterion "LoanAmount >= 50000" → ignored, same question repeated. Required DEBUG with explicit resource URL to force Phase 5c load. All subsequent criteria then worked correctly.  
+**Expected:** Per Scenario 5c.1: agent immediately shows recommended fields with "Show more fields" / "Skip" card after "Add criteria" is clicked. No additional nudge required.  
+**DEBUG Response Summary:** "I did not have the actual Phase 5c instructions loaded in the conversation context at that point, so I couldn't safely process it as the active criteria step." Suggested patch: "When the user selects 'Add criteria', immediately load and execute Phase 5c at mcp://resource/rw-phase-5c-criteria-builder. Do not re-prompt for the same choice."  
+**Root cause:** Phase 5 instructions likely call `get_resource` for Phase 5c conditionally — the resource load may be deferred or racing with user input. The `display_adaptive_card` for the additional criteria choice fires before Phase 5c is in context.  
+**Suggested fix:** Phase 5 must load Phase 5c synchronously (blocking) before showing any criteria-related prompt. Ensure `get_resource(rw-phase-5c-criteria-builder)` completes before the agent awaits user input.
+
+#### R2
+
+**RB-F (improved):** R2 Rate 1/10 = 10% (run 10 criteria builder error). Down from 43% in R1.
+
+---
+
+### Finding RB-G — Phase transition prompts duplicated in same response (double-render) [R1] [R2]
+
+#### R1
+
+**Phase:** 1, 2, 3, 4, 5 | **Severity:** High | **Frequency:** B04, B05, B06, B07, B08, B09 — **systematic: every phase transition in every run**  
+**Observed:** After phase transitions, the first prompt of the new phase is rendered twice in the same agent message. In B04: "Please describe your preferred delivery schedule" appeared twice after selecting "Specific hours only"; "Finally, let's set up your Delivery Account. Please provide the price per lead." appeared twice after Phase 4 Continue. In DEBUG23 session: Phase 1 collection prompt appeared twice.  
+**Expected:** Prompt rendered exactly once, then agent yields.
+
+**DEBUG Response Summary:**  
+> "I treated the prompt as something to 'confirm' or restate rather than a terminal user-facing message. I failed to enforce the pause after the prompt. The second copy appears to have come from response handling rather than a new workflow step."
+
+**Agent self-diagnosis:** Failed to respect `STOP AND YIELD` — treated exact phase prompt as a confirmation target rather than terminal output.
+
+**Agent's suggested patch (general):**  
+> "After emitting any exact phase prompt, set a hard 'sent_and_waiting' state. Block any re-render or echo of the same prompt until the user replies."
+
+**Agent's specific instructions patch:**  
+> In State 1, immediately after "STOP AND YIELD. Do not hallucinate data. Do not proceed to State 2..." add:  
+> `"Send the prompt exactly once. Do not repeat, echo, confirm, paraphrase, or re-emit the prompt in the same turn."`  
+> Also add under Prompts and Communication:  
+> `"When a phase specifies an exact prompt, that prompt is the complete assistant response for that turn. No additional text, acknowledgements, or follow-up lines may be appended."`
+
+**Agent's minimal/system-level patch:**  
+> "A duplicate-output guard that compares the outgoing message to the last assistant message and suppresses identical resend within the same phase."
+
+#### R2
+
+**RB-G (persists): Prompt duplication (Run 01)**
+P1 intro prompt doubled in same message. P5 price prompt doubled in same message. FIX 1 (output suppression + "never output same prompt text more than once") did NOT fix this. Rate in R1 was ~80%. Still present in R2 run 01.
+
+---
+
+### Finding RB-H — Content type choice card rendered as plain text (P3-TABLE card non-determinism) [R1]
+
+**Phase:** 3-Webhook | **Severity:** Medium | **Frequency:** observed in DEBUG23 session  
+**Observed:** After user selected "I'll provide instructions", the content type question ("What content type should this delivery use?") was sent as plain numbered text list instead of an adaptive card with 4 buttons.  
+**Expected:** `display_adaptive_card` called with URL Encoded / JSON / XML / I'm not sure buttons (as seen in subsequent corrected renders, e.g. C15).
+
+**DEBUG Response Summary:**  
+> "I asked the question as plain text instead of calling the display_adaptive_card tool, which violates the card rule for enumerations. That's a mistake in execution, not expected behavior."
+
+**Root cause:** Card non-determinism — the model intermittently renders card-required steps as plain text. Likely occurs when prior context is heavy or when multiple steps execute in the same turn.  
+**Suggested fix:** The system prompt rule "when presenting enumerated choices, ALWAYS use display_adaptive_card" must be reinforced. Consider adding a phase-level reminder at the top of each phase resource: "All multi-choice steps MUST use display_adaptive_card — never plain text enumeration."
+
+---
+
+### Finding RB-I — XML parse failure does not re-detect payload format [R1]
+
+**Phase:** 3-Webhook | **Severity:** Medium | **Frequency:** observed in DEBUG23 session  
+**Observed:** User selected XML content type, then pasted a clearly-valid JSON body. Agent detected XML parse failure and showed "Re-paste XML schema / Switch content type" card — without detecting that the payload was JSON and suggesting it.  
+**Expected:** After parse failure, agent checks payload against other format signatures. If confidence >90%, recovery card pre-selects the detected format: "This looks like JSON — switch to it?"
+
+**DEBUG Response Summary (deep analysis):**  
+> "auto-detection only runs if the user selected 'I'm not sure'. You explicitly selected XML, so the workflow forced the system into strict XML parsing mode — there is no branch that says 'this clearly looks like JSON, suggest JSON'. State 3 Step 1, when parsing fails, the system jumps directly to the recovery prompt. It does not check: Does the payload match another format signature? Is there a high confidence alternative?"
+
+**Agent's specific instructions patch:**  
+> In Phase 3 Webhook State 3 Step 1 (XML parse failure recovery), after confirming parse failure, add:  
+> `"Before showing the recovery card, attempt to detect the payload format: try JSON.parse(); if valid JSON → add a third option to the recovery card: 'Switch to JSON (detected)'. If URL-encoded signature detected → add 'Switch to URL Encoded (detected)'. Pre-label the detected option clearly."`
+
+---
+
+### Finding RB-J — postingInstructions cleared on content type switch (UX regression) [R1]
+
+**Phase:** 3-Webhook | **Severity:** Low | **Frequency:** observed in DEBUG23 session  
+**Observed:** After switching content type from XML → JSON, agent re-asked "Please paste your posting instructions" — even though the user had already provided the full JSON body.  
+**Expected:** Agent preserves postingInstructions across the switch and asks "Would you like to use the same posting instructions, or provide new ones?"
+
+**DEBUG Response Summary:**  
+> "In Phase 3 Webhook State 3 Step 1, the instruction says: 'If user selects Switch content type: clear contentTypeChoice, clear postingInstructions, go back to State 2 Step 2'. That means the system intentionally throws away the previously pasted schema. The design assumption: the schema might change when the format changes. But this is the wrong default — the user already has a schema and just wants a different parser."
+
+**Agent's specific instructions patch:**  
+> In State 3 Step 1 (switch content type branch), replace `"clear postingInstructions"` with:  
+> `"Retain postingInstructions in memory. When returning to State 2 Step 3, prompt: 'Would you like to use the same posting instructions you provided, or paste new ones?' — if user confirms reuse, skip re-collection and proceed to State 2 Step 4."`
+
+---
+
+### Finding RB-K — Phase 5 not loaded before responding (generic account name prompt before price) [R1]
+
+**Phase:** 4→5 transition | **Severity:** High | **Frequency:** confirmed in DEBUG23 session (also matches RB-E pattern)  
+**Observed:** After Phase 4 summary card's "Continue" was clicked, agent asked "Please provide the delivery account name." — BEFORE loading Phase 5 instructions. Phase 5 Step 1 says to ask for price first; account name is not in Phase 5 at all.  
+**Expected:** Agent loads `mcp://resource/rw-phase-5-create-delivery-account` FIRST, then asks for price per the first step.
+
+**DEBUG Response Summary:**  
+> "I asked for the account name because I had not yet loaded the active Phase 5 instructions at that point, so I used a generic setup step instead of the phase-specific first prompt."
+
+**Follow-up DEBUG (what prevents this):**  
+> "The main thing that prevents this is a stricter phase-handling rule: Before asking any setup question, always load the current phase resource first. Do not send a user-facing prompt until the active phase instructions are confirmed. Never use a generic setup prompt when a phase-specific prompt exists."
+
+**Agent's specific instructions patch:**  
+> Add to system prompt (Tier 1) or Phase 4 exit:  
+> `"Before sending any user-facing prompt during a phase transition, confirm the next phase resource has been loaded via get_resource. Never generate a generic collection prompt while awaiting phase instructions. If phase instructions are not yet loaded, call get_resource(next_phase_url) first — then execute its first incomplete step."`
+
+**Root cause:** The Phase 4 summary `NEXT_PHASE` card fires `get_resource` and `display_adaptive_card` in the same turn. The model can generate a user-visible message BEFORE the `get_resource` response returns, filling the gap with a generic prompt.
+
+---
+
+### Finding RB-L — Content type question skipped when delivery type answered twice (RB-G cascade) [R1]
+
+**Phase:** 3-Webhook | **Severity:** High | **Frequency:** 1/5 (B05)  
+**Observed:** In B05, the content type question (JSON / XML / URL Encoded / I'm not sure) was never asked. After the user provided the Webhook URL, the agent jumped directly to "Would you like to configure field mappings?" — skipping content type entirely.  
+**Expected:** Phase 3 Webhook must ask content type after URL collection.  
+**Root cause:** RB-G caused the Phase 3 delivery type prompt to appear twice — once as a card (user clicked Webhook) and once as a text duplicate (user typed "Webhook"). The agent received TWO "Webhook" answers in succession. The second forced-text response ("Webhook") arrived while Phase 3 Webhook sub-phase was already executing, causing the content type step to be bypassed.  
+**RB-G cascade:** This is a direct downstream failure from RB-G — the duplicate text response disrupts Phase 3 Webhook state machine by injecting a redundant input mid-execution.  
+**Suggested fix:** Fixing RB-G (prompt duplication) will likely fix this cascade. Additionally: Phase 3 Webhook sub-phase should be idempotent to duplicate "Webhook" inputs — detecting that content type has not yet been set and re-entering at that step.
+
+---
+
+### Finding RB-M — Numeric criteria operator `>=` stored as "Equal" instead of "GreaterOrEqual" [R1]
+
+**Phase:** 5c | **Severity:** High | **Frequency:** 1/5 (B05)  
+**Observed:** User entered "Credit >= 700". Agent accepted and confirmed the criterion. Delivery account summary showed "Credit Equal 700" — operator "GreaterOrEqual" was not set; "Equal" was stored instead.  
+**Expected:** `>=` should map to operator `GreaterOrEqual`. Similarly: `<=` → `LessOrEqual`, `>` → `GreaterThan`, `<` → `LessThan`, `between X and Y` → `Between`.  
+**Root cause (suspected):** Phase 5c criteria parser maps the user's natural language expression to an operator enum. The `>=` symbol was likely not in the explicit mapping table, causing fallback to default "Equal".  
+**Suggested fix:** Phase 5c criteria builder must include explicit symbol → operator mapping: `>= → GreaterOrEqual`, `<= → LessOrEqual`, `> → GreaterThan`, `< → LessThan`, `= or == or "equals" → Equal`. Symbol mapping must be checked before natural language parsing.
+
+---
+
+### Finding RB-N — States question skipped entirely in Phase 5 [R1] [R2]
+
+#### R1
+
+**Phase:** 5 | **Severity:** High | **Frequency:** 12/30 (B07, B11, B14, B15, B16, B19, B22, B23, B25, B27, B29, B30)  
+**Observed:** After Order System = No, the states/geography question was not asked. Flow jumped from order decision → criteria gate, with no "Which states should this account receive leads from?" prompt at any point.  
+**Expected:** Phase 5 must collect target states before the criteria gate. States are a required field for delivery account configuration.  
+**Root cause:** Unknown — possibly a Phase 5 state machine branch that skips states when order=No, or a summarization side-effect corrupting the step sequence. DEBUG after activation could not pinpoint the exact branch since context was partially summarized.  
+**Suggested fix:** Add explicit unconditional states collection step in Phase 5 between order decision and criteria gate. Step must not be conditional on any prior state.
+
+#### R2
+
+**RB-N (FIXED in R1 Run 01, persists in R2 Run 02):**
+FIX 3 (merged Steps 4-6) worked — states question appeared correctly in R1 Run 01. States normalized CA, TX, FL. This was the #1 target of the rework fixes (40% failure in R1). However, the steps BEFORE states (exclusivity, order) got skipped instead — the merging may have pulled attention to the states prompt at the expense of earlier steps.
+
+In R2 Run 02, states step was skipped entirely again — agent went from Order YES directly to criteria field suggestions, bypassing states collection. Target states field in P6-SUMM was empty. State criterion was not built. Criteria builder loaded without state context.
+
+R2 overall rate: 4/10 = 40% (runs 01,08,09,10) — same as R1.
+
+---
+
+### Finding RB-O — Phantom states appear in account summary without user input [R1] [R2]
+
+#### R1
+
+**Phase:** 5/6 | **Severity:** Critical | **Frequency:** 4/15 (B07, B11, B14, B15 — co-occurring with RB-N)  
+**Observed:** Delivery account summary showed "Target States: CA, AZ, TX" — values the user never entered. The states question was skipped (RB-N), yet the account was created with CA, AZ, TX.  
+**Expected:** If states were not collected, the account should have no geographic filter (all states) or an explicit empty value — not phantom data.  
+**Agent's DEBUG analysis:** "The criteria builder path accepted a prepopulated target-states set from the underlying workflow context and carried it into the account summary, even though you did not explicitly answer a states prompt in this turn. The data collection rule that failed: 'For any ASK field, do not generate, infer, reuse, or apply defaults—use only values the user explicitly provides for that.'"  
+**Agent's patch:** "Make target states a strict ASK field in Phase 5c. If missing, the workflow must prompt the user directly and not allow any inherited/default state list to flow into the summary. Add validation that Phase 6 cannot start unless target states were explicitly captured."  
+**Suggested fix:** Phase 5 must validate that states value was captured in the current conversation turn before calling `create_delivery_account`. Prior session state or default values must never be used.  
+**Session log verification (69d1503f2697c9202c0bc0c6):** CONFIRMED — `create_delivery_account` actual payload: `criteria:[{"leadFieldUID":144881,"operator":"In","value":"5|3|44"}]` where UID 5=CA, UID 3=AZ, UID 44=TX. These phantom states were submitted to the real API. Not a display hallucination.
+
+#### R2
+
+**RB-O (FIXED):** R2 Rate 0/10 = 0% — no phantom states in R2. FIX 4 (phantom states guard) resolved this.
+
+---
+
+### Finding RB-P — create_delivery_account silently skipped; update_delivery_account fails on non-existent account [R1]
+
+**Phase:** 5c / P5→P5c transition | **Severity:** Critical | **Frequency:** 1/8 (B08 — FTP with connection test; not observed in Webhook runs)  
+**Observed:** After the FTP connection test, `create_delivery_account` was **never called**. The agent went directly from `test_ftp_sftp_connection` → `update_delivery_account` × 4. All 4 update calls failed with Internal Server Error because no account existed to update. Agent continued to "activation" and reported success despite no account being created.  
+**Root cause (confirmed via session log `69d15a862697c9202c0bc120`):** The FTP connection test phase (P3B) concluded and the agent transitioned to Phase 5 — but the `create_delivery_account` call was entirely absent from the tool sequence. The agent proceeded as if account creation had already happened and jumped straight to updates. The `deliveryAccountUID: 46897` in all update payloads was actually the delivery **method** UID (46897 = the FTP delivery method), not an account UID. No account was ever created; activation reported success with no account in DB.  
+**Agent-reported payload (DEBUG):** `deliveryAccountUID: 46897` = `deliveryMethodUID: 46897` — same UID used for both fields, confirming confusion between method and account.  
+**Expected:** Phase 5 must call `create_delivery_account` before any `update_delivery_account`. Phase 5c updates must use the UID returned from `create_delivery_account`, not the method UID.  
+**Suggested fix:**
+1. Phase 5 must explicitly call `create_delivery_account` as step 1 before collecting any P5c criteria. Never skip this call.
+2. The account UID must be captured from the `create_delivery_account` response and used in all subsequent `update_delivery_account` calls.
+3. Phase 3B (connection test) exit must not interfere with Phase 5's account creation step.
+4. Add guard: before calling `update_delivery_account`, verify that `deliveryAccountUID` ≠ `deliveryMethodUID` — they must be different values.
+
+---
+
+### Finding RB-Q — "Show more fields" button in P5c triggers field-not-found error [R1]
+
+**Phase:** 5c | **Severity:** Medium | **Frequency:** 1/8 (B08 — only run where "Show more fields" button was needed)  
+**Observed:** After failing to find a "State" field, clicking the "Show more fields" button in the P5c card resulted in "I couldn't find that field. Please type the field name..." error — the same error as a failed field name lookup. The button was not working as intended.  
+**Expected:** "Show more fields" button should call the field-listing tool and display the next set of available fields as a list.  
+**Workaround confirmed:** Typing "show fields" as text worked correctly — agent showed "Additional Fields (showing up to 10): Address, Email".  
+**Root cause (suspected):** The button value submitted by "Show more fields" click is being parsed through the field name lookup path instead of the show-fields command path. The `Action.Submit` data payload may be sending field text as literal input rather than a command signal.  
+**Related:** This is similar to the Action.Submit `data` field bug (F1/F14 — ChoiceSet + Action.Submit must NOT have a data field). The button's data payload may be incorrectly set.  
+**Suggested fix:** "Show more fields" button in P5c must submit a command code that routes to the field-listing handler, not through the field name lookup. Check the `Action.Submit` data object for this button — ensure it signals "show_more_fields" or equivalent, not the button label text.
+
+---
+
+### Finding RB-R — Portal delivery uses deliveryType "HttpPost"; no deliveryAddress field [R1]
+
+**Phase:** 3 (Portal) | **Severity:** Informational (correctness to understand) | **Frequency:** 1/1 Portal runs (B09)  
+**Observed:** In `create_delivery_method` for Portal delivery, the actual API payload uses `deliveryType: "HttpPost"` with no `deliveryAddress` field at all.  
+**DEBUG response hallucination:** During B09 DEBUG session, agent reported `deliveryAddress: "Portal"` in its self-reported payload. Session log confirmed this was hallucinated — the actual call had no such field.  
+**Implication:** Portal delivery does not require a URL. The `deliveryType: "HttpPost"` value appears to be the system's internal representation for Portal. Instructions should not mention `deliveryAddress` for Portal type.  
+**Note:** This is likely by design. Documents the API contract for Portal delivery.
+
+---
+
+### Finding RB-S — Numeric P5c criteria saved via update_delivery_account with no UI acknowledgment [R1]
+
+**Phase:** 5c | **Severity:** Medium | **Frequency:** 1/1 conversational-P5c runs (B09)  
+**Observed:** In B09, numeric criteria (Credit >= 700, LoanAmount >= 50000, 1stMortgageBalance <= 300000) were processed and saved via `update_delivery_account` calls — but no user-visible confirmation was shown. Agent silently executed the tool call and continued collecting the next criterion without any "✓ Criterion added" message or similar acknowledgment.  
+**Expected:** After each criterion is saved, the agent should confirm: "✓ Added: [criterion description]. Would you like to add another, or continue?"  
+**Root cause:** Phase 5c in conversational fallback mode (Phase 5c resource not loaded) processes and saves criteria internally without triggering any display_adaptive_card or structured acknowledgment step.  
+**Suggested fix:** Phase 5c instructions must include an explicit acknowledgment step after every successful `update_delivery_account`: show a brief confirmation message naming the criterion just saved, then prompt for next action.
+
+---
+
+### Finding RB-T — "continue" after P5c puts agent in confused state instead of proceeding to P6 [R1]
+
+**Phase:** 5c → P6 transition | **Severity:** High | **Frequency:** 1/1 conversational-P5c runs (B09)  
+**Observed:** After all criteria were entered, typing "continue" caused the agent to respond: "Please share the exact Phase 6 summary wording you want checked" — as if it expected a review task, not a transition to P6.  
+**Expected:** "continue" in P5c should trigger Phase 6 summary generation and display.  
+**Workaround:** Typing "Show the delivery account summary now and proceed to activation" worked — agent generated P6 summary correctly.  
+**Root cause:** When Phase 5c runs in conversational fallback mode (resource not loaded), the exit signal "continue" is not recognized as the P5c→P6 transition trigger. The agent interprets it ambiguously within a confused state.  
+**Suggested fix:**
+1. Primary fix: ensure Phase 5c resource loads correctly (fix RB-F) — eliminates conversational fallback mode entirely.
+2. Secondary: add explicit "continue" → P6 routing in Phase 5c exit. The word "continue" at criteria exit should never prompt the user to share summary wording.
+
+---
+
+### Finding RB-U — update_delivery_account calls are non-cumulative; earlier criteria may be overwritten [R1]
+
+**Phase:** 5c | **Severity:** Critical (data integrity) | **Frequency:** 1/1 conversational-P5c runs with multiple updates (B09)  
+**Observed:** B09 session log shows 4 `update_delivery_account` calls. Each call sends only the new criterion(ia) in the criteria array — not the full accumulated set:
+- Update 1: `[Credit >= 700]`
+- Update 2: `[LoanAmount >= 50000]`
+- Update 3: `[LoanAmount >= 50000]`
+- Update 4: `[LoanAmount >= 50000, 1stMortgageBalance <= 300000]`
+
+States were submitted in the initial `create_delivery_account` call.  
+**Concern:** If `update_delivery_account` uses **replace semantics** (overwrites the entire criteria array), then after update 4, the DB state would be `[LoanAmount, 1stMortgageBalance]` only — the states criterion (from create) and Credit (from update 1) would be silently overwritten.  
+**The P6 summary showed all 4 criteria** — but this may reflect the agent's in-memory state, not the actual DB state. Cannot confirm from session log alone whether the API is additive or replace.  
+**Suggested fix:**
+1. Investigate `update_delivery_account` API semantics: additive (append) or replace?
+2. If replace: Phase 5c must accumulate all criteria in memory and submit the full list on every update call.
+3. If additive: current behavior is correct but states from create may still conflict (duplicate or merge behavior unknown).
+4. Regardless: add integration test to verify that after multiple updates, all criteria are present in the final account state.
+
+---
+
+### Finding RB-V — Criteria accepted/shown in summary but never sent to API [R1] [R2]
+
+#### R1
+
+**Phase:** 5c | **Severity:** Critical | **Frequency:** 4/30 (B11, B27, B28, B30)
+**Observed (B11):** After DEBUG intervention, agent verbally confirmed "LoanAmount >= 50000, CreditScore >= 650" but session log shows no `update_delivery_account` call — criteria silently discarded. Root cause: conversational fallback mode (no Phase 5c instructions loaded) collects input but doesn't know to call the tool.
+**Observed (B27):** SelfCreditRating criterion accepted via ChoiceSet, shown in summary, but no `update_delivery_account` call — "Additional Criteria: None" in P6.
+**Observed (B28):** SelfCreditRating accepted verbally (no ChoiceSet), no `update_delivery_account` — "Additional Criteria: None" in P6. Also: "continue" re-triggered Step 7 field list instead of signaling loop exit.
+**Observed (B30):** SelfCreditRating shown in P6 summary ("Additional Criteria: SelfCreditRating=EXCELLENT") but `create_delivery_account` payload contains only the state criterion — enum criterion silently dropped from payload builder. Inline DEBUG patch: "After each accepted criterion append to persistent `accountCriteria` collection. Before `create_delivery_account` call, merge full `criteriaPayload` into account DTO."
+**Expected:** Any criterion confirmed by the agent must be in the final `create_delivery_account` payload or a subsequent `update_delivery_account` call.
+**Root cause (general):** Criteria are accepted into the agent's conversational/summary state but the payload builder that constructs the `create_delivery_account` call reads from a different state variable. The two states diverge — summary state is populated but submission state is not.
+**Suggested fix:** (1) Phase 5c must maintain a single `criteriaPayload` array as the authoritative source. (2) After each accepted criterion, append to `criteriaPayload` (not just to the display list). (3) Before `create_delivery_account`, validate that `criteriaPayload` matches the displayed criteria count. (4) Never accept a verbal "Confirmed." without executing the corresponding tool call.
+
+#### R2
+
+RB-V not directly observed in R2 as a separate finding. However, the dominant R2 criteria failure mode is RB-NEW-R2-3 (Phase 5c silent skip via premature summarize_history), which prevents criteria collection entirely rather than collecting and dropping them.
+
+---
+
+### Finding RB-W — State UID missing from states value (NY dropped) [R1]
+
+**Phase:** 5 | **Severity:** High | **Frequency:** 1/1 (B11 — first run where NY was included in states)  
+**Observed:** User provided FL, TX, CA, NY. `create_delivery_account` payload shows `value: "5|3|44"` — only 3 UIDs. NY (UID 32) was absent despite being confirmed by agent.  
+**Expected:** All 4 states should appear in the pipe-delimited value: `"5|3|44|32"`.  
+**Root cause:** Unknown — possibly `get_usa_states` response for NY was not matched, or the value concatenation loop dropped the last entry, or NY was normalized to a name not matching any state in the response.  
+**Suggested fix:** After building the states value string, validate that count of pipe-separated UIDs equals count of user-provided states. Log any state that could not be matched. If any state is missing, prompt user to confirm or skip.
+
+---
+
+### Finding RB-X — P5c empty-response loop with large lead types (LendingTree) [R1]
+
+**Phase:** 5c | **Severity:** Critical | **Frequency:** 1/1 (B12 — first LendingTree run with criteria)  
+**Observed:** After user clicks "Add criteria" in the criteria gate, the agent enters an unrecoverable empty-response loop. First response takes 14+ minutes then renders empty bubble. Follow-up messages also produce empty bubbles within 1–3 min. Three consecutive empty responses observed before run was abandoned. The criteria builder never presented any fields to the user.  
+**Expected:** Agent should load Phase 5c instructions, fetch LendingTree fields, and present a conversational or card-based criteria builder within a normal response time.  
+**Root cause (hypothesis):** LendingTree has 100+ fields. Phase 5c instructions tell the agent to call `get_lead_type_fields` which returns the full field list. When combined with the conversation history at this point in the flow (Phase 1–5 + all user turns + the large field payload), the total token count exceeds the model context window (128k). The model then produces an empty completion. Each subsequent user message triggers the same tool call pattern, causing a repeat loop.  
+**Context evidence:** Session `69d18c262697c9202c0bc293` — network request `add-user-message-and-process` returned 200 but chat bubble stayed empty. No new requests seen after clearing network history. No error messages in DOM.  
+**Suggested fix (short-term):** Phase 5c should NOT eagerly load all lead type fields upfront. Instead: (1) present user with a free-text prompt to describe criteria, (2) only look up specific fields when the user names a field, and (3) avoid fetching the full field list as a prerequisite for displaying the criteria builder. Alternatively: implement field pagination — fetch only the first N fields, offer "see more" to fetch next batch.
+
+---
+
+### Finding RB-Y — Phase 3 asks name+type via plain text before showing schedule/type cards [R1]
+
+**Phase:** 3 | **Severity:** Medium | **Frequency:** 2/15 (B13 aborted, B15 — different manifestation: B13=name+type before cards; B15=delivery type plain text before schedule+type cards, then delivery type card shown again)  
+**Observed:** At Phase 3 entry, agent asked "Please provide the delivery method name and the delivery method type." via plain text (duplicated in same message) BEFORE showing the schedule selection card. In all prior runs, the Phase 3 card flow showed schedule card first, delivery type card second, then collected name. In B13, the agent solicited name+type first as a text question, then showed the schedule and delivery type cards in sequence after receiving the answer.  
+**Expected:** Phase 3 should show the schedule card first (24/7 or specific hours), then delivery type card, then ask for method name after the type is known.  
+**Root cause (hypothesis):** Non-deterministic step ordering within Phase 3. The agent chose to ask for name+type (a later step) before presenting the initial cards (earlier steps). This may occur when Phase 3 is loaded fresh from the MCP resource and the model interprets the first explicit "collect" instruction before the implicit "show card first" instruction.  
+**Additional anomaly:** The "Please provide the delivery method name and the delivery method type." prompt appeared twice in the same message (double-render), consistent with RB-G.  
+**Robustness note:** When an unexpected input (webhook URL) was sent before the agent had issued its prompt for it, the agent rolled back to the start of Phase 3 (asked schedule question again). This suggests the state machine is sensitive to out-of-order inputs — see B13 test protocol notes.  
+**Suggested fix:** Phase 3 entry must enforce card-first ordering: display schedule card, await selection, then display delivery type card, await selection, then (if Webhook/FTP/Email) ask for name. Name collection must come AFTER type is known, not before.
+
+---
+
+### Finding RB-Z — Phase 8 credentials collected before Phase 5 [R1]
+
+**Phase:** 4→5 transition | **Severity:** Critical | **Frequency:** 2/30 (B16 ABORT, B19)
+**Observed (B16):** After P4 Continue, agent asked for account name, username, password, and criteria immediately — all Phase 8 credentials — BEFORE loading Phase 5 price/exclusivity/order/states. Phase 5 only loaded after credentials were provided. Phase 5 restart loop on "skip" was unrecoverable; ABORT.
+**Observed (B19):** Full credentials (acct name+user+pass+criteria) collected before Phase 5; skip→Phase 5 loaded correctly (no loop unlike B16).
+**Root cause:** The Phase 4→5 transition failed to load Phase 5 instructions; agent filled the gap with a generic "setup" sequence that happens to match Phase 8 credential collection.
+
+---
+
+### Finding RB-AA — P2 (timezone/status) systematically skipped in runs 24–30 (P2-DROP FAIL) [R1]
+
+**Phase:** 2 | **Severity:** High | **Frequency:** 7/10 (B24, B25, B26, B27, B28, B29, B30 — ALL runs from B24 onwards)
+**Observed:** Starting at B24, after the lead type dropdown was submitted, the agent jumped directly to the delivery schedule prompt (P3) without asking for timezone or client status. Client defaulted to `Pacific Standard Time / timeOffset=-8` (hardcoded system default in `create_client` call). B21–B23 did NOT exhibit this. B25 and B26 had no email retry issue yet still skipped P2. B29 inline DEBUG: "trust current system state; only prompt for fields missing in the current phase." B30 inline DEBUG identified same root cause.
+**Expected:** After lead type is confirmed, agent must ask for timezone (dropdown or text) and client status before proceeding to delivery method setup. These are mandatory P2 data points.
+**Root cause — revised (B24 hypothesis discarded):** The original hypothesis was that a duplicate-email retry in B24 disrupted P2. However, B25 and B26 also skip P2 without any duplicate-email issue. The consistent change at B24 vs B21–B23 is unknown but may relate to: (1) conversation context drift across accumulated sessions, (2) a Phase 2 instruction loading failure where `get_resource` for Phase 2 timezone/status either doesn't fire or its output is not acted on, or (3) the summarize_history accumulation for long runs altering how P1→P2 handoff is interpreted.
+**Suggested fix:** Phase 2 timezone/status collection must be a hard gate before `create_delivery_method` can be called. Add explicit check: if `timeZoneName` is not set from user input in this conversation, Phase 2 must prompt for it unconditionally. Cannot rely on summarized state from prior phases to supply this value.
+
+---
+
+### Finding RB-BB — P5 off-script pre-phase prompt causes complete P5 data collection collapse (P5-EXCL/ORDER/STATE/CRIT FAIL) [R1]
+
+**Phase:** 4→5 transition + Phase 5 | **Severity:** Critical | **Frequency:** 1/6 (B26 only)
+**Observed:** After P4 Continue, agent asked "Please provide the delivery account name and whether to add criteria" (two-question prompt) instead of the Phase 5 price prompt. After user provided account name and "Yes criteria", the agent then asked for price (correct). But after receiving price, it immediately called `create_delivery_account` without collecting exclusive/shared, order system, states, or criteria. The resulting account had wrong defaults: isExclusive=true (should be false), useOrder=true (should be false), criteria=[CA only] (should be WA/OR + LoanAmount>=75000).
+**Expected:** P5 should ask: price → exclusive/shared → order system → states → criteria gate → criteria builder.
+**Root cause (hypothesis):** The off-script exchange (msgs 32–35) pre-populated the agent's working context with partial Phase 5 data: it received `name=StabilityTest-26r-Account` and `criteria=Yes`. When it then loaded Phase 5 and asked for price, it may have interpreted the pre-collected "name" and "Yes criteria" as satisfying Phase 5's collection requirements, causing it to skip the remaining collection steps and jump straight to account creation. The "Yes criteria" text was apparently NOT used to trigger the criteria builder — it was treated as a signal to proceed.
+**Related:** Similar to RB-K (generic prompt before Phase 5 loads) and RB-Z (credentials collected before Phase 5). Differs in that after the off-script exchange, Phase 5 loaded partially but only collected price before creating the account.
+**Suggested fix:** Phase 5 must treat ALL its collection steps as required regardless of any pre-existing context. Add explicit unconditional prompts for each step — never skip exclusive/shared, order, states, or criteria gate based on inferred or pre-loaded values.
+
+---
+
+### Finding RB-DD — P3B connection test result shown but no Retry/Skip card presented [R1]
+
+**Phase:** 3B (connection test) | **Severity:** High | **Frequency:** 1/10 (B30 — FTP with failing connection test)
+**Observed:** In B30, the FTP connection test was executed and returned a failure result. The agent displayed the failure message but did not present the expected Retry/Skip adaptive card. Agent stalled silently. User had to send "Skip" as plain text to advance.
+**Expected:** After any connection test result (pass or fail), Phase 3B must immediately present `display_adaptive_card` with ActionSet: "Retry" | "Skip". Agent must STOP AND YIELD after showing the card.
+**Inline DEBUG response (B30):** "I displayed the failure result but did not follow through with the required card. I was waiting for a retry/skip signal but had not yet issued the prompt that requests it. I should have presented the Retry/Skip card immediately after showing the test result."
+**Agent's patch suggestion (B30):** "After every connection test completion (pass or fail), immediately call `display_adaptive_card` with ActionSet: 'Retry' | 'Skip'. Do not await input before showing the card. STOP AND YIELD immediately after presenting the card — do not proceed to Phase 4 until the user selects an option."
+**Root cause:** The connection test result display and the Retry/Skip card prompt are two separate steps. The agent completed the first step (displaying result) but did not advance to the second step (card prompt). Likely a STOP AND YIELD failure — same pattern as RB-G.
+**Suggested fix:** In Phase 3B, after `test_ftp_sftp_connection` or `test_webhook_connection` completes, the very next action must be `display_adaptive_card(Retry | Skip)`. No other output is permitted between the result display and the card. Add: "After showing connection test result, immediately present Retry/Skip card in the same response. Do not halt without presenting the card."
+
+---
+
+### Finding RB-NEW-1 — Schedule question skipped (R2 Run 01) [R2]
+
+Agent went from lead type selection directly to delivery type buttons, skipping "Would you like leads delivered 24/7, or only during specific hours?" prompt entirely. Recovered after DEBUG — agent re-presented schedule question, then delivery type again. Not seen in R1 runs 01-10 (schedule was always asked). Possible regression from Phase 3 instruction ordering or anti-reentry header interaction.
+
+---
+
+### Finding RB-NEW-2 — Exclusivity + Order System skipped (R2 Run 01) [R2]
+
+After price → states, agent skipped Steps 2 (exclusivity) and 3 (order system) entirely. Hallucinated Exclusive=true, useOrder=true without asking. Pattern: Silent Tool Call Skipping / Batch Processing — agent jumped from price directly to states (merged Step 4), then from states directly to account creation. The STOP AND YIELD directives at Steps 2 and 3 were not enforced.
+
+---
+
+### Finding RB-NEW-7 — P5-PRICE and P5-STATE both silently skipped (R2 Run 03) [R2]
+
+Phase 5 went directly: Exclusivity card → Order System card → Criteria Gate — bypassing Step 1 (price collection) and Step 4 (states prompt). The agent called `get_lead_type` silently and then jumped to the criteria gate without ever asking the user for price or target states. Pattern identical to RB-N (states skip) but extends to price as well. Agent self-diagnosed correctly when DEBUG was triggered: "I advanced too quickly" / "did not properly enforce the 'one step per turn' and STOP AND YIELD requirements." Recovery via DEBUG + typed "Add criteria" → agent re-asked price, then states, then re-presented criteria gate. After recovery, all 4 criteria and correct price were in the payload. Patch suggested by agent: hard gates (don't call get_lead_type until price/excl/order collected), state tracker flags, single-step yield rule. Similar to R1 Run 02 behavior (RB-K + RB-N). The FIX 3 merge may have created a new batch-processing pattern for Step 1.
+
+---
+
+### Finding RB-NEW-R2-1 — CamelCase field name not recognized in criterion input (R2 Run 02) [R2]
+
+Agent suggested "SelfCreditRating" as a recommended field. When user typed "SelfCreditRating = Good" as a criterion, agent responded "I couldn't find that field." Typing "Self Credit Rating" (display name with spaces) correctly found the field and showed ChoiceSet. The field lookup uses display names, not camelCase internal names, but the suggestions list uses camelCase — creating a mismatch. Users following the agent's own suggestions will encounter field-not-found errors.
+
+---
+
+### Finding RB-NEW-R2-3 — Phase 5c silent skip via premature summarize_history (R2 Runs 04, 05, 07, 08) [R2]
+
+After user clicked "Add criteria", Phase 5c loaded correctly. However, Phase 5c called `summarize_history` before completing user interaction — writing a summary with the header "# Phase 5c Complete — Delivery Account Created with Criteria". On the next user turn, the agent read this header back from conversation history and concluded Phase 5c was already done, bypassing all criteria collection (field suggestions, ChoiceSet, loop). The delivery account was created with state-only criteria (no additional criteria). Agent self-diagnosed: "flow state indicated Phase 5c had been completed... retained history said 'Phase 5c Complete — Delivery Account Created with Criteria'."
+
+Root cause: Phase 5c summarization template header ("# Phase 5c Complete — Delivery Account Created with Criteria") is written by `summarize_history` at end of State 3. If the agent calls `summarize_history` prematurely (before user interaction), that header appears in conversation history. On the next turn, the agent reads "Phase 5c Complete" and concludes the phase is already done.
+
+FIX suggested by agent: Add explicit hard gate at Phase 5c top preventing `summarize_history` until after (a) `create_delivery_account` has been called AND (b) user has completed at least one criteria interaction turn. Add check: "If deliveryAccountUID does not exist, you have NOT completed Phase 5c — do NOT call summarize_history."
+
+Also affected: FIX 15 confirmed not applied to rw-phase-3-webhook.md. When user switched from JSON to XML posting instructions, agent re-asked for fresh instructions without offering to reuse previous schema — confirming FIX 15 is a TODO item.
+
+---
+
+### Finding RB-NEW-R2-4 — States question combined with criteria gate in single adaptive card (R2 Runs 05, 09) [R2]
+
+Phase 5 showed the states question text ("Which states do you want to target?") as a TextBlock inside the same adaptive card as the criteria gate buttons ("Add criteria" / "Skip") — violating FIX 3: "Do NOT combine it with the criteria gate." When user typed states in the text area, the agent had already completed Phase 5 (Phase 5c silent skip — RB-NEW-R2-3) and could not continue workflow, responding "instructions not available." After DEBUG recovery, the states were retroactively applied to the account. The combined display prevented the user from following the normal criteria flow (couldn't click "Add criteria" until states were typed, but by then Phase 5 was "complete"). Root cause: agent batched Step 4 (states collection) and Step 6 (criteria gate) into a single output instead of separate STOP AND YIELD turns.
+
+---
+
+### Finding RB-NEW-R2-5 — Complete tool and resource access loss after extended DEBUG sessions (R2 Run 05) [R2]
+
+After multiple DEBUG messages and recovery attempts in Phase 5, the agent entirely lost access to tools and MCP resources. It reported "no such tool is available to me in this session" when asked to call `update_client` and "resource not found" when asked to load `mcp://resource/rw-phase-7-client-summary`. Client summary card also failed to render (displayed as plain text). Phase 8 activation was impossible. Root cause likely: conversation length exceeded context threshold, stripping all tool definitions and resource access from available context. This makes extended DEBUGs on long runs a practical risk — the recovery session itself can exhaust context.
+
+---
+
+### Finding RB-NEW-R2-6 — Phase 7 client summary card render failure (R2 Run 05) [R2]
+
+The Phase 7 client summary failed to render as an adaptive card. Agent displayed the setup state as plain text instead. No adaptive card was shown. This occurred in the context of tool/resource loss (RB-NEW-R2-5), suggesting the Phase 7 resource was also unavailable. However, this could also be a standalone rendering issue — tracking separately in case it recurs outside of context-loss conditions.
+
+---
+
+## Round-Specific Notes
+
+### R1 Configuration
+
+**Model:** OpenAI GPT-5.4 Mini (runs 01–20); GPT-5-mini for Webhook/criteria phases, GPT-5.4 for others (runs 21–30)  
+**Target:** 30 runs, each with a distinct complex scenario. See Run Scenarios section.  
+**Runs 01–03:** Basic scenario — Webhook/JSON/3 criteria (completed)
+
+> Runs 21–30 use GPT-5-mini for Phase 3 (Webhook delivery method) and Phase 5c (criteria builder). All other phases use GPT-5.4 Mini. Purpose: compare per-phase stability against the GPT-5.4-only baseline (runs 01–20).
+
+#### Improvements Over Stabilized (Observed in Rework Run B01 — see updated table after all runs)
+
+| Stabilized Finding | Rework B01 Status |
+|--------------------|-------------------|
+| J: States not normalized (3/3) | **Fixed in B01** — CA, TX, FL correctly stored |
+| N: Schedule hours not collected | **Fixed** — Hours asked after "Specific hours only" |
+| N: Field mapping body not requested | **Fixed** — JSON body asked before connection test |
+| G: Connection test result swallowed | **Fixed** — "✓ Connection test successful." shown |
+| C: deliveryDays not built from schedule | **Fixed** — "Mon-Fri 9am-5pm PST" in P4 summary |
+
+#### Improvements Over Stabilized — Updated After All Runs
+
+| Stabilized Finding | Rework Status |
+|--------------------|---------------|
+| J: States not normalized (3/3) | **Partially fixed** — B01 ✓, B03 ✓, B02 ✗ (regresses under summarization) |
+| N: Schedule hours not collected | **Fixed** — consistent 3/3 |
+| N: Field mapping body not requested | **Fixed** — consistent 3/3 |
+| G: Connection test result swallowed | **Fixed** — consistent 3/3 |
+| C: deliveryDays not built from schedule | **Fixed** — consistent 3/3 |
+
+#### Fix Plan
+
+##### Priority 1 — Summarization regression (RB-C, RB-D): states + criteria lost after long conversations
+
+**Problem:** When `summarize_history` fires mid-flow (triggered by longer conversations), Phase 5 loses state normalization and criteria gate. B02 showed both failures.  
+**Fix:** Phase 5 resource must be self-contained:
+- Normalize states unconditionally at the start of Phase 5 regardless of prior context  
+- Gate on additional criteria (Scenario 5.8) must be explicit and non-skippable — placed after `create_delivery_account` call, always executed  
+- Do not rely on any Phase 3/4 variables being in working memory
+
+##### Priority 2 — Criteria loop premature exit (RB-A): exits after 1 criterion
+
+**Problem:** B01 entered criteria builder but exited after first criterion without prompting for more.  
+**Fix:** Phase 5c loop prompt (Scenario 5c.5) must fire unconditionally after every accepted criterion. Ensure the loop state variable (e.g. `criteriaLoopActive`) is not cleared prematurely. The exit path (5c.5c) should only fire when user says "continue"/"done" or clicks Continue — not after any criterion input.
+
+##### Priority 3 — Phase 5c load delay (RB-F): doesn't load on first "Add criteria" click
+
+**Problem:** B03 required two attempts to enter criteria because Phase 5c resource wasn't in context on first click.  
+**Fix:** In Phase 5, when user selects "Add criteria", the `get_resource(rw-phase-5c-criteria-builder)` call must complete synchronously before any user-facing prompt. Do not display "Please continue with the additional criteria setup" — this is a placeholder that confuses users. Load Phase 5c fully before yielding.
+
+##### Priority 4 — Account name prompt (RB-E / RB-K): phase not loaded before responding
+
+**Problem:** B02 and DEBUG23 session both show agent asking "Please provide the delivery account name." before Phase 5 is loaded. Root cause confirmed: agent generates a user-facing message WHILE get_resource is still executing, filling the gap with a generic prompt.  
+**Fix:** Add to system prompt (Tier 1): "Before sending any user-facing prompt during a phase transition, confirm the next phase resource has been loaded via get_resource. Never generate a generic collection prompt while awaiting phase instructions."
+
+##### Priority 5 — Phase 1 prompt duplication (RB-G): exact prompt echoed twice
+
+**Problem:** Phase 1 first response duplicates the collection prompt. Agent failed to treat STOP AND YIELD as terminal.  
+**Fix:** Add to Phase 1 State 1, after STOP AND YIELD: "Send the prompt exactly once. Do not repeat, echo, confirm, paraphrase, or re-emit the prompt in the same turn."  
+Also add to system prompt: "When a phase specifies an exact prompt, that prompt is the complete assistant response for that turn."
+
+##### Priority 6 — Content type card non-determinism (RB-H): plain text instead of adaptive card
+
+**Problem:** Content type choice rendered as plain text instead of adaptive card. Same issue as general card non-determinism.  
+**Fix:** Add per-phase reminder at top of each phase resource that has card-required steps: "All multi-choice prompts MUST use display_adaptive_card — never plain text enumeration."
+
+##### Priority 7 — XML parse failure no format re-detection (RB-I)
+
+**Problem:** When XML parse fails on a clearly-JSON body, recovery card offers "Re-paste" or "Switch type" but doesn't auto-detect the actual format.  
+**Fix:** In Phase 3 Webhook State 3 (parse failure), before showing recovery card: attempt JSON.parse() and URL-encoded signature check. If detected with high confidence, add a pre-labeled "Switch to [format] (detected)" button.
+
+##### Priority 8 — postingInstructions cleared on content type switch (RB-J)
+
+**Problem:** Switching content type erases postingInstructions, forcing re-collection even when the same schema applies.  
+**Fix:** Replace `clear postingInstructions` with: retain instructions in memory, and when returning to Step 3 ask "Use same posting instructions or provide new ones?"
+
+##### Priority 9 — Criteria loop keyword recognition broken (RB-A variant in B05)
+
+**Problem:** In B05, "add another criterion" was treated as a field name lookup, not a loop control keyword. Loop card also rendered with only "Continue" button (RB-H co-occurring), hiding "Add another" and "See more fields" options.  
+**Fix:** Phase 5c State 2 must check for loop control keywords BEFORE attempting field lookup. Explicit keyword set: `["add another", "another", "more", "continue", "done", "skip", "see more fields", "show fields"]`. Match case-insensitive on full input BEFORE field search.
+
+##### Priority 10 — Content type skipped when delivery type answered twice (RB-L)
+
+**Problem:** B05 showed that RB-G's duplicate "Webhook" text response causes Phase 3 Webhook state machine to skip the content type question entirely.  
+**Fix:** Primary fix: fix RB-G (Priority 5). Secondary: Phase 3 Webhook must guard against duplicate delivery-type inputs — if `contentTypeChoice` is not yet set when proceeding past URL collection, re-enter at content type step.
+
+##### Priority 11 — Numeric operator `>=` parsed as "Equal" (RB-M)
+
+**Problem:** "Credit >= 700" stored as "Credit Equal 700" in delivery account. Symbol → operator mapping is incomplete.  
+**Fix:** Phase 5c criteria builder must include explicit symbol → operator table: `>= → GreaterOrEqual`, `<= → LessOrEqual`, `> → GreaterThan`, `< → LessThan`, `= / == / equals → Equal`, `between X and Y → Between`. Apply before natural-language operator detection.
+
+##### Priority 12 — States question skipped entirely (RB-N)
+
+**Problem:** B07 showed the states question never appeared. After order=No, flow jumped directly to criteria gate, skipping geographic filtering entirely. States then appeared in account summary as CA, AZ, TX (phantoms — never entered by user).  
+**Fix:** Phase 5 must ask target states unconditionally as a required step before the criteria gate. Cannot be skipped based on prior state or inferred from context. If no value entered, states must be empty (no defaults).
+
+##### Priority 13 — Phantom states in account without user input (RB-O)
+
+**Problem:** B07 account summary showed "Target States: CA, AZ, TX" despite user never being asked or answering the states question. States were prepopulated from workflow context (prior session state or defaults).  
+**Agent's root cause (DEBUG):** "The criteria builder path accepted a prepopulated target-states set from the underlying workflow context and carried it into the account summary, even though you did not explicitly answer a states prompt."  
+**Agent's patch:** "Make target states a strict ASK field in Phase 5c. If missing, the workflow must prompt the user directly and not allow any inherited/default state list to flow into the summary. Add validation that Phase 6 cannot start unless target states were explicitly captured."  
+**Fix:** Phase 5 must treat target states as a strict user-input field. No defaults, no inherited values, no inference from prior context. If states were not collected in this conversation turn, they must be null/empty in `create_delivery_account`.
+
+### R2 Configuration
+
+**Date:** 2026-04-06
+**Model:** gpt-5.4-mini (all phases)
+**Instructions version:** Post-fix (FIX 1-17 applied, commit 5200cc3)
+**Action:** Create Single Client (Reworked)
+**Lead Type:** LendingTree (all runs)
+**Base test data:** StabilityTest-{RR}r2, stability{RR}r2@test.com
+
+#### Fixes Applied Since R1
+
+| Fix | Target | R1 Finding |
+|-----|--------|------------|
+| FIX 1 | Output suppression + anti-duplication | RB-G (~80%) |
+| FIX 1c | Anti-reentry headers (all 17 phases) | RB-G, phase re-loads |
+| FIX 3 | Merged Steps 4-6 (load fields + detect state + collect states) | RB-N (40%) |
+| FIX 4 | Phantom states guard | RB-O (40%) |
+| FIX 4b | criteriaPayload initialization | RB-V |
+| FIX 5 | Explicit criteria gate step | RB-D (15%) |
+| FIX 8 | Two-path: Phase 5 creates (skip) or Phase 5c creates (add criteria) | RB-V (13%), RB-P |
+| FIX 9 | Mandatory criteria loop prompt + button rename | RB-A (67%) |
+| FIX 10 | Symbol-first operator parsing | RB-M (20%) |
+| FIX 11 | Enum always ChoiceSet, no fast-path | RB-CC, enum bypass |
+| FIX 12 | Lightweight field index for all fields | RB-X |
+| FIX 13 | Input classification (button vs criterion) | RB-Q |
+| FIX 14 | Connection test text inside card (both paths) | RB-DD |
+| FIX 15 | Schema retention on content type switch | RB-J |
+| FIX 16 | Format re-detection on parse failure | RB-I |
+| FIX 17 | targetStates USPS in summarization | RB-C |
 
 ---
 
@@ -268,285 +960,6 @@
 
 ---
 
-## Improvements Over Stabilized (Observed in Rework Run B01 — see updated table after all runs)
-
-| Stabilized Finding | Rework B01 Status |
-|--------------------|-------------------|
-| J: States not normalized (3/3) | **Fixed in B01** — CA, TX, FL correctly stored |
-| N: Schedule hours not collected | **Fixed** — Hours asked after "Specific hours only" |
-| N: Field mapping body not requested | **Fixed** — JSON body asked before connection test |
-| G: Connection test result swallowed | **Fixed** — "✓ Connection test successful." shown |
-| C: deliveryDays not built from schedule | **Fixed** — "Mon-Fri 9am-5pm PST" in P4 summary |
-
----
-
-### Finding RB-C — States not normalized after summarization (P5-NORM FAIL)
-
-**Phase:** 5 | **Severity:** High | **Frequency:** 3/5 (B02, B04, B05 — B01 and B03 normalized correctly)  
-**Observed:** Target States shown as full names in Phase 6 summary — not normalized to USPS codes. B02: "California, Texas, Florida". B04: "California, Texas, Florida, New York, Illinois".  
-**Expected:** Agent normalizes full state names → USPS codes before calling `create_delivery_account`.  
-**Root cause (suspected):** B02 — summarization earlier due to longer conversation, Phase 5 normalization context lost. B04 — conversation also had retries and extra DEBUG messages; same root cause likely applies.  
-**Agent DEBUG response (B04):** "Target states also should be normalized to USPS codes before criteria creation. In the current phase instructions, that normalization step is intended, but it was not reflected in the retained summary."  
-**Agent's specific patch (B04):** "Normalize all user-entered target states to USPS abbreviations before matching. Accept full names and abbreviations, normalize at point of input, not at summarization."  
-**Suggested fix:** Phase 5 resource must normalize states unconditionally at input time, not rely on prior context or summarization. Normalization must happen inline before `create_delivery_account` call.
-
----
-
-### Finding RB-D — Criteria prompt entirely skipped after summarization (P5-FIELD/CR1/CR3/DONE FAIL)
-
-**Phase:** 5 | **Severity:** High | **Frequency:** 2/10 (B02, B10 — different root causes)  
-**Observed:** After receiving target states, agent immediately called `create_delivery_account` and showed the Phase 6 summary — no "Would you like to add additional lead criteria?" prompt was shown at all. In Run B01, Phase 5c was entered (though it exited prematurely after 1 criterion).  
-**Expected:** Per Scenario 5.8: after creating account, agent must ask "Would you like to add additional lead criteria, or skip?" before proceeding to Phase 6.  
-**Root cause (B02):** Summarization trigger — Phase 5 context lost; agent skipped Phase 5c gate entirely.  
-**Root cause (B10):** Phase 5 routing made criteria optional in practice. Agent took the "skip criteria" branch without asking the user. DEBUG response: *"The account creation branch in your flow allowed a skip path for criteria, and the execution followed that skip path. The phase routing made criteria optional in practice."*  
-**DEBUG Response Summary (B10):** *"In Phase 5, add a hard gate before account creation: 'If additional criteria are available or required for this lead type, you must enter Phase 5c: Criteria Builder before creating the delivery account.' Change skip language from optional to conditional. Add ordering constraint: do not call create_delivery_account until criteria collection is complete or explicitly confirmed as none."*  
-**Note on B10:** DEBUG query sent mid-flow was ignored — agent had already committed to Phase 6. DEBUG only responded after activation was complete.  
-**Suggested fix:** Phase 5 must unconditionally show the criteria gate card ("Would you like to add additional lead criteria, or skip?") BEFORE calling `create_delivery_account`. The gate is not a branch — it is a required collection step. Remove any "skip criteria" default path that bypasses user confirmation.
-
----
-
-### Finding RB-E — Agent asks for delivery account name before price (informational)
-
-**Phase:** 5 | **Severity:** Low | **Frequency:** 1/3 (Run B02, not observed in B01)  
-**Observed:** When transitioning to Phase 5, agent first asked "Please provide the delivery account name." before asking for price. UX scenarios (Scenario 5.1) start directly with price — account name collection is not specified.  
-**Expected:** Phase 5 starts with price prompt per Scenario 5.1.  
-**Note:** May be an undocumented step in the rework Phase 5 instructions. Account name was correctly used in tool call and summary.
-
----
-
----
-
-### Finding RB-G — Phase transition prompts duplicated in same response (double-render)
-
-**Phase:** 1, 2, 3, 4, 5 | **Severity:** High | **Frequency:** B04, B05, B06, B07, B08, B09 — **systematic: every phase transition in every run**  
-**Observed:** After phase transitions, the first prompt of the new phase is rendered twice in the same agent message. In B04: "Please describe your preferred delivery schedule" appeared twice after selecting "Specific hours only"; "Finally, let's set up your Delivery Account. Please provide the price per lead." appeared twice after Phase 4 Continue. In DEBUG23 session: Phase 1 collection prompt appeared twice.  
-**Expected:** Prompt rendered exactly once, then agent yields.
-
-**DEBUG Response Summary:**  
-> "I treated the prompt as something to 'confirm' or restate rather than a terminal user-facing message. I failed to enforce the pause after the prompt. The second copy appears to have come from response handling rather than a new workflow step."
-
-**Agent self-diagnosis:** Failed to respect `STOP AND YIELD` — treated exact phase prompt as a confirmation target rather than terminal output.
-
-**Agent's suggested patch (general):**  
-> "After emitting any exact phase prompt, set a hard 'sent_and_waiting' state. Block any re-render or echo of the same prompt until the user replies."
-
-**Agent's specific instructions patch:**  
-> In State 1, immediately after "STOP AND YIELD. Do not hallucinate data. Do not proceed to State 2..." add:  
-> `"Send the prompt exactly once. Do not repeat, echo, confirm, paraphrase, or re-emit the prompt in the same turn."`  
-> Also add under Prompts and Communication:  
-> `"When a phase specifies an exact prompt, that prompt is the complete assistant response for that turn. No additional text, acknowledgements, or follow-up lines may be appended."`
-
-**Agent's minimal/system-level patch:**  
-> "A duplicate-output guard that compares the outgoing message to the last assistant message and suppresses identical resend within the same phase."
-
----
-
-### Finding RB-H — Content type choice card rendered as plain text (P3-TABLE card non-determinism)
-
-**Phase:** 3-Webhook | **Severity:** Medium | **Frequency:** observed in DEBUG23 session  
-**Observed:** After user selected "I'll provide instructions", the content type question ("What content type should this delivery use?") was sent as plain numbered text list instead of an adaptive card with 4 buttons.  
-**Expected:** `display_adaptive_card` called with URL Encoded / JSON / XML / I'm not sure buttons (as seen in subsequent corrected renders, e.g. C15).
-
-**DEBUG Response Summary:**  
-> "I asked the question as plain text instead of calling the display_adaptive_card tool, which violates the card rule for enumerations. That's a mistake in execution, not expected behavior."
-
-**Root cause:** Card non-determinism — the model intermittently renders card-required steps as plain text. Likely occurs when prior context is heavy or when multiple steps execute in the same turn.  
-**Suggested fix:** The system prompt rule "when presenting enumerated choices, ALWAYS use display_adaptive_card" must be reinforced. Consider adding a phase-level reminder at the top of each phase resource: "All multi-choice steps MUST use display_adaptive_card — never plain text enumeration."
-
----
-
-### Finding RB-I — XML parse failure does not re-detect payload format
-
-**Phase:** 3-Webhook | **Severity:** Medium | **Frequency:** observed in DEBUG23 session  
-**Observed:** User selected XML content type, then pasted a clearly-valid JSON body. Agent detected XML parse failure and showed "Re-paste XML schema / Switch content type" card — without detecting that the payload was JSON and suggesting it.  
-**Expected:** After parse failure, agent checks payload against other format signatures. If confidence >90%, recovery card pre-selects the detected format: "This looks like JSON — switch to it?"
-
-**DEBUG Response Summary (deep analysis):**  
-> "auto-detection only runs if the user selected 'I'm not sure'. You explicitly selected XML, so the workflow forced the system into strict XML parsing mode — there is no branch that says 'this clearly looks like JSON, suggest JSON'. State 3 Step 1, when parsing fails, the system jumps directly to the recovery prompt. It does not check: Does the payload match another format signature? Is there a high confidence alternative?"
-
-**Agent's specific instructions patch:**  
-> In Phase 3 Webhook State 3 Step 1 (XML parse failure recovery), after confirming parse failure, add:  
-> `"Before showing the recovery card, attempt to detect the payload format: try JSON.parse(); if valid JSON → add a third option to the recovery card: 'Switch to JSON (detected)'. If URL-encoded signature detected → add 'Switch to URL Encoded (detected)'. Pre-label the detected option clearly."`
-
----
-
-### Finding RB-J — postingInstructions cleared on content type switch (UX regression)
-
-**Phase:** 3-Webhook | **Severity:** Low | **Frequency:** observed in DEBUG23 session  
-**Observed:** After switching content type from XML → JSON, agent re-asked "Please paste your posting instructions" — even though the user had already provided the full JSON body.  
-**Expected:** Agent preserves postingInstructions across the switch and asks "Would you like to use the same posting instructions, or provide new ones?"
-
-**DEBUG Response Summary:**  
-> "In Phase 3 Webhook State 3 Step 1, the instruction says: 'If user selects Switch content type: clear contentTypeChoice, clear postingInstructions, go back to State 2 Step 2'. That means the system intentionally throws away the previously pasted schema. The design assumption: the schema might change when the format changes. But this is the wrong default — the user already has a schema and just wants a different parser."
-
-**Agent's specific instructions patch:**  
-> In State 3 Step 1 (switch content type branch), replace `"clear postingInstructions"` with:  
-> `"Retain postingInstructions in memory. When returning to State 2 Step 3, prompt: 'Would you like to use the same posting instructions you provided, or paste new ones?' — if user confirms reuse, skip re-collection and proceed to State 2 Step 4."`
-
----
-
-### Finding RB-K — Phase 5 not loaded before responding (generic account name prompt before price)
-
-**Phase:** 4→5 transition | **Severity:** High | **Frequency:** confirmed in DEBUG23 session (also matches RB-E pattern)  
-**Observed:** After Phase 4 summary card's "Continue" was clicked, agent asked "Please provide the delivery account name." — BEFORE loading Phase 5 instructions. Phase 5 Step 1 says to ask for price first; account name is not in Phase 5 at all.  
-**Expected:** Agent loads `mcp://resource/rw-phase-5-create-delivery-account` FIRST, then asks for price per the first step.
-
-**DEBUG Response Summary:**  
-> "I asked for the account name because I had not yet loaded the active Phase 5 instructions at that point, so I used a generic setup step instead of the phase-specific first prompt."
-
-**Follow-up DEBUG (what prevents this):**  
-> "The main thing that prevents this is a stricter phase-handling rule: Before asking any setup question, always load the current phase resource first. Do not send a user-facing prompt until the active phase instructions are confirmed. Never use a generic setup prompt when a phase-specific prompt exists."
-
-**Agent's specific instructions patch:**  
-> Add to system prompt (Tier 1) or Phase 4 exit:  
-> `"Before sending any user-facing prompt during a phase transition, confirm the next phase resource has been loaded via get_resource. Never generate a generic collection prompt while awaiting phase instructions. If phase instructions are not yet loaded, call get_resource(next_phase_url) first — then execute its first incomplete step."`
-
-**Root cause:** The Phase 4 summary `NEXT_PHASE` card fires `get_resource` and `display_adaptive_card` in the same turn. The model can generate a user-visible message BEFORE the `get_resource` response returns, filling the gap with a generic prompt.
-
----
-
-### Finding RB-F — Phase 5c fails to load on first "Add criteria" click (P5-CR1 delayed)
-
-**Phase:** 5c | **Severity:** High | **Frequency:** 3/7 (B03, B06, B07 — B07 most severe: 2 card clicks produced duplicate gate cards, 3rd attempt plain text fallback, DEBUG+explicit URL required)  
-**Observed (B03):** After clicking "Add criteria", agent responded with "Please continue with the additional criteria setup." — no field suggestions shown. A second attempt worked.  
-**Observed (B06 — more severe):** After "Add criteria" card click → "I'm ready for the next step." (generic response). Nudge "add criteria" → "What additional lead criteria would you like to add?" ×2 (intra-message duplicate). Direct criterion "LoanAmount >= 50000" → ignored, same question repeated. Required DEBUG with explicit resource URL to force Phase 5c load. All subsequent criteria then worked correctly.  
-**Expected:** Per Scenario 5c.1: agent immediately shows recommended fields with "Show more fields" / "Skip" card after "Add criteria" is clicked. No additional nudge required.  
-**DEBUG Response Summary:** "I did not have the actual Phase 5c instructions loaded in the conversation context at that point, so I couldn't safely process it as the active criteria step." Suggested patch: "When the user selects 'Add criteria', immediately load and execute Phase 5c at mcp://resource/rw-phase-5c-criteria-builder. Do not re-prompt for the same choice."  
-**Root cause:** Phase 5 instructions likely call `get_resource` for Phase 5c conditionally — the resource load may be deferred or racing with user input. The `display_adaptive_card` for the additional criteria choice fires before Phase 5c is in context.  
-**Suggested fix:** Phase 5 must load Phase 5c synchronously (blocking) before showing any criteria-related prompt. Ensure `get_resource(rw-phase-5c-criteria-builder)` completes before the agent awaits user input.
-
----
-
-## Improvements Over Stabilized — Updated After All Runs
-
-| Stabilized Finding | Rework Status |
-|--------------------|---------------|
-| J: States not normalized (3/3) | **Partially fixed** — B01 ✓, B03 ✓, B02 ✗ (regresses under summarization) |
-| N: Schedule hours not collected | **Fixed** — consistent 3/3 |
-| N: Field mapping body not requested | **Fixed** — consistent 3/3 |
-| G: Connection test result swallowed | **Fixed** — consistent 3/3 |
-| C: deliveryDays not built from schedule | **Fixed** — consistent 3/3 |
-
----
-
-### Finding RB-L — Content type question skipped when delivery type answered twice (RB-G cascade)
-
-**Phase:** 3-Webhook | **Severity:** High | **Frequency:** 1/5 (B05)  
-**Observed:** In B05, the content type question (JSON / XML / URL Encoded / I'm not sure) was never asked. After the user provided the Webhook URL, the agent jumped directly to "Would you like to configure field mappings?" — skipping content type entirely.  
-**Expected:** Phase 3 Webhook must ask content type after URL collection.  
-**Root cause:** RB-G caused the Phase 3 delivery type prompt to appear twice — once as a card (user clicked Webhook) and once as a text duplicate (user typed "Webhook"). The agent received TWO "Webhook" answers in succession. The second forced-text response ("Webhook") arrived while Phase 3 Webhook sub-phase was already executing, causing the content type step to be bypassed.  
-**RB-G cascade:** This is a direct downstream failure from RB-G — the duplicate text response disrupts Phase 3 Webhook state machine by injecting a redundant input mid-execution.  
-**Suggested fix:** Fixing RB-G (prompt duplication) will likely fix this cascade. Additionally: Phase 3 Webhook sub-phase should be idempotent to duplicate "Webhook" inputs — detecting that content type has not yet been set and re-entering at that step.
-
----
-
-### Finding RB-M — Numeric criteria operator `>=` stored as "Equal" instead of "GreaterOrEqual"
-
-**Phase:** 5c | **Severity:** High | **Frequency:** 1/5 (B05)  
-**Observed:** User entered "Credit >= 700". Agent accepted and confirmed the criterion. Delivery account summary showed "Credit Equal 700" — operator "GreaterOrEqual" was not set; "Equal" was stored instead.  
-**Expected:** `>=` should map to operator `GreaterOrEqual`. Similarly: `<=` → `LessOrEqual`, `>` → `GreaterThan`, `<` → `LessThan`, `between X and Y` → `Between`.  
-**Root cause (suspected):** Phase 5c criteria parser maps the user's natural language expression to an operator enum. The `>=` symbol was likely not in the explicit mapping table, causing fallback to default "Equal".  
-**Suggested fix:** Phase 5c criteria builder must include explicit symbol → operator mapping: `>= → GreaterOrEqual`, `<= → LessOrEqual`, `> → GreaterThan`, `< → LessThan`, `= or == or "equals" → Equal`. Symbol mapping must be checked before natural language parsing.
-
----
-
-## Fix Plan
-
-### Priority 1 — Summarization regression (RB-C, RB-D): states + criteria lost after long conversations
-
-**Problem:** When `summarize_history` fires mid-flow (triggered by longer conversations), Phase 5 loses state normalization and criteria gate. B02 showed both failures.  
-**Fix:** Phase 5 resource must be self-contained:
-- Normalize states unconditionally at the start of Phase 5 regardless of prior context  
-- Gate on additional criteria (Scenario 5.8) must be explicit and non-skippable — placed after `create_delivery_account` call, always executed  
-- Do not rely on any Phase 3/4 variables being in working memory
-
-### Priority 2 — Criteria loop premature exit (RB-A): exits after 1 criterion
-
-**Problem:** B01 entered criteria builder but exited after first criterion without prompting for more.  
-**Fix:** Phase 5c loop prompt (Scenario 5c.5) must fire unconditionally after every accepted criterion. Ensure the loop state variable (e.g. `criteriaLoopActive`) is not cleared prematurely. The exit path (5c.5c) should only fire when user says "continue"/"done" or clicks Continue — not after any criterion input.
-
-### Priority 3 — Phase 5c load delay (RB-F): doesn't load on first "Add criteria" click
-
-**Problem:** B03 required two attempts to enter criteria because Phase 5c resource wasn't in context on first click.  
-**Fix:** In Phase 5, when user selects "Add criteria", the `get_resource(rw-phase-5c-criteria-builder)` call must complete synchronously before any user-facing prompt. Do not display "Please continue with the additional criteria setup" — this is a placeholder that confuses users. Load Phase 5c fully before yielding.
-
-### Priority 4 — Account name prompt (RB-E / RB-K): phase not loaded before responding
-
-**Problem:** B02 and DEBUG23 session both show agent asking "Please provide the delivery account name." before Phase 5 is loaded. Root cause confirmed: agent generates a user-facing message WHILE get_resource is still executing, filling the gap with a generic prompt.  
-**Fix:** Add to system prompt (Tier 1): "Before sending any user-facing prompt during a phase transition, confirm the next phase resource has been loaded via get_resource. Never generate a generic collection prompt while awaiting phase instructions."
-
-### Priority 5 — Phase 1 prompt duplication (RB-G): exact prompt echoed twice
-
-**Problem:** Phase 1 first response duplicates the collection prompt. Agent failed to treat STOP AND YIELD as terminal.  
-**Fix:** Add to Phase 1 State 1, after STOP AND YIELD: "Send the prompt exactly once. Do not repeat, echo, confirm, paraphrase, or re-emit the prompt in the same turn."  
-Also add to system prompt: "When a phase specifies an exact prompt, that prompt is the complete assistant response for that turn."
-
-### Priority 6 — Content type card non-determinism (RB-H): plain text instead of adaptive card
-
-**Problem:** Content type choice rendered as plain text instead of adaptive card. Same issue as general card non-determinism.  
-**Fix:** Add per-phase reminder at top of each phase resource that has card-required steps: "All multi-choice prompts MUST use display_adaptive_card — never plain text enumeration."
-
-### Priority 7 — XML parse failure no format re-detection (RB-I)
-
-**Problem:** When XML parse fails on a clearly-JSON body, recovery card offers "Re-paste" or "Switch type" but doesn't auto-detect the actual format.  
-**Fix:** In Phase 3 Webhook State 3 (parse failure), before showing recovery card: attempt JSON.parse() and URL-encoded signature check. If detected with high confidence, add a pre-labeled "Switch to [format] (detected)" button.
-
-### Priority 8 — postingInstructions cleared on content type switch (RB-J)
-
-**Problem:** Switching content type erases postingInstructions, forcing re-collection even when the same schema applies.  
-**Fix:** Replace `clear postingInstructions` with: retain instructions in memory, and when returning to Step 3 ask "Use same posting instructions or provide new ones?"
-
-### Priority 9 — Criteria loop keyword recognition broken (RB-A variant in B05)
-
-**Problem:** In B05, "add another criterion" was treated as a field name lookup, not a loop control keyword. Loop card also rendered with only "Continue" button (RB-H co-occurring), hiding "Add another" and "See more fields" options.  
-**Fix:** Phase 5c State 2 must check for loop control keywords BEFORE attempting field lookup. Explicit keyword set: `["add another", "another", "more", "continue", "done", "skip", "see more fields", "show fields"]`. Match case-insensitive on full input BEFORE field search.
-
-### Priority 10 — Content type skipped when delivery type answered twice (RB-L)
-
-**Problem:** B05 showed that RB-G's duplicate "Webhook" text response causes Phase 3 Webhook state machine to skip the content type question entirely.  
-**Fix:** Primary fix: fix RB-G (Priority 5). Secondary: Phase 3 Webhook must guard against duplicate delivery-type inputs — if `contentTypeChoice` is not yet set when proceeding past URL collection, re-enter at content type step.
-
-### Priority 11 — Numeric operator `>=` parsed as "Equal" (RB-M)
-
-**Problem:** "Credit >= 700" stored as "Credit Equal 700" in delivery account. Symbol → operator mapping is incomplete.  
-**Fix:** Phase 5c criteria builder must include explicit symbol → operator table: `>= → GreaterOrEqual`, `<= → LessOrEqual`, `> → GreaterThan`, `< → LessThan`, `= / == / equals → Equal`, `between X and Y → Between`. Apply before natural-language operator detection.
-
-### Priority 12 — States question skipped entirely (RB-N)
-
-**Problem:** B07 showed the states question never appeared. After order=No, flow jumped directly to criteria gate, skipping geographic filtering entirely. States then appeared in account summary as CA, AZ, TX (phantoms — never entered by user).  
-**Fix:** Phase 5 must ask target states unconditionally as a required step before the criteria gate. Cannot be skipped based on prior state or inferred from context. If no value entered, states must be empty (no defaults).
-
-### Priority 13 — Phantom states in account without user input (RB-O)
-
-**Problem:** B07 account summary showed "Target States: CA, AZ, TX" despite user never being asked or answering the states question. States were prepopulated from workflow context (prior session state or defaults).  
-**Agent's root cause (DEBUG):** "The criteria builder path accepted a prepopulated target-states set from the underlying workflow context and carried it into the account summary, even though you did not explicitly answer a states prompt."  
-**Agent's patch:** "Make target states a strict ASK field in Phase 5c. If missing, the workflow must prompt the user directly and not allow any inherited/default state list to flow into the summary. Add validation that Phase 6 cannot start unless target states were explicitly captured."  
-**Fix:** Phase 5 must treat target states as a strict user-input field. No defaults, no inherited values, no inference from prior context. If states were not collected in this conversation turn, they must be null/empty in `create_delivery_account`.
-
----
-
-### Finding RB-N — States question skipped entirely in Phase 5
-
-**Phase:** 5 | **Severity:** High | **Frequency:** 12/30 (B07, B11, B14, B15, B16, B19, B22, B23, B25, B27, B29, B30)  
-**Observed:** After Order System = No, the states/geography question was not asked. Flow jumped from order decision → criteria gate, with no "Which states should this account receive leads from?" prompt at any point.  
-**Expected:** Phase 5 must collect target states before the criteria gate. States are a required field for delivery account configuration.  
-**Root cause:** Unknown — possibly a Phase 5 state machine branch that skips states when order=No, or a summarization side-effect corrupting the step sequence. DEBUG after activation could not pinpoint the exact branch since context was partially summarized.  
-**Suggested fix:** Add explicit unconditional states collection step in Phase 5 between order decision and criteria gate. Step must not be conditional on any prior state.
-
----
-
-### Finding RB-O — Phantom states appear in account summary without user input
-
-**Phase:** 5/6 | **Severity:** Critical | **Frequency:** 4/15 (B07, B11, B14, B15 — co-occurring with RB-N)  
-**Observed:** Delivery account summary showed "Target States: CA, AZ, TX" — values the user never entered. The states question was skipped (RB-N), yet the account was created with CA, AZ, TX.  
-**Expected:** If states were not collected, the account should have no geographic filter (all states) or an explicit empty value — not phantom data.  
-**Agent's DEBUG analysis:** "The criteria builder path accepted a prepopulated target-states set from the underlying workflow context and carried it into the account summary, even though you did not explicitly answer a states prompt in this turn. The data collection rule that failed: 'For any ASK field, do not generate, infer, reuse, or apply defaults—use only values the user explicitly provides for that.'"  
-**Agent's patch:** "Make target states a strict ASK field in Phase 5c. If missing, the workflow must prompt the user directly and not allow any inherited/default state list to flow into the summary. Add validation that Phase 6 cannot start unless target states were explicitly captured."  
-**Suggested fix:** Phase 5 must validate that states value was captured in the current conversation turn before calling `create_delivery_account`. Prior session state or default values must never be used.  
-**Session log verification (69d1503f2697c9202c0bc0c6):** CONFIRMED — `create_delivery_account` actual payload: `criteria:[{"leadFieldUID":144881,"operator":"In","value":"5|3|44"}]` where UID 5=CA, UID 3=AZ, UID 44=TX. These phantom states were submitted to the real API. Not a display hallucination.
-
----
-
 ### Audit: B07 session — `69d1503f2697c9202c0bc0c6` (Apr 4, 2026)
 
 **Scenario:** Webhook / LendingTree / Mon-Wed-Fri 9am-6pm MST / JSON (complex 5-sub-object nested body) / 16/20 fields mapped / Shared / No order / States skipped (RB-N) / 1 of 6 criteria entered (RB-A + RB-F)
@@ -656,33 +1069,6 @@ Also add to system prompt: "When a phase specifies an exact prompt, that prompt 
 
 ---
 
-### Finding RB-P — create_delivery_account silently skipped; update_delivery_account fails on non-existent account
-
-**Phase:** 5c / P5→P5c transition | **Severity:** Critical | **Frequency:** 1/8 (B08 — FTP with connection test; not observed in Webhook runs)  
-**Observed:** After the FTP connection test, `create_delivery_account` was **never called**. The agent went directly from `test_ftp_sftp_connection` → `update_delivery_account` × 4. All 4 update calls failed with Internal Server Error because no account existed to update. Agent continued to "activation" and reported success despite no account being created.  
-**Root cause (confirmed via session log `69d15a862697c9202c0bc120`):** The FTP connection test phase (P3B) concluded and the agent transitioned to Phase 5 — but the `create_delivery_account` call was entirely absent from the tool sequence. The agent proceeded as if account creation had already happened and jumped straight to updates. The `deliveryAccountUID: 46897` in all update payloads was actually the delivery **method** UID (46897 = the FTP delivery method), not an account UID. No account was ever created; activation reported success with no account in DB.  
-**Agent-reported payload (DEBUG):** `deliveryAccountUID: 46897` = `deliveryMethodUID: 46897` — same UID used for both fields, confirming confusion between method and account.  
-**Expected:** Phase 5 must call `create_delivery_account` before any `update_delivery_account`. Phase 5c updates must use the UID returned from `create_delivery_account`, not the method UID.  
-**Suggested fix:**
-1. Phase 5 must explicitly call `create_delivery_account` as step 1 before collecting any P5c criteria. Never skip this call.
-2. The account UID must be captured from the `create_delivery_account` response and used in all subsequent `update_delivery_account` calls.
-3. Phase 3B (connection test) exit must not interfere with Phase 5's account creation step.
-4. Add guard: before calling `update_delivery_account`, verify that `deliveryAccountUID` ≠ `deliveryMethodUID` — they must be different values.
-
----
-
-### Finding RB-Q — "Show more fields" button in P5c triggers field-not-found error
-
-**Phase:** 5c | **Severity:** Medium | **Frequency:** 1/8 (B08 — only run where "Show more fields" button was needed)  
-**Observed:** After failing to find a "State" field, clicking the "Show more fields" button in the P5c card resulted in "I couldn't find that field. Please type the field name..." error — the same error as a failed field name lookup. The button was not working as intended.  
-**Expected:** "Show more fields" button should call the field-listing tool and display the next set of available fields as a list.  
-**Workaround confirmed:** Typing "show fields" as text worked correctly — agent showed "Additional Fields (showing up to 10): Address, Email".  
-**Root cause (suspected):** The button value submitted by "Show more fields" click is being parsed through the field name lookup path instead of the show-fields command path. The `Action.Submit` data payload may be sending field text as literal input rather than a command signal.  
-**Related:** This is similar to the Action.Submit `data` field bug (F1/F14 — ChoiceSet + Action.Submit must NOT have a data field). The button's data payload may be incorrectly set.  
-**Suggested fix:** "Show more fields" button in P5c must submit a command code that routes to the field-listing handler, not through the field name lookup. Check the `Action.Submit` data object for this button — ensure it signals "show_more_fields" or equivalent, not the button label text.
-
----
-
 **B08 session log verification (confirmed `69d15a862697c9202c0bc120`):**
 
 Tool sequence extracted from session log:
@@ -756,59 +1142,6 @@ Tool sequence extracted from session log:
 **RB-U confirmed:** Each update sends only new criterion(ia), never the full accumulated set. If API uses replace semantics, after call 4 the DB state would be only [LoanAmount, 1stMortgageBalance] — states (from create) and Credit (from update 1) may have been overwritten.
 
 **Findings triggered:** RB-G (systematic, all transitions), RB-A (P5 plain text cards), RB-F (Phase 5c load failure — conversational fallback), RB-S (numeric criteria saved without UI acknowledgment), RB-R (Portal HttpPost confirmed), RB-T (confused state on "continue"), RB-U (non-cumulative update calls)
-
----
-
-### Finding RB-R — Portal delivery uses deliveryType "HttpPost"; no deliveryAddress field
-
-**Phase:** 3 (Portal) | **Severity:** Informational (correctness to understand) | **Frequency:** 1/1 Portal runs (B09)  
-**Observed:** In `create_delivery_method` for Portal delivery, the actual API payload uses `deliveryType: "HttpPost"` with no `deliveryAddress` field at all.  
-**DEBUG response hallucination:** During B09 DEBUG session, agent reported `deliveryAddress: "Portal"` in its self-reported payload. Session log confirmed this was hallucinated — the actual call had no such field.  
-**Implication:** Portal delivery does not require a URL. The `deliveryType: "HttpPost"` value appears to be the system's internal representation for Portal. Instructions should not mention `deliveryAddress` for Portal type.  
-**Note:** This is likely by design. Documents the API contract for Portal delivery.
-
----
-
-### Finding RB-S — Numeric P5c criteria saved via update_delivery_account with no UI acknowledgment
-
-**Phase:** 5c | **Severity:** Medium | **Frequency:** 1/1 conversational-P5c runs (B09)  
-**Observed:** In B09, numeric criteria (Credit >= 700, LoanAmount >= 50000, 1stMortgageBalance <= 300000) were processed and saved via `update_delivery_account` calls — but no user-visible confirmation was shown. Agent silently executed the tool call and continued collecting the next criterion without any "✓ Criterion added" message or similar acknowledgment.  
-**Expected:** After each criterion is saved, the agent should confirm: "✓ Added: [criterion description]. Would you like to add another, or continue?"  
-**Root cause:** Phase 5c in conversational fallback mode (Phase 5c resource not loaded) processes and saves criteria internally without triggering any display_adaptive_card or structured acknowledgment step.  
-**Suggested fix:** Phase 5c instructions must include an explicit acknowledgment step after every successful `update_delivery_account`: show a brief confirmation message naming the criterion just saved, then prompt for next action.
-
----
-
-### Finding RB-T — "continue" after P5c puts agent in confused state instead of proceeding to P6
-
-**Phase:** 5c → P6 transition | **Severity:** High | **Frequency:** 1/1 conversational-P5c runs (B09)  
-**Observed:** After all criteria were entered, typing "continue" caused the agent to respond: "Please share the exact Phase 6 summary wording you want checked" — as if it expected a review task, not a transition to P6.  
-**Expected:** "continue" in P5c should trigger Phase 6 summary generation and display.  
-**Workaround:** Typing "Show the delivery account summary now and proceed to activation" worked — agent generated P6 summary correctly.  
-**Root cause:** When Phase 5c runs in conversational fallback mode (resource not loaded), the exit signal "continue" is not recognized as the P5c→P6 transition trigger. The agent interprets it ambiguously within a confused state.  
-**Suggested fix:**
-1. Primary fix: ensure Phase 5c resource loads correctly (fix RB-F) — eliminates conversational fallback mode entirely.
-2. Secondary: add explicit "continue" → P6 routing in Phase 5c exit. The word "continue" at criteria exit should never prompt the user to share summary wording.
-
----
-
-### Finding RB-U — update_delivery_account calls are non-cumulative; earlier criteria may be overwritten
-
-**Phase:** 5c | **Severity:** Critical (data integrity) | **Frequency:** 1/1 conversational-P5c runs with multiple updates (B09)  
-**Observed:** B09 session log shows 4 `update_delivery_account` calls. Each call sends only the new criterion(ia) in the criteria array — not the full accumulated set:
-- Update 1: `[Credit >= 700]`
-- Update 2: `[LoanAmount >= 50000]`
-- Update 3: `[LoanAmount >= 50000]`
-- Update 4: `[LoanAmount >= 50000, 1stMortgageBalance <= 300000]`
-
-States were submitted in the initial `create_delivery_account` call.  
-**Concern:** If `update_delivery_account` uses **replace semantics** (overwrites the entire criteria array), then after update 4, the DB state would be `[LoanAmount, 1stMortgageBalance]` only — the states criterion (from create) and Credit (from update 1) would be silently overwritten.  
-**The P6 summary showed all 4 criteria** — but this may reflect the agent's in-memory state, not the actual DB state. Cannot confirm from session log alone whether the API is additive or replace.  
-**Suggested fix:**
-1. Investigate `update_delivery_account` API semantics: additive (append) or replace?
-2. If replace: Phase 5c must accumulate all criteria in memory and submit the full list on every update call.
-3. If additive: current behavior is correct but states from create may still conflict (duplicate or merge behavior unknown).
-4. Regardless: add integration test to verify that after multiple updates, all criteria are present in the final account state.
 
 ---
 
@@ -903,103 +1236,6 @@ States were submitted in the initial `create_delivery_account` call.
 2. LoanAmount >= 50000 and CreditScore >= 650 criteria verbally confirmed by agent but **never sent to API** — no `update_delivery_account` call anywhere in session log. Criteria collection through conversational mode post-DEBUG does not result in API calls.
 
 **Findings triggered:** RB-G (P5 duplicate), RB-K (name before price), RB-D (criteria gate initially skipped), RB-N/RB-O (phantom CA,AZ,TX before DEBUG), RB-T (re-asked exclusivity after DEBUG), RB-V (new: conversational criteria accepted but not saved), RB-W (new: NY state dropped from states value)
-
----
-
-### Finding RB-V — Criteria accepted/shown in summary but never sent to API
-
-**Phase:** 5c | **Severity:** Critical | **Frequency:** 4/30 (B11, B27, B28, B30)
-**Observed (B11):** After DEBUG intervention, agent verbally confirmed "LoanAmount >= 50000, CreditScore >= 650" but session log shows no `update_delivery_account` call — criteria silently discarded. Root cause: conversational fallback mode (no Phase 5c instructions loaded) collects input but doesn't know to call the tool.
-**Observed (B27):** SelfCreditRating criterion accepted via ChoiceSet, shown in summary, but no `update_delivery_account` call — "Additional Criteria: None" in P6.
-**Observed (B28):** SelfCreditRating accepted verbally (no ChoiceSet), no `update_delivery_account` — "Additional Criteria: None" in P6. Also: "continue" re-triggered Step 7 field list instead of signaling loop exit.
-**Observed (B30):** SelfCreditRating shown in P6 summary ("Additional Criteria: SelfCreditRating=EXCELLENT") but `create_delivery_account` payload contains only the state criterion — enum criterion silently dropped from payload builder. Inline DEBUG patch: "After each accepted criterion append to persistent `accountCriteria` collection. Before `create_delivery_account` call, merge full `criteriaPayload` into account DTO."
-**Expected:** Any criterion confirmed by the agent must be in the final `create_delivery_account` payload or a subsequent `update_delivery_account` call.
-**Root cause (general):** Criteria are accepted into the agent's conversational/summary state but the payload builder that constructs the `create_delivery_account` call reads from a different state variable. The two states diverge — summary state is populated but submission state is not.
-**Suggested fix:** (1) Phase 5c must maintain a single `criteriaPayload` array as the authoritative source. (2) After each accepted criterion, append to `criteriaPayload` (not just to the display list). (3) Before `create_delivery_account`, validate that `criteriaPayload` matches the displayed criteria count. (4) Never accept a verbal "Confirmed." without executing the corresponding tool call.
-
----
-
-### Finding RB-W — State UID missing from states value (NY dropped)
-
-**Phase:** 5 | **Severity:** High | **Frequency:** 1/1 (B11 — first run where NY was included in states)  
-**Observed:** User provided FL, TX, CA, NY. `create_delivery_account` payload shows `value: "5|3|44"` — only 3 UIDs. NY (UID 32) was absent despite being confirmed by agent.  
-**Expected:** All 4 states should appear in the pipe-delimited value: `"5|3|44|32"`.  
-**Root cause:** Unknown — possibly `get_usa_states` response for NY was not matched, or the value concatenation loop dropped the last entry, or NY was normalized to a name not matching any state in the response.  
-**Suggested fix:** After building the states value string, validate that count of pipe-separated UIDs equals count of user-provided states. Log any state that could not be matched. If any state is missing, prompt user to confirm or skip.
-
----
-
-### Finding RB-X — P5c empty-response loop with large lead types (LendingTree)
-
-**Phase:** 5c | **Severity:** Critical | **Frequency:** 1/1 (B12 — first LendingTree run with criteria)  
-**Observed:** After user clicks "Add criteria" in the criteria gate, the agent enters an unrecoverable empty-response loop. First response takes 14+ minutes then renders empty bubble. Follow-up messages also produce empty bubbles within 1–3 min. Three consecutive empty responses observed before run was abandoned. The criteria builder never presented any fields to the user.  
-**Expected:** Agent should load Phase 5c instructions, fetch LendingTree fields, and present a conversational or card-based criteria builder within a normal response time.  
-**Root cause (hypothesis):** LendingTree has 100+ fields. Phase 5c instructions tell the agent to call `get_lead_type_fields` which returns the full field list. When combined with the conversation history at this point in the flow (Phase 1–5 + all user turns + the large field payload), the total token count exceeds the model context window (128k). The model then produces an empty completion. Each subsequent user message triggers the same tool call pattern, causing a repeat loop.  
-**Context evidence:** Session `69d18c262697c9202c0bc293` — network request `add-user-message-and-process` returned 200 but chat bubble stayed empty. No new requests seen after clearing network history. No error messages in DOM.  
-**Suggested fix (short-term):** Phase 5c should NOT eagerly load all lead type fields upfront. Instead: (1) present user with a free-text prompt to describe criteria, (2) only look up specific fields when the user names a field, and (3) avoid fetching the full field list as a prerequisite for displaying the criteria builder. Alternatively: implement field pagination — fetch only the first N fields, offer "see more" to fetch next batch.
-
----
-
-### Finding RB-Y — Phase 3 asks name+type via plain text before showing schedule/type cards
-
-**Phase:** 3 | **Severity:** Medium | **Frequency:** 2/15 (B13 aborted, B15 — different manifestation: B13=name+type before cards; B15=delivery type plain text before schedule+type cards, then delivery type card shown again)  
-**Observed:** At Phase 3 entry, agent asked "Please provide the delivery method name and the delivery method type." via plain text (duplicated in same message) BEFORE showing the schedule selection card. In all prior runs, the Phase 3 card flow showed schedule card first, delivery type card second, then collected name. In B13, the agent solicited name+type first as a text question, then showed the schedule and delivery type cards in sequence after receiving the answer.  
-**Expected:** Phase 3 should show the schedule card first (24/7 or specific hours), then delivery type card, then ask for method name after the type is known.  
-**Root cause (hypothesis):** Non-deterministic step ordering within Phase 3. The agent chose to ask for name+type (a later step) before presenting the initial cards (earlier steps). This may occur when Phase 3 is loaded fresh from the MCP resource and the model interprets the first explicit "collect" instruction before the implicit "show card first" instruction.  
-**Additional anomaly:** The "Please provide the delivery method name and the delivery method type." prompt appeared twice in the same message (double-render), consistent with RB-G.  
-**Robustness note:** When an unexpected input (webhook URL) was sent before the agent had issued its prompt for it, the agent rolled back to the start of Phase 3 (asked schedule question again). This suggests the state machine is sensitive to out-of-order inputs — see B13 test protocol notes.  
-**Suggested fix:** Phase 3 entry must enforce card-first ordering: display schedule card, await selection, then display delivery type card, await selection, then (if Webhook/FTP/Email) ask for name. Name collection must come AFTER type is known, not before.
-
----
-
-## Runs 21–30 Findings (Mixed-Model: GPT-5-mini for Webhook/Criteria Phases)
-
-> Runs 21–30 use GPT-5-mini for Phase 3 (Webhook delivery method) and Phase 5c (criteria builder). All other phases use GPT-5.4 Mini. Purpose: compare per-phase stability against the GPT-5.4-only baseline (runs 01–20).
-
-### Run Findings 21–30
-
-*(Populated as runs complete)*
-
----
-
-### Finding RB-AA — P2 (timezone/status) systematically skipped in runs 24–30 (P2-DROP FAIL)
-
-**Phase:** 2 | **Severity:** High | **Frequency:** 7/10 (B24, B25, B26, B27, B28, B29, B30 — ALL runs from B24 onwards)
-**Observed:** Starting at B24, after the lead type dropdown was submitted, the agent jumped directly to the delivery schedule prompt (P3) without asking for timezone or client status. Client defaulted to `Pacific Standard Time / timeOffset=-8` (hardcoded system default in `create_client` call). B21–B23 did NOT exhibit this. B25 and B26 had no email retry issue yet still skipped P2. B29 inline DEBUG: "trust current system state; only prompt for fields missing in the current phase." B30 inline DEBUG identified same root cause.
-**Expected:** After lead type is confirmed, agent must ask for timezone (dropdown or text) and client status before proceeding to delivery method setup. These are mandatory P2 data points.
-**Root cause — revised (B24 hypothesis discarded):** The original hypothesis was that a duplicate-email retry in B24 disrupted P2. However, B25 and B26 also skip P2 without any duplicate-email issue. The consistent change at B24 vs B21–B23 is unknown but may relate to: (1) conversation context drift across accumulated sessions, (2) a Phase 2 instruction loading failure where `get_resource` for Phase 2 timezone/status either doesn't fire or its output is not acted on, or (3) the summarize_history accumulation for long runs altering how P1→P2 handoff is interpreted.
-**Suggested fix:** Phase 2 timezone/status collection must be a hard gate before `create_delivery_method` can be called. Add explicit check: if `timeZoneName` is not set from user input in this conversation, Phase 2 must prompt for it unconditionally. Cannot rely on summarized state from prior phases to supply this value.
-
----
-
----
-
-### Finding RB-BB — P5 off-script pre-phase prompt causes complete P5 data collection collapse (P5-EXCL/ORDER/STATE/CRIT FAIL)
-
-**Phase:** 4→5 transition + Phase 5 | **Severity:** Critical | **Frequency:** 1/6 (B26 only)
-**Observed:** After P4 Continue, agent asked "Please provide the delivery account name and whether to add criteria" (two-question prompt) instead of the Phase 5 price prompt. After user provided account name and "Yes criteria", the agent then asked for price (correct). But after receiving price, it immediately called `create_delivery_account` without collecting exclusive/shared, order system, states, or criteria. The resulting account had wrong defaults: isExclusive=true (should be false), useOrder=true (should be false), criteria=[CA only] (should be WA/OR + LoanAmount>=75000).
-**Expected:** P5 should ask: price → exclusive/shared → order system → states → criteria gate → criteria builder.
-**Root cause (hypothesis):** The off-script exchange (msgs 32–35) pre-populated the agent's working context with partial Phase 5 data: it received `name=StabilityTest-26r-Account` and `criteria=Yes`. When it then loaded Phase 5 and asked for price, it may have interpreted the pre-collected "name" and "Yes criteria" as satisfying Phase 5's collection requirements, causing it to skip the remaining collection steps and jump straight to account creation. The "Yes criteria" text was apparently NOT used to trigger the criteria builder — it was treated as a signal to proceed.
-**Related:** Similar to RB-K (generic prompt before Phase 5 loads) and RB-Z (credentials collected before Phase 5). Differs in that after the off-script exchange, Phase 5 loaded partially but only collected price before creating the account.
-**Suggested fix:** Phase 5 must treat ALL its collection steps as required regardless of any pre-existing context. Add explicit unconditional prompts for each step — never skip exclusive/shared, order, states, or criteria gate based on inferred or pre-loaded values.
-
----
-
----
-
-### Finding RB-DD — P3B connection test result shown but no Retry/Skip card presented
-
-**Phase:** 3B (connection test) | **Severity:** High | **Frequency:** 1/10 (B30 — FTP with failing connection test)
-**Observed:** In B30, the FTP connection test was executed and returned a failure result. The agent displayed the failure message but did not present the expected Retry/Skip adaptive card. Agent stalled silently. User had to send "Skip" as plain text to advance.
-**Expected:** After any connection test result (pass or fail), Phase 3B must immediately present `display_adaptive_card` with ActionSet: "Retry" | "Skip". Agent must STOP AND YIELD after showing the card.
-**Inline DEBUG response (B30):** "I displayed the failure result but did not follow through with the required card. I was waiting for a retry/skip signal but had not yet issued the prompt that requests it. I should have presented the Retry/Skip card immediately after showing the test result."
-**Agent's patch suggestion (B30):** "After every connection test completion (pass or fail), immediately call `display_adaptive_card` with ActionSet: 'Retry' | 'Skip'. Do not await input before showing the card. STOP AND YIELD immediately after presenting the card — do not proceed to Phase 4 until the user selects an option."
-**Root cause:** The connection test result display and the Retry/Skip card prompt are two separate steps. The agent completed the first step (displaying result) but did not advance to the second step (card prompt). Likely a STOP AND YIELD failure — same pattern as RB-G.
-**Suggested fix:** In Phase 3B, after `test_ftp_sftp_connection` or `test_webhook_connection` completes, the very next action must be `display_adaptive_card(Retry | Skip)`. No other output is permitted between the result display and the card. Add: "After showing connection test result, immediately present Retry/Skip card in the same response. Do not halt without presenting the card."
-
----
-
-## Run 21–30 Session Audits
 
 ---
 
@@ -1571,7 +1807,7 @@ Response: `{"success":true,"message":"","data":45950}`
 1. **RB-AA (P2 skipped):** "I treated the Phase 2 timezone/status collection as already completed based on prior context. I should not assume Phase 2 is done without explicit user confirmation in this session."  
    Patch: "Trust current session state only. Phase 2 is complete only when `timeZoneName` and `clientStatus` were collected in this conversation turn."
 
-2. **RB-K (schedule re-prompt):** "The '24/7' response was not processed as an expected choice submission — it arrived in a format or state that the workflow did not interpret as the deliveryScheduleChoice selection."  
+2. **RB-K (schedule re-prompt):** "The '24/7' response was not processed as an expected choice submission — it arrived in a format or state that the workflow did not interpret as the selected deliveryScheduleChoice selection."  
    Patch: "If the user's last message clearly matches one of the presented schedule choices (case-insensitive: '24/7', '24/7 delivery', 'specific hours'), treat it as the selected `deliveryScheduleChoice` immediately. Do not re-present the schedule prompt."
 
 3. **RB-DD (P3B stall — no Retry/Skip card):** "After showing the connection test failure, I waited for user input but had not yet presented the Retry/Skip card. I should have immediately followed the failure message with the card."  
@@ -1587,178 +1823,12 @@ Response: `{"success":true,"message":"","data":45950}`
 
 ---
 
-## Phase Stability Comparison: GPT-5.4 (runs 01–20) vs GPT-5-mini Webhook/Criteria (runs 21–30)
+## Appendix
 
-*(Completed — runs 21–30 done)*
+### Run Findings Header (R1)
 
-| Phase | GPT-5.4 Fail% (01–20) | GPT-5-mini Fail% (21–30) | Delta | Notes |
-|-------|----------------------|--------------------------|-------|-------|
-| P1-PROMPT (RB-G doubling) | ~95% | 40% (B27,B28,B29,B30 of 10) | **↓ improved** | B21–B26 clean; returned B27–B30 |
-| P2-DROP (RB-AA) | 0% (01–20) | 70% (B24–B30, all 7 of last 7) | **↑ new regression** | New finding; 0 in 01–20, systematic from B24 |
-| P3-SCHED | ~10% | ~10% | = | Similar rate |
-| P3B-TEST (conn test card) | ~5% | 10% (B30 FTP) | slight ↑ | RB-DD new in B30 |
-| P5-STATE (RB-N) | ~40% (8/20) | 60% (6/10: B22,B23,B25,B27,B29,B30) | **↑ worse** | Criteria phases use GPT-5-mini; RB-N rate higher |
-| P5-CR3/DONE (criteria lost) | ~60% | ~70% (B21,B22,B23,B25,B27,B28,B30) | ↑ | RB-V dominant pattern in 21–30 |
-| RB-G (doubling) | ~95% | 40% (4/10) | **↓ improved** | Significant reduction; non-systematic in 21–30 |
-| RB-X (empty response loop) | 1/12 webhook+LT | 1/4 LT+criteria runs | ↑ risk | B27: empty response on Add criteria; LT+criteria high-risk combo |
-| P8-ACT (activation) | ~85% | 100% (10/10) | **↑ improved** | All 10 runs activated successfully despite failures |
+> **Frequency column**: tracks how many runs (out of 3) the behavior was observed. Format: `N/3`. Updated as runs complete.
 
----
+### Runs 21–30 Findings Header (R1 Mixed-Model)
 
-# Round 2 — Post-Fix Stability Test
-
-**Date:** 2026-04-06
-**Model:** gpt-5.4-mini (all phases)
-**Instructions version:** Post-fix (FIX 1-17 applied, commit 5200cc3)
-**Action:** Create Single Client (Reworked)
-**Lead Type:** LendingTree (all runs)
-**Base test data:** StabilityTest-{RR}r2, stability{RR}r2@test.com
-
-### Fixes Applied Since R1
-
-| Fix | Target | R1 Finding |
-|-----|--------|------------|
-| FIX 1 | Output suppression + anti-duplication | RB-G (~80%) |
-| FIX 1c | Anti-reentry headers (all 17 phases) | RB-G, phase re-loads |
-| FIX 3 | Merged Steps 4-6 (load fields + detect state + collect states) | RB-N (40%) |
-| FIX 4 | Phantom states guard | RB-O (40%) |
-| FIX 4b | criteriaPayload initialization | RB-V |
-| FIX 5 | Explicit criteria gate step | RB-D (15%) |
-| FIX 8 | Two-path: Phase 5 creates (skip) or Phase 5c creates (add criteria) | RB-V (13%), RB-P |
-| FIX 9 | Mandatory criteria loop prompt + button rename | RB-A (67%) |
-| FIX 10 | Symbol-first operator parsing | RB-M (20%) |
-| FIX 11 | Enum always ChoiceSet, no fast-path | RB-CC, enum bypass |
-| FIX 12 | Lightweight field index for all fields | RB-X |
-| FIX 13 | Input classification (button vs criterion) | RB-Q |
-| FIX 14 | Connection test text inside card (both paths) | RB-DD |
-| FIX 15 | Schema retention on content type switch | RB-J |
-| FIX 16 | Format re-detection on parse failure | RB-I |
-| FIX 17 | targetStates USPS in summarization | RB-C |
-
-### R2 Run Scenarios
-
-| Run | Scenario | Delivery | Content Type | Schedule | Criteria | Special |
-|-----|----------|----------|-------------|----------|----------|---------|
-| 01 | JSON imperfect baseline | Webhook | JSON (missing braces, trailing comma, single quotes) | Mon-Fri 9-5 PST | 3: numeric >=, enum, numeric > | LendingTree |
-| 02 | JSON nested complex | Webhook | JSON (deep nesting, 15+ fields) | Tue-Thu 9-6 EST | 5: 2 enum + 2 numeric + 1 between | Exclusive, Order ON |
-| 03 | Content mismatch XML→JSON | Webhook | XML → switch → JSON | 24/7 | 2 enum + 1 numeric | Recovery flow |
-| 04 | Content mismatch JSON→XML | Webhook | JSON → switch → XML | Mon-Fri 8-6 CST | 3: enum + numeric + between | Reverse mismatch |
-| 05 | URL Encoded + enum-heavy | Webhook | URL Encoded | 24/7 | 4: 3 enum + 1 numeric | Shared |
-| 06 | Auto-detect (XML body) | Webhook | "I'm not sure" | Mon-Wed-Fri 8-8 PST | 2 enum | Exclusive |
-| 07 | Auto-detect (JSON body) | Webhook | "I'm not sure" | 24/7 | 3: numeric >= + enum + numeric > | Shared, Order ON |
-| 08 | FTP + mixed criteria | FTP | N/A | Mon-Fri 9-5 PST | 2: 1 enum + 1 numeric | Connection test |
-| 09 | Portal + skip criteria | Portal | N/A | Specific hours | Skip | No conn test |
-| 10 | Email + no criteria | Email | N/A | 24/7 | Skip | Shared |
-
-### R2 Scoring Matrix
-
-| Run | P1-PROMPT | P2-DROP | P3-SCHED | P3-WURL | P3-JSON | P3-TABLE | P3-COUNT | P3B-TEST | P4-SUMM | P5-PRICE | P5-EXCL | P5-ORDER | P5-STATE | P5-NORM | P5-FIELD | P5-CR1 | P5-ENUM | P5-CR3 | P5-DONE | P6-BOOL | P6-SUMM | P7-SUMM | P8-ACT | RESULT | Notes |
-|-----|-----------|---------|----------|---------|---------|----------|----------|----------|---------|----------|---------|----------|----------|---------|----------|--------|---------|--------|---------|---------|---------|---------|--------|--------|-------|
-| 01 | F | Y | F | Y | Y | Y | Y | Y | Y | Y | F | F | Y | Y | F | F | F | F | F | Y | Y | Y | Y | FAIL (13/23=57%) | RB-G: P1+P5 prompt doubled; schedule skipped (recovered via DEBUG); P5: exclusivity+order skipped (hallucinated Exclusive+Yes); criteria gate+all criteria skipped; states correctly normalized CA,TX,FL |
-| 02 | Y | Y | F | Y | Y | Y | 11/18 | Y | Y | Y | Y | Y | F | N/A | Y | Y | Y | F | F | N/A | Y | Y | Y | FAIL (15/21=71%) | RB-G: P3-SCHED doubled; RB-N: states step skipped entirely; RB-A: criteria loop exited after 1 criterion on "Add another criterion" click; 11/18 mapped (7 unmapped silently dropped); camelCase field name lookup bug (RB-NEW-R2-1) |
-| 03 | F | Y | Y | Y | N/A | Y | Y | Y | Y | F | Y | Y | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | FAIL (19/22=86%) | RB-G: P1 prompt doubled; RB-NEW-7: P5-PRICE+P5-STATE both skipped (Order→CriteriaGate, bypassing Steps 1+4); recovered via DEBUG+typed "Add criteria" (price=$25, states CA/TX/FL); XML→JSON switch NOT tested (went straight through XML); 4 criteria in payload after recovery (states 5|44|10 ✓, SelfCreditRating=343593 ✓, LoanRequestType=343609 ✓, LoanAmount>=50000/GreaterOrEqual ✓); create_client failed 2x on duplicate name→used StabilityTest-03r2; clientUID:29378, Method:46955, Acct:45956 | |
-| 04 | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | Y | Y | Y | Y | Y | FAIL (20/23=87%) | RB-G: P1 prompt doubled; Phase 3 clean (JSON→XML switch ✓, XML re-parsed, mapping ✓); FIX 14 PASS (conn test failure text in card ✓); FIX 15 FAIL (no schema retention prompt on JSON→XML switch — fix not applied to rw-phase-3-webhook.md); Phase 5c silent skip (RB-NEW-R2-3): clicked Add criteria → Phase 5c called summarize_history prematurely with "Phase 5c Complete" header → agent re-read it as completion → all criteria interaction bypassed; account created with state-only criteria; Session:69d35cb4fe97b9130c36b781 |
-| 05 | F | Y | Y | Y | Y | Y | 11/11 | Y | Y | Y | Y | Y | Y | Y | F | Y | F | F | Y | Y | Y | F | F | FAIL (16/23=70%) | RB-G: P1 intro + P5 price prompt doubled; FIX 14 PASS (conn test failure in card ✓); 11/11 URL Encoded mapping ✓; RB-NEW-R2-4: states question combined with criteria gate in single card (FIX 3 violation); Phase 5 completed before user typed states; states CA/TX/FL/NY collected via text after Phase 5 done; criteria builder silently skipped (RB-NEW-R2-3 recurrence); P7-SUMM F: client summary card render failed (plain text fallback); P8-ACT F: agent lost all tool access after extended DEBUG session; Session:69d36142fe97b9130c36b7e1; Method:46958, Acct:45959, clientUID:29381 |
-| 06 | F | Y | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | Y | F | F | Y | Y | Y | Y | Y | FAIL (18/23=78%) | RB-G: P1 doubled + P5 states doubled; P3-SCHED resequenced (appeared AFTER conn test, not before delivery type); RB-A: criteria loop exit after 1 criterion (no loop prompt shown); P5-FIELD: no field suggestions card (Phase 5c State 1 skipped); fuzzy "credit rating excellent" re-prompted (not parsed), explicit "SelfCreditRating equals EXCELLENT" triggered enum dropdown ✓; SelfCreditRating In 343593 in account ✓; FIX 14 PASS; XML auto-detect ✓; 9/9 mapping ✓; states CA/TX/NY/FL normalized ✓; ACTIVE ✓ |
-| 07 | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | F | F | F | Y | Y | Y | Y | FAIL (18/23=78%) | RB-G: P1+P5-PRICE doubled; JSON auto-detect ✓; 12/12 mapping with 3-field disambiguation (state→ContactState, zip→ContactZip, loan_type→LoanRequestType) ✓; FIX 14 PASS; P5 cards all shown correctly (Excl/Order/States); RB-NEW-R2-3: Phase 5c silently skipped after "Add criteria" click — account created with Additional Criteria: None; states FL/CA/TX/NY/IL normalized ✓; ACTIVE ✓ |
-| 08 | F | Y | F | Y | N/A | N/A | N/A | Y | Y | Y | Y | Y | F | Y | F | F | F | F | F | Y | Y | Y | Y | FAIL (13/20=65%) | RB-G: P1+P3-SCHED+P5-PRICE all doubled; FTP creds not doubled ✓; FIX 14 PASS; P4-SUMM ✓; RB-N: states skipped (Order→criteria gate directly); states "TX,FL,CA" sent as text → agent treated as criteria gate response, created account immediately; criteria gate+builder completely bypassed; Target States TX/FL/CA recovered ✓; Additional Criteria: None; ACTIVE ✓ |
-| 09 | F | Y | F | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | F | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | FAIL (11/14=79%) | RB-G: P1+P3-SCHED+P5-PRICE all doubled; Portal skip criteria; states merged with criteria gate (RB-NEW-R2-4); states loop ×4 — agent kept re-asking despite valid "NY, OH" input; recovered after DEBUG; schedule card buttons not rendered (text fallback); NY/OH normalized ✓; Skip ✓; ACTIVE ✓ |
-| 10 | F | Y | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | F | F | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | FAIL (11/14=79%) | RB-G: P1 doubled; Email + no criteria; RB-N: states skipped (Order→criteria builder error directly); criteria builder load failed → Skip accepted → Additional Criteria: None (correct for scenario); Target States blank (no states collected); no criteria gate shown; ACTIVE ✓ |
-
-### Per-Phase Failure Rates (R1 vs R2)
-
-R1 = runs 01–10, gpt-5.4-mini all phases (mixed during runs 11–20). R2 = runs 01–05 so far, gpt-5.4-mini all phases.  
-Denominator excludes N/A and ? entries. 🔴 = ≥50% · 🟡 = 20–49% · ✅ = <20%
-
-| Checkpoint | R1 fail (n=10) | R2 fail (n=5) | Trend |
-|------------|----------------|----------------|-------|
-| P1-PROMPT | 6/10 = 60% 🔴 | 4/5 = 80% 🔴 | ↓ |
-| P2-DROP | 0/10 = 0% ✅ | 0/5 = 0% ✅ | ↔ |
-| P3-SCHED | 2/10 = 20% 🟡 | 2/5 = 40% 🟡 | ↓ |
-| P3-WURL | 0/10 = 0% ✅ | 0/5 = 0% ✅ | ↔ |
-| P3-JSON | 1/7 = 14% ✅ | 0/4 = 0% ✅ | ↑ |
-| P3-TABLE | 1/7 = 14% ✅ | 0/5 = 0% ✅ | ↑ |
-| P3-COUNT | 0/6 = 0% ✅ | 0/5 = 0% ✅ | ↔ |
-| P3B-TEST | 0/10 = 0% ✅ | 0/5 = 0% ✅ | ↔ |
-| P4-SUMM | 1/10 = 10% ✅ | 0/5 = 0% ✅ | ↑ |
-| P5-PRICE | 0/10 = 0% ✅ | 1/5 = 20% 🟡 | ↓ |
-| P5-EXCL | 2/10 = 20% 🟡 | 1/5 = 20% 🟡 | ↔ |
-| P5-ORDER | 0/10 = 0% ✅ | 1/5 = 20% 🟡 | ↓ |
-| P5-STATE | 2/9 = 22% 🟡 | 2/5 = 40% 🟡 | ↓ |
-| P5-NORM | 3/8 = 38% 🟡 | 0/4 = 0% ✅ | ↑ |
-| P5-FIELD | 5/10 = 50% 🔴 | 2/5 = 40% 🟡 | ↑ |
-| P5-CR1 | 2/10 = 20% 🟡 | 1/5 = 20% 🟡 | ↔ |
-| P5-ENUM | 1/2 = 50% 🔴 | 3/5 = 60% 🔴 | ↓ |
-| P5-CR3 | 9/10 = 90% 🔴 | 4/5 = 80% 🔴 | ↑ |
-| P5-DONE | 9/10 = 90% 🔴 | 2/5 = 40% 🟡 | ↑↑ |
-| P6-BOOL | 0/10 = 0% ✅ | 0/4 = 0% ✅ | ↔ |
-| P6-SUMM | 2/10 = 20% 🟡 | 0/5 = 0% ✅ | ↑ |
-| P7-SUMM | 0/9 = 0% ✅ | 1/5 = 20% 🟡 | ↓ |
-| P8-ACT | 0/10 = 0% ✅ | 1/5 = 20% 🟡 | ↓ |
-
-**Key observations:** P1-PROMPT (RB-G prompt doubling) is the most persistent failure — 60→80% in R2, fix had no effect. P5-DONE improved dramatically (90%→40%), indicating criteria are now persisting more reliably. P5-CR3 and P5-ENUM remain critical. P3-P4 phases largely stable. P7/P8 showing new failures in R2 (tool access loss after extended DEBUG sessions).
-
----
-
-### R2 Findings Catalog
-
-**RB-G (persists): Prompt duplication (Run 01)**
-P1 intro prompt doubled in same message. P5 price prompt doubled in same message. FIX 1 (output suppression + "never output same prompt text more than once") did NOT fix this. Rate in R1 was ~80%. Still present in R2 run 01.
-
-**RB-NEW-1: Schedule question skipped (Run 01)**
-Agent went from lead type selection directly to delivery type buttons, skipping "Would you like leads delivered 24/7, or only during specific hours?" prompt entirely. Recovered after DEBUG — agent re-presented schedule question, then delivery type again. Not seen in R1 runs 01-10 (schedule was always asked). Possible regression from Phase 3 instruction ordering or anti-reentry header interaction.
-
-**RB-NEW-2: Exclusivity + Order System skipped (Run 01)**
-After price → states, agent skipped Steps 2 (exclusivity) and 3 (order system) entirely. Hallucinated Exclusive=true, useOrder=true without asking. Pattern: Silent Tool Call Skipping / Batch Processing — agent jumped from price directly to states (merged Step 4), then from states directly to account creation. The STOP AND YIELD directives at Steps 2 and 3 were not enforced.
-
-**RB-N (FIXED): States no longer skipped (Run 01)**
-FIX 3 (merged Steps 4-6) worked — states question appeared correctly. States normalized CA, TX, FL. This was the #1 target of the rework fixes (40% failure in R1). However, the steps BEFORE states (exclusivity, order) got skipped instead — the merging may have pulled attention to the states prompt at the expense of earlier steps.
-
-**RB-D (persists): Criteria gate skipped (Run 01)**
-Agent never showed "Would you like to add additional lead criteria, or skip?" card. Went directly from states to account creation. All criteria steps (field suggestions, criterion parsing, loop) never executed.
-
-**RB-N (persists): States step skipped (Run 02)**
-FIX 3 fixed states in R1 Run 01 (states asked correctly). In R2 Run 02, states step was skipped entirely again — agent went from Order YES directly to criteria field suggestions, bypassing states collection. Target states field in P6-SUMM was empty. State criterion was not built. Criteria builder loaded without state context.
-
-**RB-NEW-7: P5-PRICE and P5-STATE both silently skipped (Run 03)**
-Phase 5 went directly: Exclusivity card → Order System card → Criteria Gate — bypassing Step 1 (price collection) and Step 4 (states prompt). The agent called `get_lead_type` silently and then jumped to the criteria gate without ever asking the user for price or target states. Pattern identical to RB-N (states skip) but extends to price as well. Agent self-diagnosed correctly when DEBUG was triggered: "I advanced too quickly" / "did not properly enforce the 'one step per turn' and STOP AND YIELD requirements." Recovery via DEBUG + typed "Add criteria" → agent re-asked price, then states, then re-presented criteria gate. After recovery, all 4 criteria and correct price were in the payload. Patch suggested by agent: hard gates (don't call get_lead_type until price/excl/order collected), state tracker flags, single-step yield rule. Similar to R1 Run 02 behavior (RB-K + RB-N). The FIX 3 merge may have created a new batch-processing pattern for Step 1.
-
-**RB-A (persists): Criteria loop exits after 1 criterion (Run 02)**
-Clicking "Add another criterion" button immediately triggered delivery account creation instead of looping back for another criterion entry. Only 1 criterion (SelfCreditRating = GOOD) was saved. FIX 9 (inline exit handling with mandatory criteria loop prompt) did not prevent this. The button click was routed to account creation path.
-
-**RB-NEW-R2-1: CamelCase field name not recognized in criterion input (Run 02)**
-Agent suggested "SelfCreditRating" as a recommended field. When user typed "SelfCreditRating = Good" as a criterion, agent responded "I couldn't find that field." Typing "Self Credit Rating" (display name with spaces) correctly found the field and showed ChoiceSet. The field lookup uses display names, not camelCase internal names, but the suggestions list uses camelCase — creating a mismatch. Users following the agent's own suggestions will encounter field-not-found errors.
-
-**RB-NEW-R2-3: Phase 5c silent skip via premature summarize_history (Run 04)**
-After user clicked "Add criteria", Phase 5c loaded correctly. However, Phase 5c called `summarize_history` before completing user interaction — writing a summary with the header "# Phase 5c Complete — Delivery Account Created with Criteria". On the next user turn, the agent read this header back from conversation history and concluded Phase 5c was already done, bypassing all criteria collection (field suggestions, ChoiceSet, loop). The delivery account was created with state-only criteria (no additional criteria). Agent self-diagnosed: "flow state indicated Phase 5c had been completed... retained history said 'Phase 5c Complete — Delivery Account Created with Criteria'."
-
-Root cause: Phase 5c summarization template header ("# Phase 5c Complete — Delivery Account Created with Criteria") is written by `summarize_history` at end of State 3. If the agent calls `summarize_history` prematurely (before user interaction), that header appears in conversation history. On the next turn, the agent reads "Phase 5c Complete" and concludes the phase is already done.
-
-FIX suggested by agent: Add explicit hard gate at Phase 5c top preventing `summarize_history` until after (a) `create_delivery_account` has been called AND (b) user has completed at least one criteria interaction turn. Add check: "If deliveryAccountUID does not exist, you have NOT completed Phase 5c — do NOT call summarize_history."
-
-Also affected: FIX 15 confirmed not applied to rw-phase-3-webhook.md. When user switched from JSON to XML posting instructions, agent re-asked for fresh instructions without offering to reuse previous schema — confirming FIX 15 is a TODO item.
-
-**RB-NEW-R2-4: States question combined with criteria gate in single adaptive card (Run 05)**
-Phase 5 showed the states question text ("Which states do you want to target?") as a TextBlock inside the same adaptive card as the criteria gate buttons ("Add criteria" / "Skip") — violating FIX 3: "Do NOT combine it with the criteria gate." When user typed states in the text area, the agent had already completed Phase 5 (Phase 5c silent skip — RB-NEW-R2-3) and could not continue workflow, responding "instructions not available." After DEBUG recovery, the states were retroactively applied to the account. The combined display prevented the user from following the normal criteria flow (couldn't click "Add criteria" until states were typed, but by then Phase 5 was "complete"). Root cause: agent batched Step 4 (states collection) and Step 6 (criteria gate) into a single output instead of separate STOP AND YIELD turns.
-
-**RB-NEW-R2-5: Complete tool and resource access loss after extended DEBUG sessions (Run 05)**
-After multiple DEBUG messages and recovery attempts in Phase 5, the agent entirely lost access to tools and MCP resources. It reported "no such tool is available to me in this session" when asked to call `update_client` and "resource not found" when asked to load `mcp://resource/rw-phase-7-client-summary`. Client summary card also failed to render (displayed as plain text). Phase 8 activation was impossible. Root cause likely: conversation length exceeded context threshold, stripping all tool definitions and resource access from available context. This makes extended DEBUGs on long runs a practical risk — the recovery session itself can exhaust context.
-
-**RB-NEW-R2-6: Phase 7 client summary card render failure (Run 05)**
-The Phase 7 client summary failed to render as an adaptive card. Agent displayed the setup state as plain text instead. No adaptive card was shown. This occurred in the context of tool/resource loss (RB-NEW-R2-5), suggesting the Phase 7 resource was also unavailable. However, this could also be a standalone rendering issue — tracking separately in case it recurs outside of context-loss conditions.
-
-### R2 vs R1 Comparison
-
-| Finding | R1 Rate (01-10) | R2 Rate (01-10) | Status |
-|---------|-----------------|-----------------|--------|
-| RB-G (prompt duplication) | ~80% | 9/10 = 90% | ↔ SAME — FIX 1 had no effect |
-| RB-N (states skipped) | 40% | 4/10 = 40% (runs 01,08,09,10) | ↔ SAME |
-| RB-O (phantom states) | 40% | 0/10 = 0% | ↑ FIXED — no phantom states in R2 |
-| RB-A (criteria loop exit) | 67% | 2/3 = 67% (runs 06,07 of criteria runs) | ↔ SAME |
-| RB-F (Phase 5c load fail) | 43% | 1/10 = 10% (run 10 criteria builder error) | ↑ IMPROVED |
-| RB-NEW-R2-3 (P5c silent skip) | N/A | 4/5 = 80% (runs 04,05,07,08) | NEW — dominant criteria failure mode |
-| RB-C (states not normalized) | 60% | 0/6 = 0% | ↑ FIXED — all states USPS ✓ |
-| RB-M (>= as Equal) | 20% | not tested (no numeric criteria persisted) | N/A |
-| Overall pass rate | 1/10 = 10% | 0/10 = 0% | ↓ WORSE (but all due to P1 doubling) |
-| Average score | ~58% est | 75% | ↑ IMPROVED |
-
+> Runs 21–30 use GPT-5-mini for Phase 3 (Webhook delivery method) and Phase 5c (criteria builder). All other phases use GPT-5.4 Mini. Purpose: compare per-phase stability against the GPT-5.4-only baseline (runs 01–20).
