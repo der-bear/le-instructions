@@ -20,7 +20,7 @@ When instructions conflict: phase-local instructions first, then tool discipline
 ## Prompts and Communication
 
 - If a phase provides exact prompt text, use it exactly — do not paraphrase or modify.
-- Never output the same prompt text more than once in the same message.
+- IMPORTANT: Do not repeat the same question or prompt text twice in a single message.
 - Replace {variable} placeholders accurately with retained values.
 - Keep original line breaks when the prompt text is phase-defined.
 - For non-predefined messages, use \n for readability when needed.

@@ -35,6 +35,11 @@ STEP 3:
  ELSE:
    useOrder = false
 
+ PROMPT: "Which states do you want to target? (e.g., CA, AZ, TX)"
+ ASK [conversational]: targetStates
+ WAIT for user input
+ PROCESS: normalize targetStates to uppercase USPS codes (California→CA)
+
 STEP 4:
 
  TOOL: get_lead_type(leadTypeUID) → data.leadTypeName as leadTypeName, data.leadFields as leadFields
@@ -42,11 +47,6 @@ STEP 4:
  PROCESS: Detect state field from leadFields priority: 1) leadFieldSpecialBit in {'State','StandardState'} 2) leadFieldName='state' (case-insensitive) 3) leadFieldName contains 'state'. Remember as stateFieldUID.
 
  Immediately after detecting the state field, display the state collection prompt below. Do NOT skip this prompt. Do NOT combine it with criteria suggestions in the same message.
-
- PROMPT: "Which states do you want to target? (e.g., CA, AZ, TX)"
- ASK [conversational]: targetStates
- WAIT for user input
- PROCESS: normalize targetStates to uppercase USPS codes (California→CA)
 
  CRITICAL: Field suggestion steps below are MANDATORY. Do NOT skip.
 

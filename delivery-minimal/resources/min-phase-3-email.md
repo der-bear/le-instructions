@@ -9,11 +9,17 @@ Collect the delivery schedule, create the Email delivery method, show the create
 
 ## ASK
 Collect missing inputs in this exact order. Ask only the first missing item, then wait.
+Any item without an explicit card instruction is asked in plain text.
 
 1. `deliveryScheduleChoice`
-   - Ask: `24/7 delivery` or `Specific hours only`
+   - Ask using `display_adaptive_card` with exactly one `ActionSet` containing:
+     - `24/7 delivery`
+     - `Specific hours only`
+
 2. `scheduleInput`
    - Ask only if `deliveryScheduleChoice="Specific hours only"`
+
+Accept typed equivalents for every card choice.
 
 ## BUILD
 - Build and retain `deliveryDays` and `deliveryScheduleDisplay` before creation:

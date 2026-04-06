@@ -1,0 +1,2760 @@
+{
+  "tools": [
+    {
+      "name": "create_client",
+      "x-mcpResource": "mcp://resource/agentic/tools/create_client",
+      "description": "Create a client",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "createClientDto": {
+            "type": "object",
+            "properties": {
+              "clientStatus": {
+                "description": "Status - Default to Inactive if unspecified",
+                "type": "string",
+                "enum": [
+                  "New",
+                  "Pending",
+                  "Working",
+                  "Waiting",
+                  "Dead",
+                  "Inactive",
+                  "Active",
+                  "Late",
+                  "Suspended",
+                  "Closed"
+                ]
+              },
+              "timeOffset": {
+                "type": "integer"
+              },
+              "notes": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "timeZoneName": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "clientAutomationType": {
+                "description": "Type of automation - Default to Price if unspecified",
+                "type": "string",
+                "enum": [
+                  "Price",
+                  "Priority",
+                  "RoundRobin"
+                ]
+              },
+              "username": {
+                "description": "Client Portal Username - Default to the provided Email value",
+                "type": "string"
+              },
+              "password": {
+                "description": "Client Portal Password - Randomly generate by default",
+                "type": "string"
+              },
+              "companyName": {
+                "description": "Company Name - Required input from user.",
+                "type": "string"
+              },
+              "firstName": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "lastName": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "email": {
+                "description": "Email - Required input from user",
+                "type": "string"
+              },
+              "primaryPhone": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "alternatePhone": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "address": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "city": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "webSite": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "zip": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "clientStatus",
+              "clientAutomationType",
+              "username",
+              "password",
+              "companyName",
+              "email"
+            ]
+          }
+        },
+        "required": [
+          "createClientDto"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    {
+      "name": "get_usa_states",
+      "description": "Get USA State List",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "properties": {
+                "stateUID": {
+                  "type": "integer"
+                },
+                "abbr": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "update_client",
+      "x-mcpResource": "mcp://resource/agentic/tools/update_client",
+      "description": "Update a client",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "clientUID": {
+            "type": "integer"
+          },
+          "updateClientDto": {
+            "type": "object",
+            "properties": {
+              "clientStatus": {
+                "description": "Status - Default to Inactive if unspecified",
+                "type": "string",
+                "enum": [
+                  "New",
+                  "Pending",
+                  "Working",
+                  "Waiting",
+                  "Dead",
+                  "Inactive",
+                  "Active",
+                  "Late",
+                  "Suspended",
+                  "Closed"
+                ]
+              },
+              "timeOffset": {
+                "type": "integer"
+              },
+              "notes": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "timeZoneName": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "clientAutomationType": {
+                "description": "Type of automation - Default to Price if unspecified",
+                "type": "string",
+                "enum": [
+                  "Price",
+                  "Priority",
+                  "RoundRobin"
+                ]
+              },
+              "username": {
+                "description": "Client Portal Username - Default to the provided Email value",
+                "type": "string"
+              },
+              "password": {
+                "description": "Client Portal Password - Randomly generate by default",
+                "type": "string"
+              },
+              "companyName": {
+                "description": "Company Name - Required input from user.",
+                "type": "string"
+              },
+              "firstName": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "lastName": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "email": {
+                "description": "Email - Required input from user",
+                "type": "string"
+              },
+              "primaryPhone": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "alternatePhone": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "address": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "city": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "webSite": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "zip": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "clientStatus",
+              "clientAutomationType",
+              "username",
+              "password",
+              "companyName",
+              "email"
+            ]
+          }
+        },
+        "required": [
+          "clientUID",
+          "updateClientDto"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    {
+      "name": "get_delivery_account",
+      "description": "Get details of delivery account",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "clientUID": {
+            "type": "integer"
+          },
+          "deliveryAccountUID": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "clientUID",
+          "deliveryAccountUID"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "deliveryAccountUID": {
+                "description": "Unique identifier for the delivery account",
+                "type": "integer"
+              },
+              "clientUID": {
+                "description": "Unique identifier for the client",
+                "type": "integer"
+              },
+              "deliveryMethodUID": {
+                "description": "Unique identifier for the delivery method",
+                "type": "integer"
+              },
+              "price": {
+                "description": "Price associated with the delivery account",
+                "type": "number"
+              },
+              "hourMax": {
+                "description": "Maximum number of deliveries allowed per hour. If set to -1, no limit is applied.",
+                "type": "integer"
+              },
+              "dayMax": {
+                "description": "Maximum number of deliveries allowed per day. If set to -1, no limit is applied.",
+                "type": "integer"
+              },
+              "weekMax": {
+                "description": "Maximum number of deliveries allowed per week. If set to -1, no limit is applied.",
+                "type": "integer"
+              },
+              "monthMax": {
+                "description": "Maximum number of deliveries allowed per month. If set to -1, no limit is applied.",
+                "type": "integer"
+              },
+              "useOrder": {
+                "description": "Indicates if order usage is enabled",
+                "type": "boolean"
+              },
+              "status": {
+                "description": "Status of the delivery account",
+                "type": "string",
+                "enum": [
+                  "Closed",
+                  "Suspended",
+                  "OnHold",
+                  "Open"
+                ]
+              },
+              "deliveryDelay": {
+                "description": "Delay in delivery in minutes",
+                "type": "integer"
+              },
+              "name": {
+                "description": "Name of the delivery account",
+                "type": "string"
+              },
+              "redirectURL": {
+                "description": "URL to redirect after delivery",
+                "type": "string"
+              },
+              "automationEnabled": {
+                "description": "Indicates if automation is enabled for the account",
+                "type": "boolean"
+              },
+              "isExclusive": {
+                "description": "Make leads sent to this delivery account exclusive",
+                "type": "boolean"
+              },
+              "alternateDeliveryMethodUID": {
+                "description": "Unique identifier for the alternate delivery method",
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "deliveryAccountType": {
+                "description": "Type of the delivery account",
+                "type": "string",
+                "enum": [
+                  "WebAndChatLeads",
+                  "Redirect",
+                  "LiveCallTransfers",
+                  "PhoneRouting"
+                ]
+              },
+              "agentName": {
+                "description": "Name of the agent associated with the account",
+                "type": "string"
+              },
+              "agentPhone": {
+                "description": "Phone number of the agent",
+                "type": "string"
+              },
+              "criteria": {
+                "description": "List of criteria for the delivery account",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "clientCriteriaUID": {
+                      "description": "Unique identifier for the client criteria",
+                      "type": "integer"
+                    },
+                    "leadFieldUID": {
+                      "description": "Unique identifier for the lead field",
+                      "type": "integer"
+                    },
+                    "type": {
+                      "description": "Type of criteria for the delivery account",
+                      "type": "string",
+                      "enum": [
+                        "FieldValue",
+                        "Expression",
+                        "Function"
+                      ]
+                    },
+                    "expression": {
+                      "description": "Expression used in the criteria",
+                      "type": "string"
+                    },
+                    "operator": {
+                      "description": "Operator used in the criteria",
+                      "type": "string",
+                      "enum": [
+                        "Equal",
+                        "NotEqual",
+                        "Greater",
+                        "Less",
+                        "GreaterOrEqual",
+                        "LessOrEqual",
+                        "Between",
+                        "In",
+                        "NotIn",
+                        "DateCompare",
+                        "Distance_Compare",
+                        "Contains",
+                        "DoesNotContain"
+                      ]
+                    },
+                    "value": {
+                      "description": "Value used in the criteria",
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "deliveryMethodDetails": {
+                "description": "Details of the delivery method",
+                "type": "object",
+                "properties": {
+                  "deliveryMethodUID": {
+                    "description": "Unique identifier for the delivery method.",
+                    "type": "integer"
+                  },
+                  "clientUID": {
+                    "description": "Unique identifier for the client.",
+                    "type": "integer"
+                  },
+                  "deliveryType": {
+                    "description": "Type of delivery method.",
+                    "type": "string",
+                    "enum": [
+                      "HttpPost",
+                      "HttpGet",
+                      "XMLJson",
+                      "SalesExec",
+                      "FTP",
+                      "EMail",
+                      "CSV",
+                      "SOAP",
+                      "Internal",
+                      "PingPost",
+                      "BatchEmail",
+                      "SMS"
+                    ]
+                  },
+                  "name": {
+                    "description": "Name of the delivery method.",
+                    "type": "string"
+                  },
+                  "enabled": {
+                    "description": "Indicates if the delivery method is enabled.",
+                    "type": "boolean"
+                  },
+                  "dateAdded": {
+                    "description": "Date when the delivery method was added.",
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "inTesting": {
+                    "description": "Indicates if the delivery method is in testing mode.",
+                    "type": "boolean"
+                  },
+                  "leadTypeUID": {
+                    "description": "Unique identifier for the lead type.",
+                    "type": "integer"
+                  },
+                  "contentType": {
+                    "type": "string"
+                  },
+                  "requestBody": {
+                    "description": "Request body template for the delivery method.",
+                    "type": "string"
+                  },
+                  "emailOrSmsTemplate": {
+                    "description": "Email or SMS template used for delivery.",
+                    "type": "string"
+                  },
+                  "emailSubject": {
+                    "description": "Subject line for email delivery.",
+                    "type": "string"
+                  },
+                  "ftpUser": {
+                    "description": "FTP username for file delivery.",
+                    "type": "string"
+                  },
+                  "ftpPassword": {
+                    "description": "FTP password for file delivery.",
+                    "type": "string"
+                  },
+                  "ftpPath": {
+                    "description": "FTP path for file delivery.",
+                    "type": "string"
+                  },
+                  "emailAddress": {
+                    "description": "Email address used for delivery.",
+                    "type": "string"
+                  },
+                  "useRegEx": {
+                    "description": "Indicates if regular expressions are used for response validation.",
+                    "type": "boolean"
+                  },
+                  "responseSearch": {
+                    "description": "Search pattern for response validation.",
+                    "type": "string"
+                  },
+                  "deliveryAddress": {
+                    "description": "Address used for delivery (URL, email, etc.).",
+                    "type": "string"
+                  },
+                  "smtpServer": {
+                    "description": "SMTP server used for email delivery.",
+                    "type": "string"
+                  },
+                  "smtpAuth": {
+                    "description": "Indicates if SMTP authentication is required.",
+                    "type": "boolean"
+                  },
+                  "smtpUsername": {
+                    "description": "SMTP username for authentication.",
+                    "type": "string"
+                  },
+                  "smtpPassword": {
+                    "description": "SMTP password for authentication.",
+                    "type": "string"
+                  },
+                  "fromEmailAddress": {
+                    "description": "Sender email address for notifications.",
+                    "type": "string"
+                  },
+                  "toEmailAddress": {
+                    "description": "Recipient email address for notifications.",
+                    "type": "string"
+                  },
+                  "emailNotify": {
+                    "description": "Indicates if email notifications are enabled.",
+                    "type": "boolean"
+                  },
+                  "notifyCC": {
+                    "description": "CC email addresses for notifications.",
+                    "type": "string"
+                  },
+                  "notifyBCC": {
+                    "description": "BCC email addresses for notifications.",
+                    "type": "string"
+                  },
+                  "notifyEmail": {
+                    "description": "Notification email address.",
+                    "type": "string"
+                  },
+                  "leadCatUID": {
+                    "description": "Unique identifier for the lead category.",
+                    "type": "integer"
+                  },
+                  "clientEmail": {
+                    "description": "Client email address for delivery notifications.",
+                    "type": "string"
+                  },
+                  "settings": {
+                    "description": "Settings associated with the delivery method.",
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "deliverySettingUID": {
+                          "description": "Unique identifier for the delivery setting.",
+                          "type": "integer"
+                        },
+                        "deliveryUID": {
+                          "description": "Unique identifier for the delivery method.",
+                          "type": "integer"
+                        },
+                        "delete": {
+                          "description": "Indicates if the setting should be deleted.",
+                          "type": "boolean"
+                        },
+                        "format": {
+                          "description": "Format of the delivery setting.",
+                          "type": "string"
+                        },
+                        "fieldType": {
+                          "description": "Type of the field",
+                          "type": "string",
+                          "enum": [
+                            "StaticValue",
+                            "LeadField",
+                            "SpecialField",
+                            "CustomExpression",
+                            "SubString",
+                            "StringConcatenation",
+                            "ClientField",
+                            "LeadSourceField",
+                            "EvaluateFunction"
+                          ]
+                        },
+                        "fieldName": {
+                          "description": "Name of the field ",
+                          "type": "string"
+                        },
+                        "value": {
+                          "description": "Value of the field or setting.",
+                          "type": "string"
+                        },
+                        "leadFieldUID": {
+                          "description": "Unique identifier for the lead field.",
+                          "type": "integer"
+                        },
+                        "regularExpression": {
+                          "description": "Regular expression used for pattern matching or validation.",
+                          "type": "string"
+                        },
+                        "hasMap": {
+                          "description": "Indicates if the setting has a mapping.",
+                          "type": "boolean"
+                        },
+                        "timeZone": {
+                          "description": "Time zone for the delivery setting.",
+                          "type": "string"
+                        },
+                        "fieldMappings": {
+                          "description": "Field mappings",
+                          "type": [
+                            "array",
+                            "null"
+                          ],
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "deliveryMethodMappingUID": {
+                                "description": "Unique identifier for the delivery method mapping.",
+                                "type": "integer"
+                              },
+                              "isDeleted": {
+                                "description": "Indicates if the mapping is deleted.",
+                                "type": "boolean"
+                              },
+                              "deliveryMethodSettingUID": {
+                                "description": "Unique identifier for the delivery method setting.",
+                                "type": "integer"
+                              },
+                              "deliveryValue": {
+                                "description": "Value used for delivery.",
+                                "type": "string"
+                              },
+                              "fieldValue": {
+                                "description": "Value of the mapped field.",
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "deliveryDays": {
+                    "description": "Delivery days and times for the delivery method.",
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "deliveryMethodDayUID": {
+                          "description": "Unique identifier for the delivery method day.",
+                          "type": "integer"
+                        },
+                        "deliveryMethodUID": {
+                          "description": "Unique identifier for the delivery method.",
+                          "type": "integer"
+                        },
+                        "weekDay": {
+                          "description": "Day of the week (0=Sunday, 6=Saturday).",
+                          "type": "integer"
+                        },
+                        "startTime": {
+                          "description": "Start time for delivery on this day.",
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "endTime": {
+                          "description": "End time for delivery on this day.",
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "allow": {
+                          "description": "Indicates if delivery is allowed on this day.",
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "get_delivery_methods",
+      "x-mcpResource": "mcp://resource/agentic/tools/get_delivery_methods",
+      "description": "Get delivery methods list",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "clientUID": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "clientUID"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "properties": {
+                "deliveryMethodUID": {
+                  "description": "Unique identifier for the delivery method.",
+                  "type": "integer"
+                },
+                "clientUID": {
+                  "description": "Unique identifier for the client.",
+                  "type": "integer"
+                },
+                "deliveryType": {
+                  "description": "Type of delivery method.",
+                  "type": "string",
+                  "enum": [
+                    "HttpPost",
+                    "HttpGet",
+                    "XMLJson",
+                    "SalesExec",
+                    "FTP",
+                    "EMail",
+                    "CSV",
+                    "SOAP",
+                    "Internal",
+                    "PingPost",
+                    "BatchEmail",
+                    "SMS"
+                  ]
+                },
+                "name": {
+                  "description": "Name of the delivery method.",
+                  "type": "string"
+                },
+                "enabled": {
+                  "description": "Indicates if the delivery method is enabled.",
+                  "type": "boolean"
+                },
+                "leadTypeUID": {
+                  "description": "Unique identifier for the lead type.",
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "get_client",
+      "description": "Get details of client.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "clientUID": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "clientUID"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "clientUID": {
+                "description": "Unique identifier for the client",
+                "type": "integer"
+              },
+              "accountUID": {
+                "description": "Unique identifier for the account",
+                "type": "integer"
+              },
+              "dateAdded": {
+                "description": "Date the client was added",
+                "type": "string",
+                "format": "date-time"
+              },
+              "clientStatus": {
+                "description": "Current status of the client",
+                "type": "string",
+                "enum": [
+                  "New",
+                  "Pending",
+                  "Working",
+                  "Waiting",
+                  "Dead",
+                  "Inactive",
+                  "Active",
+                  "Late",
+                  "Suspended",
+                  "Closed"
+                ]
+              },
+              "userUID": {
+                "description": "Unique identifier for the user",
+                "type": "integer"
+              },
+              "timeOffset": {
+                "description": "Time offset for the client",
+                "type": "integer"
+              },
+              "notes": {
+                "description": "Additional notes about the client",
+                "type": "string"
+              },
+              "timeZoneName": {
+                "description": "Name of the client's time zone",
+                "type": "string"
+              },
+              "resellerUID": {
+                "description": "Unique identifier for the reseller",
+                "type": "integer"
+              },
+              "groupUID": {
+                "description": "Unique identifier for the group",
+                "type": "integer"
+              },
+              "clientAutomationType": {
+                "description": "Type of client automation",
+                "type": "string",
+                "enum": [
+                  "Price",
+                  "Priority",
+                  "RoundRobin"
+                ]
+              },
+              "priority": {
+                "description": "Priority level of the client",
+                "type": "integer"
+              },
+              "deliveryGroupUID": {
+                "description": "Unique identifier for the delivery group",
+                "type": "integer"
+              },
+              "showLeadGrade": {
+                "description": "Indicates if lead grade is shown",
+                "type": "boolean"
+              },
+              "showLeadSource": {
+                "description": "Indicates if lead source is shown",
+                "type": "boolean"
+              },
+              "showCampaign": {
+                "description": "Indicates if campaign is shown",
+                "type": "boolean"
+              },
+              "allowCalls": {
+                "description": "Indicates if calls are allowed",
+                "type": "boolean"
+              },
+              "allowReassign": {
+                "description": "Indicates if reassignment is allowed",
+                "type": "boolean"
+              },
+              "userAssigned": {
+                "description": "Unique identifier for the assigned user",
+                "type": "integer"
+              },
+              "useDeliveryTiers": {
+                "description": "Indicates if delivery tiers are used",
+                "type": "boolean"
+              },
+              "mfaPhone": {
+                "description": "Phone number for multi-factor authentication",
+                "type": "string"
+              },
+              "mfaEmail": {
+                "description": "Email address for multi-factor authentication",
+                "type": "string"
+              },
+              "showDeliveryRequestOnPortal": {
+                "description": "Indicates if delivery requests are shown on the portal",
+                "type": "boolean"
+              },
+              "showDeliveryResponseOnPortal": {
+                "description": "Indicates if delivery responses are shown on the portal",
+                "type": "boolean"
+              },
+              "merchantProfileId": {
+                "description": "Merchant profile identifier",
+                "type": "string"
+              },
+              "merchantPaymentProfileId": {
+                "description": "Merchant payment profile identifier",
+                "type": "string"
+              },
+              "webChatActive": {
+                "description": "Indicates if web chat is active",
+                "type": "boolean"
+              },
+              "currencyCode": {
+                "description": "Currency code for the client",
+                "type": "string"
+              },
+              "sendGridAccountID": {
+                "description": "SendGrid account identifier",
+                "type": "string"
+              },
+              "sendGridApiKey": {
+                "description": "SendGrid API key",
+                "type": "string"
+              },
+              "sendGridUsername": {
+                "description": "SendGrid username",
+                "type": "string"
+              },
+              "leadRemovalContactName": {
+                "description": "Contact name for lead removal notifications",
+                "type": "string"
+              },
+              "leadRemovalContactEmail": {
+                "description": "Contact email for lead removal notifications",
+                "type": "string"
+              },
+              "notifyForLeadRemovals": {
+                "description": "Indicates if notifications for lead removals are enabled",
+                "type": "boolean"
+              },
+              "companyName": {
+                "description": "Name of the client's company",
+                "type": "string"
+              },
+              "firstName": {
+                "description": "Client's first name",
+                "type": "string"
+              },
+              "lastName": {
+                "description": "Client's last name",
+                "type": "string"
+              },
+              "email": {
+                "description": "Client's email address",
+                "type": "string"
+              },
+              "primaryPhone": {
+                "description": "Client's primary phone number",
+                "type": "string"
+              },
+              "alternatePhone": {
+                "description": "Client's alternate phone number",
+                "type": "string"
+              },
+              "address": {
+                "description": "Client's street address",
+                "type": "string"
+              },
+              "city": {
+                "description": "City of the client's address",
+                "type": "string"
+              },
+              "webSite": {
+                "description": "Client's website URL",
+                "type": "string"
+              },
+              "zip": {
+                "description": "Postal code of the client's address",
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "get_lead_types",
+      "x-mcpResource": "mcp://resource/agentic/tools/get_lead_types",
+      "description": "Get lead types list.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "properties": {
+                "leadTypeUID": {
+                  "description": "Unique identifier",
+                  "type": "integer"
+                },
+                "leadTypeName": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "update_delivery_method",
+      "x-mcpResource": "mcp://resource/agentic/tools/update_delivery_method",
+      "description": "Update a delivery method",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "clientUID": {
+            "type": "integer"
+          },
+          "deliveryMethodUID": {
+            "type": "integer"
+          },
+          "updateDeliveryMethodDto": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "description": "Name of the delivery method.",
+                "type": "string"
+              },
+              "enabled": {
+                "description": "Indicates if the delivery method is enabled.",
+                "type": "boolean"
+              },
+              "contentType": {
+                "type": "string"
+              },
+              "requestBody": {
+                "description": "Request body template for the delivery method.",
+                "type": "string"
+              },
+              "emailOrSmsTemplate": {
+                "description": "Email or SMS template used for delivery.",
+                "type": "string"
+              },
+              "emailSubject": {
+                "description": "Subject line for email delivery.",
+                "type": "string"
+              },
+              "ftpUser": {
+                "description": "FTP username for file delivery.",
+                "type": "string"
+              },
+              "ftpPassword": {
+                "description": "FTP password for file delivery.",
+                "type": "string"
+              },
+              "ftpPath": {
+                "description": "FTP path for file delivery.",
+                "type": "string"
+              },
+              "emailAddress": {
+                "description": "Email address used for delivery.",
+                "type": "string"
+              },
+              "useRegEx": {
+                "description": "Indicates if regular expressions are used for response validation.",
+                "type": "boolean"
+              },
+              "responseSearch": {
+                "description": "Search pattern for response validation.",
+                "type": "string"
+              },
+              "deliveryAddress": {
+                "description": "Address used for delivery (URL, email, etc.).",
+                "type": "string"
+              },
+              "smtpServer": {
+                "description": "SMTP server used for email delivery.",
+                "type": "string"
+              },
+              "smtpAuth": {
+                "description": "Indicates if SMTP authentication is required.",
+                "type": "boolean"
+              },
+              "smtpUsername": {
+                "description": "SMTP username for authentication.",
+                "type": "string"
+              },
+              "smtpPassword": {
+                "description": "SMTP password for authentication.",
+                "type": "string"
+              },
+              "fromEmailAddress": {
+                "description": "Sender email address for notifications.",
+                "type": "string"
+              },
+              "toEmailAddress": {
+                "description": "Recipient email address for notifications.",
+                "type": "string"
+              },
+              "emailNotify": {
+                "description": "Indicates if email notifications are enabled.",
+                "type": "boolean"
+              },
+              "notifyCC": {
+                "description": "CC email addresses for notifications.",
+                "type": "string"
+              },
+              "notifyBCC": {
+                "description": "BCC email addresses for notifications.",
+                "type": "string"
+              },
+              "notifyEmail": {
+                "description": "Notification email address.",
+                "type": "string"
+              },
+              "leadCatUID": {
+                "description": "Unique identifier for the lead category.",
+                "type": "integer"
+              },
+              "clientEmail": {
+                "description": "Client email address for delivery notifications.",
+                "type": "string"
+              },
+              "deliveryDays": {
+                "description": "Delivery days and times for the delivery method.",
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "weekDay": {
+                      "description": "Day of the week (0=Sunday, 6=Saturday).",
+                      "type": "integer"
+                    },
+                    "startTime": {
+                      "description": "Start time for delivery on this day.",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "endTime": {
+                      "description": "End time for delivery on this day.",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "allow": {
+                      "description": "Indicates if delivery is allowed on this day.",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "weekDay",
+                    "startTime",
+                    "endTime",
+                    "allow"
+                  ]
+                }
+              },
+              "settings": {
+                "description": "Settings associated with the delivery method.",
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "format": {
+                      "description": "Format of the delivery setting.",
+                      "type": "string"
+                    },
+                    "fieldType": {
+                      "description": "Type of the field ",
+                      "type": "string",
+                      "enum": [
+                        "StaticValue",
+                        "LeadField",
+                        "SpecialField",
+                        "CustomExpression",
+                        "SubString",
+                        "StringConcatenation",
+                        "ClientField",
+                        "LeadSourceField",
+                        "EvaluateFunction"
+                      ]
+                    },
+                    "fieldName": {
+                      "description": "Name of the field",
+                      "type": "string"
+                    },
+                    "value": {
+                      "description": "Value of the field or setting.",
+                      "type": "string"
+                    },
+                    "leadFieldUID": {
+                      "description": "Unique identifier for the lead field.",
+                      "type": "integer"
+                    },
+                    "regularExpression": {
+                      "description": "Regular expression used for pattern matching or validation.",
+                      "type": "string"
+                    },
+                    "hasMap": {
+                      "description": "Indicates if the setting has a mapping.",
+                      "type": "boolean"
+                    },
+                    "timeZone": {
+                      "description": "Time zone for the delivery setting.",
+                      "type": "string"
+                    },
+                    "fieldMappings": {
+                      "description": "Field mappings associated with the delivery setting.",
+                      "type": [
+                        "array",
+                        "null"
+                      ],
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "deliveryValue": {
+                            "description": "Value used for delivery.",
+                            "type": "string"
+                          },
+                          "fieldValue": {
+                            "description": "Value of the mapped field.",
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "fieldType",
+                    "fieldName"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "name",
+              "enabled"
+            ]
+          }
+        },
+        "required": [
+          "clientUID",
+          "deliveryMethodUID",
+          "updateDeliveryMethodDto"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    {
+      "name": "create_delivery_account",
+      "x-mcpResource": "mcp://resource/agentic/tools/create_delivery_account",
+      "description": "Create a delivery account",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "clientUID": {
+            "type": "integer"
+          },
+          "createDeliveryAccountDto": {
+            "type": "object",
+            "properties": {
+              "deliveryMethodUID": {
+                "description": "Unique identifier of Delivery Method",
+                "type": "integer"
+              },
+              "deliveryAccountType": {
+                "description": "Type - Default to WebAndChatLeads if unspecified",
+                "type": "string",
+                "enum": [
+                  "WebAndChatLeads",
+                  "Redirect",
+                  "LiveCallTransfers",
+                  "PhoneRouting"
+                ]
+              },
+              "status": {
+                "description": "Status - Default to Open if unspecified",
+                "type": "string",
+                "enum": [
+                  "Closed",
+                  "Suspended",
+                  "OnHold",
+                  "Open"
+                ]
+              },
+              "name": {
+                "description": "Name - Default to `{client name} Account`",
+                "type": "string"
+              },
+              "price": {
+                "description": "Price per lead - Required input from user.",
+                "type": "number"
+              },
+              "agentName": {
+                "description": "Name of the agent. Required when DeliveryAccountType = PhoneRouting",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "agentPhone": {
+                "description": "Phone number of the agent. Required when DeliveryAccountType = PhoneRouting",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "alternateDeliveryMethodUID": {
+                "description": "Alternate delivery method unique identifier - Optional",
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "hourMax": {
+                "description": "Max delivery allowed per hour.  Default to -1 (No Max)",
+                "type": "integer"
+              },
+              "dayMax": {
+                "description": "Max delivery allowed per day.  Default to -1 (No Max)",
+                "type": "integer"
+              },
+              "weekMax": {
+                "description": "Max delivery allowed per week.  Default to -1 (No Max)",
+                "type": "integer"
+              },
+              "monthMax": {
+                "description": "Max delivery allowed per month.  Default to -1 (No Max)",
+                "type": "integer"
+              },
+              "criteria": {
+                "description": "Delivery validation criteria",
+                "type": "array",
+                "items": {
+                  "description": "Defines conditions that must be met for delivery",
+                  "type": "object",
+                  "properties": {
+                    "leadFieldUID": {
+                      "description": "Lead Field identifier - Required unless Type = Function",
+                      "type": "integer"
+                    },
+                    "type": {
+                      "description": "Criteria source type - Default is FieldValue",
+                      "type": "string",
+                      "enum": [
+                        "FieldValue",
+                        "Expression",
+                        "Function"
+                      ]
+                    },
+                    "expression": {
+                      "description": "Regular expression to compare to Lead Field value.  Required if Type = Expression",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "operator": {
+                      "description": "Operator used to compare Lead Field to Value",
+                      "type": "string",
+                      "enum": [
+                        "Equal",
+                        "NotEqual",
+                        "Greater",
+                        "Less",
+                        "GreaterOrEqual",
+                        "LessOrEqual",
+                        "Between",
+                        "In",
+                        "NotIn",
+                        "DateCompare",
+                        "Distance_Compare",
+                        "Contains",
+                        "DoesNotContain"
+                      ]
+                    },
+                    "value": {
+                      "description": "Value to be compared via operator",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "operator"
+                  ]
+                }
+              },
+              "useOrder": {
+                "description": "Indicates if order usage is enabled",
+                "type": "boolean"
+              },
+              "automationEnabled": {
+                "description": "Indicates if automation is enabled for the account",
+                "type": "boolean"
+              },
+              "isExclusive": {
+                "description": "Make leads sent to this delivery account exclusive",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "deliveryMethodUID",
+              "deliveryAccountType",
+              "status",
+              "name",
+              "price"
+            ]
+          }
+        },
+        "required": [
+          "clientUID",
+          "createDeliveryAccountDto"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    {
+      "name": "get_delivery_method",
+      "description": "Get details of delivery method",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "clientUID": {
+            "type": "integer"
+          },
+          "deliveryMethodUID": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "clientUID",
+          "deliveryMethodUID"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "deliveryMethodUID": {
+                "description": "Unique identifier for the delivery method.",
+                "type": "integer"
+              },
+              "clientUID": {
+                "description": "Unique identifier for the client.",
+                "type": "integer"
+              },
+              "deliveryType": {
+                "description": "Type of delivery method.",
+                "type": "string",
+                "enum": [
+                  "HttpPost",
+                  "HttpGet",
+                  "XMLJson",
+                  "SalesExec",
+                  "FTP",
+                  "EMail",
+                  "CSV",
+                  "SOAP",
+                  "Internal",
+                  "PingPost",
+                  "BatchEmail",
+                  "SMS"
+                ]
+              },
+              "name": {
+                "description": "Name of the delivery method.",
+                "type": "string"
+              },
+              "enabled": {
+                "description": "Indicates if the delivery method is enabled.",
+                "type": "boolean"
+              },
+              "dateAdded": {
+                "description": "Date when the delivery method was added.",
+                "type": "string",
+                "format": "date-time"
+              },
+              "inTesting": {
+                "description": "Indicates if the delivery method is in testing mode.",
+                "type": "boolean"
+              },
+              "leadTypeUID": {
+                "description": "Unique identifier for the lead type.",
+                "type": "integer"
+              },
+              "contentType": {
+                "type": "string"
+              },
+              "requestBody": {
+                "description": "Request body template for the delivery method.",
+                "type": "string"
+              },
+              "emailOrSmsTemplate": {
+                "description": "Email or SMS template used for delivery.",
+                "type": "string"
+              },
+              "emailSubject": {
+                "description": "Subject line for email delivery.",
+                "type": "string"
+              },
+              "ftpUser": {
+                "description": "FTP username for file delivery.",
+                "type": "string"
+              },
+              "ftpPassword": {
+                "description": "FTP password for file delivery.",
+                "type": "string"
+              },
+              "ftpPath": {
+                "description": "FTP path for file delivery.",
+                "type": "string"
+              },
+              "emailAddress": {
+                "description": "Email address used for delivery.",
+                "type": "string"
+              },
+              "useRegEx": {
+                "description": "Indicates if regular expressions are used for response validation.",
+                "type": "boolean"
+              },
+              "responseSearch": {
+                "description": "Search pattern for response validation.",
+                "type": "string"
+              },
+              "deliveryAddress": {
+                "description": "Address used for delivery (URL, email, etc.).",
+                "type": "string"
+              },
+              "smtpServer": {
+                "description": "SMTP server used for email delivery.",
+                "type": "string"
+              },
+              "smtpAuth": {
+                "description": "Indicates if SMTP authentication is required.",
+                "type": "boolean"
+              },
+              "smtpUsername": {
+                "description": "SMTP username for authentication.",
+                "type": "string"
+              },
+              "smtpPassword": {
+                "description": "SMTP password for authentication.",
+                "type": "string"
+              },
+              "fromEmailAddress": {
+                "description": "Sender email address for notifications.",
+                "type": "string"
+              },
+              "toEmailAddress": {
+                "description": "Recipient email address for notifications.",
+                "type": "string"
+              },
+              "emailNotify": {
+                "description": "Indicates if email notifications are enabled.",
+                "type": "boolean"
+              },
+              "notifyCC": {
+                "description": "CC email addresses for notifications.",
+                "type": "string"
+              },
+              "notifyBCC": {
+                "description": "BCC email addresses for notifications.",
+                "type": "string"
+              },
+              "notifyEmail": {
+                "description": "Notification email address.",
+                "type": "string"
+              },
+              "leadCatUID": {
+                "description": "Unique identifier for the lead category.",
+                "type": "integer"
+              },
+              "clientEmail": {
+                "description": "Client email address for delivery notifications.",
+                "type": "string"
+              },
+              "settings": {
+                "description": "Settings associated with the delivery method.",
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "deliverySettingUID": {
+                      "description": "Unique identifier for the delivery setting.",
+                      "type": "integer"
+                    },
+                    "deliveryUID": {
+                      "description": "Unique identifier for the delivery method.",
+                      "type": "integer"
+                    },
+                    "delete": {
+                      "description": "Indicates if the setting should be deleted.",
+                      "type": "boolean"
+                    },
+                    "format": {
+                      "description": "Format of the delivery setting.",
+                      "type": "string"
+                    },
+                    "fieldType": {
+                      "description": "Type of the field",
+                      "type": "string",
+                      "enum": [
+                        "StaticValue",
+                        "LeadField",
+                        "SpecialField",
+                        "CustomExpression",
+                        "SubString",
+                        "StringConcatenation",
+                        "ClientField",
+                        "LeadSourceField",
+                        "EvaluateFunction"
+                      ]
+                    },
+                    "fieldName": {
+                      "description": "Name of the field ",
+                      "type": "string"
+                    },
+                    "value": {
+                      "description": "Value of the field or setting.",
+                      "type": "string"
+                    },
+                    "leadFieldUID": {
+                      "description": "Unique identifier for the lead field.",
+                      "type": "integer"
+                    },
+                    "regularExpression": {
+                      "description": "Regular expression used for pattern matching or validation.",
+                      "type": "string"
+                    },
+                    "hasMap": {
+                      "description": "Indicates if the setting has a mapping.",
+                      "type": "boolean"
+                    },
+                    "timeZone": {
+                      "description": "Time zone for the delivery setting.",
+                      "type": "string"
+                    },
+                    "fieldMappings": {
+                      "description": "Field mappings",
+                      "type": [
+                        "array",
+                        "null"
+                      ],
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "deliveryMethodMappingUID": {
+                            "description": "Unique identifier for the delivery method mapping.",
+                            "type": "integer"
+                          },
+                          "isDeleted": {
+                            "description": "Indicates if the mapping is deleted.",
+                            "type": "boolean"
+                          },
+                          "deliveryMethodSettingUID": {
+                            "description": "Unique identifier for the delivery method setting.",
+                            "type": "integer"
+                          },
+                          "deliveryValue": {
+                            "description": "Value used for delivery.",
+                            "type": "string"
+                          },
+                          "fieldValue": {
+                            "description": "Value of the mapped field.",
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "deliveryDays": {
+                "description": "Delivery days and times for the delivery method.",
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "deliveryMethodDayUID": {
+                      "description": "Unique identifier for the delivery method day.",
+                      "type": "integer"
+                    },
+                    "deliveryMethodUID": {
+                      "description": "Unique identifier for the delivery method.",
+                      "type": "integer"
+                    },
+                    "weekDay": {
+                      "description": "Day of the week (0=Sunday, 6=Saturday).",
+                      "type": "integer"
+                    },
+                    "startTime": {
+                      "description": "Start time for delivery on this day.",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "endTime": {
+                      "description": "End time for delivery on this day.",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "allow": {
+                      "description": "Indicates if delivery is allowed on this day.",
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "get_clients",
+      "x-mcpResource": "mcp://resource/agentic/tools/get_clients",
+      "description": "Get clients list.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "properties": {
+                "clientUID": {
+                  "description": "Unique identifier for the client",
+                  "type": "integer"
+                },
+                "companyName": {
+                  "description": "Name of the company",
+                  "type": "string"
+                },
+                "clientStatus": {
+                  "description": "Unique identifier for the account",
+                  "type": "string",
+                  "enum": [
+                    "New",
+                    "Pending",
+                    "Working",
+                    "Waiting",
+                    "Dead",
+                    "Inactive",
+                    "Active",
+                    "Late",
+                    "Suspended",
+                    "Closed"
+                  ]
+                },
+                "clientAutomationType": {
+                  "description": "Type of client automation",
+                  "type": "string",
+                  "enum": [
+                    "Price",
+                    "Priority",
+                    "RoundRobin"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "get_delivery_accounts",
+      "x-mcpResource": "mcp://resource/agentic/tools/get_delivery_accounts",
+      "description": "Get delivery account list",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "clientUID": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "clientUID"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "properties": {
+                "deliveryAccountUID": {
+                  "description": "Unique identifier for the delivery account",
+                  "type": "integer"
+                },
+                "clientUID": {
+                  "description": "Unique identifier for the client",
+                  "type": "integer"
+                },
+                "deliveryMethodUID": {
+                  "description": "Unique identifier for the delivery method",
+                  "type": "integer"
+                },
+                "name": {
+                  "description": "Name of the delivery account",
+                  "type": "string"
+                },
+                "status": {
+                  "description": "Status of the delivery account",
+                  "type": "string",
+                  "enum": [
+                    "Closed",
+                    "Suspended",
+                    "OnHold",
+                    "Open"
+                  ]
+                },
+                "accountType": {
+                  "description": "Type of the delivery account",
+                  "type": "string",
+                  "enum": [
+                    "WebAndChatLeads",
+                    "Redirect",
+                    "LiveCallTransfers",
+                    "PhoneRouting"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "update_delivery_account",
+      "x-mcpResource": "mcp://resource/agentic/tools/update_delivery_account",
+      "description": "Update a delivery account",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "clientUID": {
+            "type": "integer"
+          },
+          "deliveryAccountUID": {
+            "type": "integer"
+          },
+          "updateDeliveryAccountDto": {
+            "type": "object",
+            "properties": {
+              "deliveryMethodUID": {
+                "description": "Unique identifier for the delivery method",
+                "type": "integer"
+              },
+              "status": {
+                "description": "Status of the delivery account",
+                "type": "string",
+                "enum": [
+                  "Closed",
+                  "Suspended",
+                  "OnHold",
+                  "Open"
+                ]
+              },
+              "name": {
+                "description": "Name of the delivery account",
+                "type": "string"
+              },
+              "price": {
+                "description": "Price associated with the delivery account",
+                "type": "number"
+              },
+              "agentName": {
+                "description": "Name of the agent associated with the account, This is required when DeliveryAccountType = PhoneRouting",
+                "type": "string"
+              },
+              "agentPhone": {
+                "description": "Phone number of the agent, This is required when DeliveryAccountType = PhoneRouting",
+                "type": "string"
+              },
+              "alternateDeliveryMethodUID": {
+                "description": "Unique identifier for the alternate delivery method, This is optional",
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "hourMax": {
+                "description": "Maximum number of deliveries allowed per hour. If set to -1, no limit is applied.",
+                "type": "integer"
+              },
+              "dayMax": {
+                "description": "Maximum number of deliveries allowed per day. If set to -1, no limit is applied.",
+                "type": "integer"
+              },
+              "weekMax": {
+                "description": "Maximum number of deliveries allowed per week. If set to -1, no limit is applied.",
+                "type": "integer"
+              },
+              "monthMax": {
+                "description": "Maximum number of deliveries allowed per month. If set to -1, no limit is applied.",
+                "type": "integer"
+              },
+              "criteria": {
+                "description": "List of criteria for the delivery account. Each criterion defines specific conditions or rules that must be met for delivery validation",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "leadFieldUID": {
+                      "description": "Unique identifier for the lead field",
+                      "type": "integer"
+                    },
+                    "type": {
+                      "description": "Type of criteria for the delivery account",
+                      "type": "string",
+                      "enum": [
+                        "FieldValue",
+                        "Expression",
+                        "Function"
+                      ]
+                    },
+                    "expression": {
+                      "description": "Expression used in the criteria",
+                      "type": "string"
+                    },
+                    "operator": {
+                      "description": "Operator used in the criteria",
+                      "type": "string",
+                      "enum": [
+                        "Equal",
+                        "NotEqual",
+                        "Greater",
+                        "Less",
+                        "GreaterOrEqual",
+                        "LessOrEqual",
+                        "Between",
+                        "In",
+                        "NotIn",
+                        "DateCompare",
+                        "Distance_Compare",
+                        "Contains",
+                        "DoesNotContain"
+                      ]
+                    },
+                    "value": {
+                      "description": "Value used in the criteria",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "operator"
+                  ]
+                }
+              },
+              "useOrder": {
+                "description": "Indicates if order usage is enabled",
+                "type": "boolean"
+              },
+              "automationEnabled": {
+                "description": "Indicates if automation is enabled for the account",
+                "type": "boolean"
+              },
+              "isExclusive": {
+                "description": "Make leads sent to this delivery account exclusive",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "deliveryMethodUID",
+              "status",
+              "name",
+              "price"
+            ]
+          }
+        },
+        "required": [
+          "clientUID",
+          "deliveryAccountUID",
+          "updateDeliveryAccountDto"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    {
+      "name": "create_delivery_method",
+      "x-mcpResource": "mcp://resource/agentic/tools/create_delivery_method",
+      "description": "Create a delivery method",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "clientUID": {
+            "type": "integer"
+          },
+          "createDeliveryMethodDto": {
+            "type": "object",
+            "properties": {
+              "deliveryType": {
+                "description": "Type of delivery method",
+                "type": "string",
+                "enum": [
+                  "HttpPost",
+                  "HttpGet",
+                  "XMLJson",
+                  "SalesExec",
+                  "FTP",
+                  "EMail",
+                  "CSV",
+                  "SOAP",
+                  "Internal",
+                  "PingPost",
+                  "BatchEmail",
+                  "SMS"
+                ]
+              },
+              "name": {
+                "type": "string"
+              },
+              "enabled": {
+                "type": "boolean"
+              },
+              "leadTypeUID": {
+                "description": "Lead Type identifier",
+                "type": "integer"
+              },
+              "contentType": {
+                "type": "string"
+              },
+              "requestBody": {
+                "description": "Request body - Required for DeliveryType: HttpPost, XMLJson, SOAP, and PingPost",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "emailOrSmsTemplate": {
+                "description": "Template used for formatting delivery - Required for DeliveryType: Email, SMS",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "emailSubject": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "ftpUser": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "ftpPassword": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "ftpPath": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "emailAddress": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "useRegEx": {
+                "description": "Use Regex for response validation.",
+                "type": "boolean"
+              },
+              "responseSearch": {
+                "description": "Seach/Regex pattern for response validation.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "deliveryAddress": {
+                "description": "Address used for delivery (URL, email, etc.).",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "smtpServer": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "smtpAuth": {
+                "description": "Indicates if SMTP authentication is required.",
+                "type": "boolean"
+              },
+              "smtpUsername": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "smtpPassword": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "fromEmailAddress": {
+                "description": "Notification sender address",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "toEmailAddress": {
+                "description": "Notification recipient address",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "emailNotify": {
+                "description": "Enable email notifications",
+                "type": "boolean"
+              },
+              "notifyCC": {
+                "description": "Notification CC recipients",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "notifyBCC": {
+                "description": "Notification BCC recipients",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "notifyEmail": {
+                "description": "Notification email address.",
+                "type": "string"
+              },
+              "leadCatUID": {
+                "description": "Lead Category identifier",
+                "type": "integer"
+              },
+              "clientEmail": {
+                "description": "Notification client delivery address",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "deliveryDays": {
+                "description": "Allowed delivery days - Default to empty collection (all allowed)",
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "weekDay": {
+                      "description": "Day of the week (0=Sunday, 6=Saturday).",
+                      "type": "integer"
+                    },
+                    "startTime": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "endTime": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "allow": {
+                      "description": "Indicates if delivery is allowed within this day/time window.",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "weekDay",
+                    "startTime",
+                    "endTime",
+                    "allow"
+                  ]
+                }
+              },
+              "settings": {
+                "description": "Delivery settings for field mapping",
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "format": {
+                      "description": "Format of the delivery setting.",
+                      "type": "string"
+                    },
+                    "fieldType": {
+                      "description": "Type of the field",
+                      "type": "string",
+                      "enum": [
+                        "StaticValue",
+                        "LeadField",
+                        "SpecialField",
+                        "CustomExpression",
+                        "SubString",
+                        "StringConcatenation",
+                        "ClientField",
+                        "LeadSourceField",
+                        "EvaluateFunction"
+                      ]
+                    },
+                    "fieldName": {
+                      "description": "Name of the field",
+                      "type": "string"
+                    },
+                    "value": {
+                      "description": "Value of the field or setting.",
+                      "type": "string"
+                    },
+                    "leadFieldUID": {
+                      "description": "Lead Field identifier",
+                      "type": "integer"
+                    },
+                    "regularExpression": {
+                      "description": "Regular expression used for pattern matching or validation.",
+                      "type": "string"
+                    },
+                    "hasMap": {
+                      "description": "Whether FieldMappings should be used for mapping explicit values",
+                      "type": "boolean"
+                    },
+                    "timeZone": {
+                      "type": "string"
+                    },
+                    "fieldMappings": {
+                      "description": "Explicit mapping for field values",
+                      "type": [
+                        "array",
+                        "null"
+                      ],
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "deliveryValue": {
+                            "description": "Value used for delivery.",
+                            "type": "string"
+                          },
+                          "fieldValue": {
+                            "description": "Value of the lead field.",
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "fieldType",
+                    "fieldName"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "deliveryType",
+              "name",
+              "enabled",
+              "leadTypeUID"
+            ]
+          }
+        },
+        "required": [
+          "clientUID",
+          "createDeliveryMethodDto"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    {
+      "name": "get_lead_type",
+      "x-mcpResource": "mcp://resource/agentic/tools/get_lead_type",
+      "description": "Get the details of lead type including lead fields.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "leadTypeUID": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "leadTypeUID"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "leadTypeUID": {
+                "description": "Unique identifier",
+                "type": "integer"
+              },
+              "leadTypeName": {
+                "type": "string"
+              },
+              "leadFields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "leadFieldUID": {
+                      "description": "Unique identifier",
+                      "type": "integer"
+                    },
+                    "leadFieldName": {
+                      "type": "string"
+                    },
+                    "leadFieldDataType": {
+                      "type": "string",
+                      "enum": [
+                        "NoDataType",
+                        "Int",
+                        "BigInt",
+                        "Bit",
+                        "Money",
+                        "Decimal",
+                        "Float",
+                        "DateTime",
+                        "Varchar"
+                      ]
+                    },
+                    "isEnumerated": {
+                      "type": "boolean"
+                    },
+                    "leadFieldSpecialBit": {
+                      "description": "Whether this field represents a known 'special' information field",
+                      "type": "string",
+                      "enum": [
+                        "NoSpecialBit",
+                        "FirstName",
+                        "LastName",
+                        "Email",
+                        "PrimaryPhone",
+                        "Address",
+                        "City",
+                        "State",
+                        "Zip",
+                        "MobilePhone",
+                        "IPAddress",
+                        "DirectTrackAffiliateID",
+                        "DirectTrackCampaignID",
+                        "ClientSendNotes",
+                        "IndexDate",
+                        "Address2",
+                        "SubSource",
+                        "ForceID",
+                        "SubSourceCategory",
+                        "SubCategory",
+                        "StandardAddress",
+                        "StandardCity",
+                        "StandardState",
+                        "StandardZip",
+                        "Comments",
+                        "Country",
+                        "MobileCheck",
+                        "ContactConsent",
+                        "OrigFirstName",
+                        "OrigLastName",
+                        "OrigAddress",
+                        "OrigCity",
+                        "OrigState",
+                        "OrigPostalCode",
+                        "OrigCountry",
+                        "OrigPhoneNumber",
+                        "IPLat",
+                        "IPLong",
+                        "OrigIP",
+                        "ConsentText",
+                        "Status",
+                        "LastAction",
+                        "CurrentWorkflow",
+                        "DateClosed",
+                        "PipelineOneTimeFees",
+                        "PipelineRecurringFees"
+                      ]
+                    },
+                    "leadFieldEnums": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "leadFieldEnumUID": {
+                            "description": "Unique identifier",
+                            "type": "integer"
+                          },
+                          "value": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "test_webhook_connection",
+      "description": "Tests connectivity to a webhook endpoint by sending a test request",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "The webhook URL to test"
+          },
+          "method": {
+            "type": "string",
+            "description": "HTTP method (POST, GET, etc.)"
+          },
+          "payload": {
+            "type": "string",
+            "description": "Request body payload",
+            "default": ""
+          },
+          "contentType": {
+            "type": "string",
+            "description": "Content-Type header",
+            "default": "application/json"
+          },
+          "headers": {
+            "type": "string",
+            "description": "Additional headers as key:value pairs",
+            "default": ""
+          },
+          "timeoutSeconds": {
+            "type": "integer",
+            "description": "Request timeout in seconds",
+            "default": 30
+          },
+          "useMultipart": {
+            "type": "boolean",
+            "description": "Use multipart form data",
+            "default": false
+          },
+          "basicAuthUser": {
+            "type": "string",
+            "description": "Basic auth username",
+            "default": ""
+          },
+          "basicAuthPassword": {
+            "type": "string",
+            "description": "Basic auth password",
+            "default": ""
+          },
+          "queryParams": {
+            "type": "string",
+            "description": "Query parameters as key=value pairs",
+            "default": ""
+          },
+          "encoding": {
+            "type": "string",
+            "description": "Character encoding",
+            "default": "utf8"
+          },
+          "retryCount": {
+            "type": "integer",
+            "description": "Number of retry attempts",
+            "default": 0
+          }
+        },
+        "required": ["url", "method"]
+      }
+    },
+    {
+      "name": "test_ftp_sftp_connection",
+      "description": "Tests connectivity to an FTP or SFTP server",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "protocol": {
+            "type": "string",
+            "description": "Protocol type: FTP or SFTP"
+          },
+          "host": {
+            "type": "string",
+            "description": "FTP/SFTP server hostname"
+          },
+          "username": {
+            "type": "string",
+            "description": "Login username"
+          },
+          "password": {
+            "type": "string",
+            "description": "Login password"
+          },
+          "remotePath": {
+            "type": "string",
+            "description": "Remote directory path",
+            "default": "/"
+          },
+          "port": {
+            "type": "integer",
+            "description": "Server port (null for auto-detect: FTP=21, SFTP=22)",
+            "nullable": true
+          },
+          "retryCount": {
+            "type": "integer",
+            "description": "Number of retry attempts",
+            "default": 0
+          }
+        },
+        "required": ["protocol", "host", "username", "password"]
+      }
+    }
+  ]
+}

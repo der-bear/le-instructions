@@ -18,7 +18,7 @@ Validate that the new pack keeps the current platform-facing architecture while 
 12. State-field ambiguity fallback.
 13. Extra criteria compile failure offers `fix` or `continue geography-only`.
 14. Webhook malformed JSON repair: missing braces, trailing comma, single quotes.
-15. Webhook review branch coverage: create, revise URL, revise spec, change content type, skip mapping after review.
+15. Webhook review waits for a single `Continue` acknowledgement before pasted-spec create.
 16. Geography recovery rejects partial matches and offers only `Re-enter states` or `All states`.
 17. Criteria builder enum flow works with ChoiceSet and typed `continue`/`done` exits cleanly.
 18. Activation failure offers `Retry activation` or `Keep inactive`.
@@ -30,7 +30,7 @@ Validate that the new pack keeps the current platform-facing architecture while 
 24. Add-account flow shows the account preview and ends only after `Finish`.
 25. Preview and review cards render with exact required row labels and no extra rows.
 26. Normalized preview values are shown instead of raw DTO/internal values.
-27. Webhook review size cap forces `Revise spec` or `Skip mapping` instead of rendering an oversized card.
+27. Large webhook mappings render a compact review preview instead of skipping the review.
 28. Activation plain-text summary shows the `useOrder=true` follow-up note only when applicable.
 29. Required card render failure retries once and then falls back cleanly.
 30. Phase 4 loads Phase 4b and stops until the criteria builder returns.
@@ -38,6 +38,7 @@ Validate that the new pack keeps the current platform-facing architecture while 
 32. Webhook summary handoff carries `requestTemplateStatus`, not raw `requestBody`.
 33. Activation can fail more than once and still re-offer `Retry activation` or `Keep inactive`.
 34. Re-entering Phase 3 through the router clears stale method-attempt state so a new branch does not silently reuse an old schedule, URL, or FTP credentials.
+35. Phase 3 typed-text asks stay plain text and do not render as cards with submit-only shells.
 
 ## Acceptance Criteria
 - No repeated intro prompts.
@@ -62,7 +63,18 @@ Validate that the new pack keeps the current platform-facing architecture while 
 - All DTOs are passed as nested native objects, never JSON strings or flattened loose fields.
 - `deliveryDays` is always a native 7-entry array of day objects inside method payloads.
 - Manual selectors use compact ChoiceSet plus Submit with no extra submit data.
-- Webhook pasted-spec methods are never created until the user explicitly confirms `Create method`.
+- Phase 3 short enumerations use `ActionSet` buttons when the phase explicitly requires a card:
+  - delivery type
+  - delivery schedule
+  - webhook mapping mode
+  - webhook content type
+- Phase 3 typed-text asks remain plain text:
+  - schedule hours
+  - webhook URL
+  - webhook posting instructions
+  - FTP host, username, and password
+- No typed-text ask renders as an adaptive card or as a submit-only shell.
+- Webhook pasted-spec methods are never created until the user explicitly confirms `Continue` on the mapping preview.
 - Webhook skip-mapping creates immediately without an extra confirmation card.
 - Webhook malformed JSON/XML is repaired once losslessly before the user is asked to revise.
 - Webhook `settings` is either `null` or a native mapping array, and `requestBody` is the direct template text with placeholders.
@@ -109,28 +121,29 @@ Validate that the new pack keeps the current platform-facing architecture while 
 - Large or repetitive specs trigger `smaller excerpt` or `skip mapping`.
 - Webhook mapping review uses an adaptive-card table rather than plain text.
 - No connection-test phase is loaded.
-- The router does not summarize before loading the webhook phase because `deliveryDays` must stay native.
 - The router does not summarize before loading Portal, Email, FTP, or Webhook.
 - The router never calls `create_delivery_method`; creation happens only in the method-specific resource.
 - The router clears stale Phase 3 method-attempt state before loading the selected branch.
+- The Phase 3 delivery-type selector renders as one `ActionSet` with exactly four buttons: `Portal`, `Webhook`, `Email`, and `FTP`.
 - Each method-specific resource collects and builds its own `deliveryDays` payload locally instead of receiving a native schedule handoff from the router.
-- The webhook review summary includes content type, mapped count, total extracted count, and unresolved or omitted fields by name.
+- Webhook and FTP typed-text asks stay plain text and do not render as cards with a standalone `Submit` button.
+- Webhook short-enumeration choices render as `ActionSet` cards for:
+  - schedule
+  - `Provide instructions` / `Skip mapping`
+  - `URL Encoded` / `JSON` / `XML` / `I'm not sure`
+  - auto-detect confirmation
+  - unusable-spec recovery
+- The webhook review summary includes content type, mapped count, total extracted count, and not-mapped count.
 - The webhook review summary includes mapped field pairs only.
 - The webhook review card contains:
-  - one summary table with exact rows for content type, mapped fields, and unresolved or omitted fields
+  - one summary table with exact rows for content type, mapped fields, and not-mapped count
   - one mapping table with exact header text `Delivery Field | System Field | Status`
   - mapped rows in extracted field order
   - `Mapped` as the status text for every mapped row
-- Review choices are explicit:
-  - `Create method`
-  - `Revise URL`
-  - `Revise spec`
-  - `Change content type`
-  - `Skip mapping`
-- Revision choices reset only the intended inputs and do not silently discard unrelated webhook state.
+- The webhook review card uses one explicit `Continue` action.
 - `Re-paste excerpt` returns to the posting-instructions step without clearing the accepted URL or current content type.
 - After webhook creation succeeds, a second post-create method preview is shown before handoff or final completion.
-- If the webhook review would exceed the size cap, the flow does not render a giant table and instead offers only `Revise spec` or `Skip mapping`.
+- If the webhook review would exceed the comfortable size cap, the flow still shows a compact review preview instead of skipping directly to create.
 - Ambiguous mappings are resolved one delivery field at a time before the review card is shown.
 - `totalCount` still includes unmapped extracted fields, and nested JSON/XML paths stay explicit in the mapping contract.
 
@@ -142,6 +155,11 @@ Validate that the new pack keeps the current platform-facing architecture while 
   4. geography choice
   5. states when needed
   6. extra criteria yes/no
+- Phase 4 short choices render as `ActionSet` cards for:
+  - `Exclusive` / `Shared`
+  - `Yes` / `No` for use order
+  - `All states` / `Specific states`
+  - `Yes` / `No` for extra criteria
 - `All states` creates no state criterion.
 - `Continue without state targeting` converts the path to no-state geography and does not create a partial state criterion.
 - `Cancel` on state ambiguity returns to geography selection and does not create the account.

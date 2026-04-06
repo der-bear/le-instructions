@@ -11,7 +11,11 @@ Select the delivery type and route to the matching method-specific resource.
 Collect missing inputs in this exact order. Ask only the first missing item, then wait.
 
 1. `deliveryTypeChoice`
-   - Ask: `Portal`, `Webhook`, `Email`, or `FTP`
+   - Ask using `display_adaptive_card` with exactly one `ActionSet` containing four `Action.Submit` buttons:
+     - `Portal`
+     - `Webhook`
+     - `Email`
+     - `FTP`
 
 Accept typed equivalents for every card choice.
 

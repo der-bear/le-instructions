@@ -9,18 +9,29 @@ Collect the account inputs in a fixed visible order, compile geography and optio
 
 ## ASK
 Collect missing inputs in this exact order. Ask only the first missing item, then wait.
+Any item without an explicit card instruction is asked in plain text.
 
 1. `price`
 2. `isExclusive`
-   - Ask: `Exclusive` or `Shared`
+   - Ask using `display_adaptive_card` with exactly one `ActionSet` containing:
+     - `Exclusive`
+     - `Shared`
 3. `useOrder`
-   - Ask: `Yes` or `No`
+   - Ask using `display_adaptive_card` with exactly one `ActionSet` containing:
+     - `Yes`
+     - `No`
 4. `geographyChoice`
-   - Ask: `All states` or `Specific states`
+   - Ask using `display_adaptive_card` with exactly one `ActionSet` containing:
+     - `All states`
+     - `Specific states`
 5. `targetStates`
    - Ask only if `geographyChoice="Specific states"`
 6. `addExtraCriteriaChoice`
-   - Ask: `Yes` or `No`
+   - Ask using `display_adaptive_card` with exactly one `ActionSet` containing:
+     - `Yes`
+     - `No`
+
+Accept typed equivalents for every card choice.
 
 Rules:
 - Do not call `get_lead_type` before geography is collected.

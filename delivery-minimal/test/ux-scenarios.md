@@ -5,35 +5,40 @@
 2. Agent creates the client.
 3. Agent shows a `Client created` adaptive-card table and waits for `Continue to Lead Type`.
 4. Agent shows lead-type selection.
-5. Agent uses the Phase 3 router to collect `Portal`.
-6. Agent routes to the Portal method resource, collects schedule there, and creates the Portal method.
-7. Agent shows a `Method created` adaptive-card table and waits for `Continue to Delivery Account`.
-8. Agent asks account questions in the fixed order.
-9. User chooses `All states` and no extra criteria.
-10. Agent creates the account once.
-11. Agent shows an `Account created` adaptive-card table and waits for `Continue to Activation`.
-12. Agent shows a short plain-text setup summary, offers `Activate now` or `Keep inactive`, and the user keeps the client inactive.
+5. Agent uses the Phase 3 router to show an `ActionSet` card for `Portal`, `Webhook`, `Email`, or `FTP`.
+6. User selects `Portal`.
+7. Agent routes to the Portal method resource and shows an `ActionSet` card for `24/7 delivery` or `Specific hours only`.
+8. If the user chooses `Specific hours only`, the schedule-hours question is asked in plain text, not in a card shell.
+9. Agent creates the Portal method.
+10. Agent shows a `Method created` adaptive-card table and waits for `Continue to Delivery Account`.
+11. Agent asks `price` in plain text, then shows short `ActionSet` cards for `Exclusive` or `Shared`, `Yes` or `No` for use order, `All states` or `Specific states`, and `Yes` or `No` for extra criteria.
+12. User chooses `All states` and `No` for extra criteria.
+13. Agent creates the account once.
+14. Agent shows an `Account created` adaptive-card table and waits for `Continue to Activation`.
+15. Agent shows a short plain-text setup summary, offers `Activate now` or `Keep inactive`, and the user keeps the client inactive.
 
 ## Scenario 2 — Full Setup, Webhook, Skip Mapping
 1. User selects `Webhook`.
 2. Agent collects schedule inside the Webhook resource.
-3. Agent asks for endpoint URL.
-4. Agent asks `Provide instructions` or `Skip mapping`.
-5. User chooses `Skip mapping`.
-6. Agent creates the webhook method with default field names.
-7. Agent shows a post-create `Method created` adaptive-card table.
-8. After `Continue to Delivery Account`, the flow moves to account creation.
+3. If the user chooses `Specific hours only`, the schedule-hours question is asked in plain text, not in a card shell.
+4. Agent asks for endpoint URL in plain text.
+5. Agent shows an `ActionSet` card for `Provide instructions` or `Skip mapping`.
+6. User chooses `Skip mapping`.
+7. Agent creates the webhook method with default field names.
+8. Agent shows a post-create `Method created` adaptive-card table.
+9. After `Continue to Delivery Account`, the flow moves to account creation.
 
 ## Scenario 3 — Full Setup, Webhook, Explicit JSON Spec
 1. User selects `Webhook`.
 2. Agent collects schedule inside the Webhook resource.
-3. User provides URL and chooses `Provide instructions`.
-4. User explicitly selects `JSON`.
-5. User pastes a JSON schema.
-6. Agent loads lead fields only after the schema is accepted.
-7. Agent builds mappings and shows an adaptive-card table review with mapped field pairs.
-8. Agent asks for final confirmation and creates the webhook method only after `Create method`.
-9. Agent shows a post-create `Method created` adaptive-card table before moving to the next phase.
+3. User provides URL in plain text and chooses `Provide instructions`.
+4. Agent shows an `ActionSet` card for `URL Encoded`, `JSON`, `XML`, or `I'm not sure`.
+5. User explicitly selects `JSON`.
+6. User pastes a JSON schema in plain text, not through a card input.
+7. Agent loads lead fields only after the schema is accepted.
+8. Agent builds mappings and shows an adaptive-card table preview with mapped field pairs plus mapped/not-mapped counts.
+9. Agent asks for final confirmation and creates the webhook method only after `Continue`.
+10. Agent shows a post-create `Method created` adaptive-card table before moving to the next phase.
 
 ## Scenario 4 — Full Setup, Webhook, Auto-Detect Content Type
 1. User selects `Webhook`.
@@ -41,7 +46,7 @@
 3. User provides URL and chooses `Provide instructions`.
 4. User selects `I'm not sure`.
 5. User pastes a usable JSON or XML body.
-6. Agent detects the format once, rewrites the working content type to that detected value, confirms it once, and continues normally.
+6. Agent detects the format once, shows a two-button `ActionSet` card to accept the detected format or choose a different content type, then continues normally from the user's choice.
 
 ## Scenario 5 — Full Setup, Webhook, Large Spec
 1. User pastes a very large or messy spec.
@@ -63,7 +68,7 @@
 1. User starts add-account flow.
 2. Agent selects an existing client.
 3. Agent selects an existing delivery method and retains `leadTypeUID`.
-4. Agent asks the fixed account questions.
+4. Agent asks `price` in plain text, then shows short `ActionSet` cards for `Exclusive` or `Shared`, `Yes` or `No` for use order, `All states` or `Specific states`, and `Yes` or `No` for extra criteria.
 5. Agent creates the account once.
 6. Agent shows an `Account created` adaptive-card table.
 7. Agent waits for `Finish`.
@@ -89,16 +94,11 @@
 4. `Fix criteria` returns to the criteria builder instead of stalling in Phase 4.
 5. `Continue with geography only` clears extra criteria and proceeds with geography-only account creation.
 
-## Scenario 11 — Webhook Review Revisions
+## Scenario 11 — Webhook Mapping Preview
 1. User provides a valid webhook spec and reaches the adaptive-card table review.
-2. The agent offers only:
-   - `Create method`
-   - `Revise URL`
-   - `Revise spec`
-   - `Change content type`
-   - `Skip mapping`
-3. Each revision choice resets only the intended webhook inputs.
-4. The method is not created until the user explicitly chooses `Create method`.
+2. The agent shows mapped field pairs and mapped/not-mapped counts.
+3. The review card offers only `Continue`.
+4. The method is not created until the user explicitly chooses `Continue`.
 5. After creation succeeds, the flow still shows the post-create `Method created` adaptive-card table before handoff.
 
 ## Scenario 12 — Malformed JSON Repair
@@ -168,10 +168,11 @@
 3. The account preview shows `Shared`, `Yes`, `$NN.NN`, and `Specific states: <normalized state codes>`.
 4. No preview table shows raw booleans or raw DTO enum labels.
 
-## Scenario 22 — Webhook Review Size Guard
+## Scenario 22 — Webhook Review Compact Preview
 1. The user provides a webhook spec that would produce too many mapped rows or an oversized unresolved-or-omitted list.
-2. The agent does not render a giant mapping-review table.
-3. The agent offers only `Revise spec` or `Skip mapping`.
+2. The agent still shows a mapping-review preview instead of skipping directly to create.
+3. The review becomes compact by truncating mapped rows and summarizing the not-mapped count.
+4. The review still offers only `Continue`.
 
 ## Scenario 23 — Activation Order Note
 1. The user creates an account with `useOrder=true`.
@@ -185,8 +186,14 @@
 3. The router clears stale Phase 3 method-attempt state before loading the new branch.
 4. The new branch asks for its own schedule and branch-specific inputs instead of silently reusing the earlier branch's values.
 
-## Scenario 24 — Card Render Retry And Fallback
+## Scenario 25 — Card Render Retry And Fallback
 1. A required preview or webhook review card fails to render.
 2. The agent retries the same card once immediately.
 3. If the retry also fails, the agent uses one constrained plain-text fallback with the same key information and allowed actions.
 4. The agent does not send both card and plain text in the same turn.
+
+## Scenario 26 — Plain-Text Ask Does Not Render As A Submit Card
+1. The current phase expects a typed text answer such as schedule hours, webhook URL, posting instructions, FTP credentials, price, or target states.
+2. The agent asks in plain text only.
+3. The agent does not wrap that prompt in an adaptive card.
+4. The agent does not show a standalone `Submit` button without an input element.

@@ -68,7 +68,7 @@ Tool Execution Prerequisites:
 - Accurately replace placeholders (e.g., {companyName}) with captured values.
 - Always maintain original line breaks and formatting.
 - For non-predefined messages, use \n for readability when needed.
-- Never output the same prompt text more than once in the same message.
+- IMPORTANT: Do not repeat the same question or prompt text twice in a single message.
 </prompt_policy>
 
 <communication_style>

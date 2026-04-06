@@ -9,17 +9,26 @@ Collect the delivery schedule, create a webhook delivery method using either def
 
 ## ASK
 Collect missing inputs in this exact order. Ask only the first missing item, then wait.
+Any item without an explicit card instruction is asked in plain text.
 
 1. `deliveryScheduleChoice`
-   - Ask: `24/7 delivery` or `Specific hours only`
+   - Ask using `display_adaptive_card` with exactly one `ActionSet` containing:
+     - `24/7 delivery`
+     - `Specific hours only`
 2. `scheduleInput`
    - Ask only if `deliveryScheduleChoice="Specific hours only"`
 3. `deliveryAddress`
 4. `mappingMode`
-   - Ask: `Provide instructions` or `Skip mapping`
+   - Ask using `display_adaptive_card` with exactly one `ActionSet` containing:
+     - `Provide instructions`
+     - `Skip mapping`
 5. `contentTypeChoice`
    - Ask only if `mappingMode="Provide instructions"`
-   - Options: `URL Encoded`, `JSON`, `XML`, `I'm not sure`
+   - Ask using `display_adaptive_card` with exactly one `ActionSet` containing:
+     - `URL Encoded`
+     - `JSON`
+     - `XML`
+     - `I'm not sure`
 6. `postingInstructions`
    - Ask only if `mappingMode="Provide instructions"`
 
@@ -37,7 +46,7 @@ Accept typed equivalents for every card choice.
 - Do not call `get_lead_type` until the user has supplied a usable pasted spec.
 - For `JSON` or `XML`, apply at most one lossless repair pass before asking the user to revise. Allowed repairs include wrapping missing outer braces, removing trailing commas, converting obvious single quotes to double quotes, and equivalent lossless syntax cleanup that does not change business meaning.
 - Auto-detect confirmation:
-  - if the format was auto-detected, offer only:
+  - if the format was auto-detected, ask using `display_adaptive_card` with exactly one `ActionSet` containing:
     - `Use {detectedFormat}`
     - `Choose a different content type`
   - accept only typed equivalents that clearly map to those two responses
@@ -76,7 +85,7 @@ Accept typed equivalents for every card choice.
    - `Skip this field`
    - `Revise spec`
 - After each clarification, recompute `mappingSettings`, `requestBody`, `mappedCount`, `totalCount`, and the unresolved or omitted list before deciding whether another clarification step is required.
-- If the repaired spec is still unusable after one pass, offer only:
+- If the repaired spec is still unusable after one pass, ask using `display_adaptive_card` with exactly one `ActionSet` containing:
   - `Re-paste excerpt`
   - `Change content type`
   - `Skip mapping`
@@ -84,41 +93,28 @@ Accept typed equivalents for every card choice.
   - `Re-paste excerpt` → clear `postingInstructions`, `mappingSettings`, `requestBody`, `mappedCount`, and `totalCount`, keep `deliveryAddress` and the current confirmed `contentTypeChoice`, and return to the posting-instructions step
   - `Change content type` → clear `contentTypeChoice`, `postingInstructions`, `mappingSettings`, `requestBody`, `mappedCount`, and `totalCount`, then return to the content-type step
   - `Skip mapping` → clear `mappingSettings`, `requestBody`, `mimeContentType`, `mappedCount`, and `totalCount`, treat the flow as `Skip mapping`, and use the no-mapping create path
-- Before rendering the review card, apply a size guard:
-  - if there would be more than 20 mapped rows or if the unresolved or omitted list would exceed 400 characters, do not render a large review card
-  - instead present only:
-    - `Revise spec` with `data.action="revise-spec"`
-    - `Skip mapping` with `data.action="skip-mapping"`
-  - accept only typed equivalents that clearly map to those two actions
-  - apply the same reset behavior as the full review step for the chosen action
-  - wait for the user's choice
-- After ambiguity is resolved and the size guard passes, continue to `SHOW REVIEW (CARD)`.
-- Accept only typed equivalents that clearly map to those five action tokens.
-- Reset behavior:
-  - `Revise URL` → clear `deliveryAddress`, keep the accepted spec, and return to the URL step
-  - `Revise spec` → clear `postingInstructions`, `mappingSettings`, `requestBody`, `mappedCount`, and `totalCount`, then return to the posting-instructions step for the current content type
-  - `Change content type` → clear `contentTypeChoice`, `postingInstructions`, `mappingSettings`, `requestBody`, `mappedCount`, and `totalCount`, then return to the content-type step
-  - `Skip mapping` → clear `mappingSettings`, `requestBody`, `mimeContentType`, `mappedCount`, and `totalCount`, treat the flow as `Skip mapping`, and use the no-mapping create path
+- Before rendering the review card, prepare a compact preview when needed:
+  - if there are more than 20 mapped rows, render only the first 20 mapped rows in extracted field order and add a short note that the preview is truncated
+  - if the unresolved or omitted list would exceed 400 characters, summarize it as `{totalCount - mappedCount} not mapped` instead of listing every field name
+- After ambiguity is resolved, continue to `SHOW REVIEW (CARD)`.
 
 ## SHOW REVIEW (CARD)
-- After ambiguity is resolved and the size guard passes, call `display_adaptive_card` and render exactly one `WebhookMappingReviewCard` titled `Webhook Mapping Review`.
+- After ambiguity is resolved, call `display_adaptive_card` and render exactly one `WebhookMappingReviewCard` titled `Field Mapping Preview`.
 - Render one 2-column summary table with rows in exactly this order:
   - `Content Type | {contentTypeChoice}`
   - `Mapped Fields | {mappedCount} of {totalCount} extracted fields`
-  - `Unresolved or Omitted | <comma-delimited unresolved or omitted field names in extracted order>` or `None`
+  - `Not Mapped | {totalCount - mappedCount}`
 - Render one 3-column mapping table with exact header text:
   - `Delivery Field | System Field | Status`
-- Render one mapping row per mapped field in extracted field order.
+- Render mapped rows in extracted field order.
+- If there are 20 or fewer mapped rows, render one row per mapped field.
+- If there are more than 20 mapped rows, render only the first 20 rows and add one short note: `Showing first 20 of {mappedCount} mapped fields.`
 - Status text is always `Mapped`.
 - If there are zero mapped rows, render only the header row.
-- Render exactly five root `Action.Submit` buttons:
-  - `Create method` -> `data.action="create-method"`
-  - `Revise URL` -> `data.action="revise-url"`
-  - `Revise spec` -> `data.action="revise-spec"`
-  - `Change content type` -> `data.action="change-content-type"`
-  - `Skip mapping` -> `data.action="skip-mapping"`
-- Accept only typed equivalents that clearly map to those five action tokens.
-- Do not call `create_delivery_method` on the pasted-spec path until the user explicitly chooses `Create method`.
+- Render exactly one root `Action.Submit` button:
+  - `Continue` -> `data.action="continue-mapping-preview"`
+- Accept only typed equivalents that clearly map to `continue-mapping-preview`.
+- Do not call `create_delivery_method` on the pasted-spec path until the user explicitly chooses `Continue`.
 
 ## USE TOOL
 - `createDeliveryMethodDto` must be a nested native object, not a JSON string.
@@ -143,7 +139,7 @@ Accept typed equivalents for every card choice.
 - Validate that `deliveryMethodUID` is present and positive before showing the preview. If it is missing or invalid, treat the create step as failed.
 
 ### Pasted spec path
-- When the user chooses `Create method`, call `create_delivery_method` with:
+- When the user chooses `Continue`, call `create_delivery_method` with:
   - `clientUID={clientUID}`
   - `createDeliveryMethodDto={deliveryType="HttpPost", name="{companyName}-Webhook", enabled=true, leadTypeUID={leadTypeUID}, deliveryAddress={deliveryAddress}, contentType={mimeContentType}, responseSearch="success", useRegEx=false, settings={mappingSettings}, requestBody={requestBody}, deliveryDays={deliveryDays}}`
 - Retain:
