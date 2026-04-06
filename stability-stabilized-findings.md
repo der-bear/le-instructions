@@ -2568,3 +2568,142 @@ criteria: [
 | P5-NORM | 35% | — | — | |
 | P5-CR3 | 55% | — | — | Criteria phases use GPT-5-mini in runs 21–30 |
 | P8-ACT | 5% | — | — | |
+
+---
+
+# Round 2 — Post-Fix Stability Test
+
+**Date:** 2026-04-06
+**Model:** gpt-5.4-mini (all phases)
+**Instructions version:** Post-fix (prompt dedup rule added)
+**Action:** Create Single Client (Original)
+**Lead Type:** LendingTree (all runs)
+**Base test data:** StabilityTest-{RR}s2, stability{RR}s2@test.com
+
+### Fix Applied Since R1
+
+| Fix | Target | R1 Finding |
+|-----|--------|------------|
+| Prompt dedup rule | "Never output the same prompt text more than once in the same message" | RA-G (prompt doubling) |
+
+### R2 Run Scenarios
+
+| Run | Scenario | Delivery | Content Type | Schedule | Criteria | Special |
+|-----|----------|----------|-------------|----------|----------|---------|
+| 01 | JSON imperfect baseline | Webhook | JSON (missing braces, trailing comma, single quotes) | Mon-Fri 9-5 PST | 3: numeric >=, enum, numeric > | LendingTree |
+| 02 | JSON nested complex | Webhook | JSON (deep nesting, 15+ fields) | Tue-Thu 9-6 EST | 5: 2 enum + 2 numeric + 1 between | Exclusive, Order ON |
+| 03 | Content mismatch XML→JSON | Webhook | XML → switch → JSON | 24/7 | 2 enum + 1 numeric | Recovery flow |
+| 04 | Content mismatch JSON→XML | Webhook | JSON → switch → XML | Mon-Fri 8-6 CST | 3: enum + numeric + between | Reverse mismatch |
+| 05 | URL Encoded + enum-heavy | Webhook | URL Encoded | 24/7 | 4: 3 enum + 1 numeric | Shared |
+| 06 | Auto-detect (XML body) | Webhook | "I'm not sure" | Mon-Wed-Fri 8-8 PST | 2 enum | Exclusive |
+| 07 | Auto-detect (JSON body) | Webhook | "I'm not sure" | 24/7 | 3: numeric >= + enum + numeric > | Shared, Order ON |
+| 08 | FTP + mixed criteria | FTP | N/A | Mon-Fri 9-5 PST | 2: 1 enum + 1 numeric | Connection test |
+| 09 | Portal + skip criteria | Portal | N/A | Specific hours | Skip | No conn test |
+| 10 | Email + no criteria | Email | N/A | 24/7 | Skip | Shared |
+
+### R2 Scoring Matrix
+
+| Run | P1-PROMPT | P2-DROP | P3-SCHED | P3-WURL | P3-JSON | P3-TABLE | P3-COUNT | P3B-TEST | P4-SUMM | P5-PRICE | P5-EXCL | P5-ORDER | P5-STATE | P5-NORM | P5-FIELD | P5-CR1 | P5-ENUM | P5-CR3 | P5-DONE | P6-BOOL | P6-SUMM | P7-SUMM | P8-ACT | RESULT | Notes |
+|-----|-----------|---------|----------|---------|---------|----------|----------|----------|---------|----------|---------|----------|----------|---------|----------|--------|---------|--------|---------|---------|---------|---------|--------|--------|-------|
+| 01 | Y | Y | Y | Y | F | Y | Y | Y | Y | Y | Y | Y | F | F | F | F | F | F | F | Y | Y | Y | Y | FAIL (14/23=61%) | RA-NEW-1: posting instructions prompt skipped (recovered via DEBUG); RA-P: states skipped entirely; Phase 5 batched: criteria gate→skip→create account in one response |
+| 02 | Y | Y | F | Y | F | Y | Y | Y | Y | Y | Y | Y | F | F | Y | Y | F | F | F | Y | F | Y | Y | FAIL (15/23=65%) | RB-G: schedule prompt doubled; RB-X: empty card on "I'll provide instructions" (posting instr asked after content type, not before); 17/19 fields mapped correctly; RA-NEW-3: states re-prompted when full names given; RA-NEW-4: "Please type Continue to proceed" after "Add criteria" → criteria bypassed; P6-SUMM skipped |
+| 03 | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | Y | Y | Y | Y | F | F | N/A | N/A | Y | Y | Y | Y | Y | FAIL (18/21=86%) | XML→JSON mismatch not tested (user selected JSON directly); RB-G: price prompt doubled; States+criteria gate merged in one card [35] then gate shown again [37] (W-variant); Phase 5c silent skip: criteria builder loaded but ran 0 cards + 0 user interactions → create_delivery_account called immediately; Additional Criteria: None; 7/7 JSON mapping ✓; conn test correctly skipped; DA:45955 session:69d347e42697c9202c0bd5d5 |
+| 04 | F | Y | Y | Y | Y | Y | Y | Y | Y | F | F | F | F | N/A | F | F | N/A | N/A | Y | Y | Y | Y | Y | FAIL (12/20=60%) | RA-G: Phase 5 entry prompt doubled (FTP creds text ×2); RA-NEW-7: Phase 5 prompt hallucination — asked FTP credentials then "account name/webhook credentials" instead of price→states→excl→order→criteria; agent improvised entire Phase 5 flow post-summarization; JSON→XML switch PASS (content type card re-shown, XML schema re-asked, 7/7 remapped); criteria gate never shown (scenario requires 3 criteria); account created correctly after manual data injection ($30, CA/TX, Shared, Order=No); Session:69d35857fe97b9130c36b722 |
+| 05 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | Y | F | F | F | F | F | Y | Y | Y | Y | FAIL (17/23=74%) | RA-P: states question skipped after Order=No (2nd S-R2 occurrence); recovered CA,TX,FL,NY via DEBUG recovery; RA-NEW-R2-8: criteria builder bypassed after 2nd "Add criteria" click — agent created account with Additional Criteria: None; FIX 14 PASS (conn test failure text in card ✓); 11/11 URL-Enc mapping ✓; no P1 prompt doubling ✓; Session:TBD |
+| 06 | Y | Y | F | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | F | F | F | F | F | Y | F | ? | ? | FAIL (12/21=57%) | RA-G: schedule prompt doubled; RA-D: phase regression after Webhook click (×2); RA-P: states skipped (3rd S-R2 occurrence); 9/9 XML auto-detect ✓; FIX 14 PASS (conn test failure in card ✓); account created blank Target States + blank Criteria; states msg sent post-creation → agent spun indefinitely → session timeout; P7/P8 not observed |
+| 07 | Y | Y | Y | F | F | Y | Y | Y | Y | F | F | F | Y | Y | F | F | F | F | F | Y | Y | Y | Y | FAIL (13/23=57%) | RA-D: Phase 2/3 regression loop after "I'll provide instructions" click (LT dropdown re-shown ×2, schedule re-asked); P3-WURL: webhook URL never collected; RA-NEW-7: Phase 5 FTP hallucination (2nd R2 occurrence, doubled); all P5 collected via plain text after manual correction; 3 criteria provided (LoanAmount>=100000, SelfCreditRating=EXCELLENT, AnnualIncome>50000) all dropped (Additional Criteria: None); JSON auto-detect ✓; 12/12 mapping ✓; FIX 14 PASS; ACTIVE ✓ |
+| 08 | Y | Y | Y | Y | N/A | N/A | N/A | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | Y | Y | Y | Y | FAIL (18/20=90%) | FTP clean through P4; FTP creds prompt doubled (RA-G); FIX 14 PASS; P5 cards all shown (Excl/Order/States); states+criteria gate merged in one message (RA-NEW-6); field suggestions shown ✓; SelfCreditRating enum dropdown ✓ (UID 343593); "Add another criterion" → create_delivery_account failed prematurely; 2nd criterion LoanAmount showed wrong enum values (SelfCreditRating leak); Additional Criteria: None (RA-U); TX/FL/CA normalized ✓; ACTIVE ✓ |
+| 09 | Y | Y | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | PASS (14/14=100%) | Portal + skip criteria; cleanest run in R2; no regression, no hallucination; states prompt doubled (RA-G cosmetic) but functional; NY/OH normalized ✓; Skip criteria → None ✓; ACTIVE ✓ |
+| 10 | Y | Y | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | PASS (14/14=100%) | Email + no criteria; clean run; criteria gate skipped (correct for scenario — no user-facing skip needed); states GA/WA not doubled ✓; no prompt doubling anywhere; ACTIVE ✓ |
+
+### Per-Phase Failure Rates (R1 vs R2)
+
+R1 = runs 01–10, gpt-5.4-mini all phases (mixed during runs 11–20). R2 = runs 01–06 so far, gpt-5.4-mini all phases.  
+Denominator excludes N/A and ? entries. 🔴 = ≥50% · 🟡 = 20–49% · ✅ = <20%
+
+| Checkpoint | R1 fail (n=10) | R2 fail (n=6) | Trend |
+|------------|----------------|----------------|-------|
+| P1-PROMPT | 0/10 = 0% ✅ | 1/6 = 17% ✅ | ↔ |
+| P2-DROP | 0/10 = 0% ✅ | 0/6 = 0% ✅ | ↔ |
+| P3-SCHED | 2/10 = 20% 🟡 | 2/6 = 33% 🟡 | ↔ |
+| P3-WURL | 1/10 = 10% ✅ | 0/6 = 0% ✅ | ↑ |
+| P3-JSON | 1/10 = 10% ✅ | 2/6 = 33% 🟡 | ↓ |
+| P3-TABLE | 1/10 = 10% ✅ | 0/6 = 0% ✅ | ↑ |
+| P3-COUNT | 2/10 = 20% 🟡 | 0/6 = 0% ✅ | ↑ |
+| P3B-TEST | 0/10 = 0% ✅ | 0/6 = 0% ✅ | ↔ |
+| P4-SUMM | 0/10 = 0% ✅ | 0/6 = 0% ✅ | ↔ |
+| P5-PRICE | 0/10 = 0% ✅ | 2/6 = 33% 🟡 | ↓ |
+| P5-EXCL | 0/10 = 0% ✅ | 1/6 = 17% ✅ | ↔ |
+| P5-ORDER | 0/10 = 0% ✅ | 1/6 = 17% ✅ | ↔ |
+| P5-STATE | 5/10 = 50% 🔴 | 5/6 = 83% 🔴 | ↓↓ |
+| P5-NORM | 5/10 = 50% 🔴 | 3/5 = 60% 🔴 | ↔ |
+| P5-FIELD | 2/10 = 20% 🟡 | 5/6 = 83% 🔴 | ↓↓ |
+| P5-CR1 | 3/10 = 30% 🟡 | 6/6 = 100% 🔴 | ↓↓ |
+| P5-ENUM | 3/10 = 30% 🟡 | 4/4 = 100% 🔴 | ↓↓ |
+| P5-CR3 | 8/10 = 80% 🔴 | 4/4 = 100% 🔴 | ↔ |
+| P5-DONE | 10/10 = 100% 🔴 | 4/6 = 67% 🔴 | ↑ |
+| P6-BOOL | 0/10 = 0% ✅ | 0/6 = 0% ✅ | ↔ |
+| P6-SUMM | 1/10 = 10% ✅ | 2/6 = 33% 🟡 | ↓ |
+| P7-SUMM | 0/10 = 0% ✅ | 0/5 = 0% ✅ | ↔ |
+| P8-ACT | 0/10 = 0% ✅ | 0/5 = 0% ✅ | ↔ |
+
+**Key observations:** P5-STATE/FIELD/CR1/ENUM all worsened in R2 despite (or due to) new post-summarization behavior. P5-CR3/DONE remain critically high. P3-P4 phases are stable. P5-DONE improved slightly (100%→67%) suggesting some criteria are now persisting in R2.
+
+---
+
+### R2 Findings Catalog
+
+**RA-NEW-1: Posting instructions prompt skipped (Run 01)**
+After selecting JSON content type, agent jumped directly to "Field Mapping Preview" without asking user to paste the JSON schema. STOP AND YIELD at State 2 Step 3 was not enforced. Agent acknowledged via DEBUG: "I moved forward prematurely to the mapping steps instead of stopping to collect the required ASK input (postingInstructions)." Self-corrected after DEBUG — asked for schema, parsed leniently, showed correct mapping table. Pattern: Silent Tool Call Skipping (failure pattern #1).
+
+**RA-P (persists): States question skipped (Run 01)**
+After Order System → No, agent jumped directly to criteria gate ("Would you like to add additional lead criteria, or skip?"), completely skipping "Which states do you want to target?" prompt. States collection steps (STEP 7-8 in stabilized) were silently skipped. Same finding as R1 RA-P (3/8 rate in R1). No fix was applied for this in stabilized variant.
+
+**RA-NEW-2: Phase 5 batching — criteria gate auto-skipped (Run 01)**
+Agent showed criteria gate card with "Add criteria" | "Skip" buttons but did not wait for user response. Instead, when DEBUG message was sent as text, agent interpreted it as a non-button response and auto-proceeded to create the account with no criteria. The criteria gate → account creation → P6 summary all happened in a single response batch. Pattern: Batch Processing (failure pattern #3).
+
+**RB-G (new instance): Schedule prompt doubled (Run 02)**
+After clicking "Specific hours only", the agent output the schedule description prompt twice in the same message ("Please describe your preferred delivery schedule. (e.g., Mon-Fri 9am-5pm PST)" appeared twice). Previously seen in Run 01 for a different prompt. Persistent: appears across both variants and multiple prompts.
+
+**RB-X (new instance): Empty card after field mapping choice (Run 02)**
+When user clicked "I'll provide instructions" on the field mapping card, the agent rendered an empty (blank) adaptive card bubble with no content. Nudging with "please continue" caused the agent to skip to the content type selection card. The posting instructions prompt then appeared AFTER content type was selected (inverted order). Recovery happened but sequence was wrong.
+
+**RA-NEW-3: States re-prompted when full state names given (Run 02)**
+Agent asked "Which states do you want to target?" and user provided "New York, California, Texas, Florida, Illinois". Instead of normalizing to USPS codes, agent re-asked the same question. When abbreviations (NY, CA, TX, FL, IL) were provided the second time, it proceeded. The normalizer does not handle full state names.
+
+**RA-NEW-4: "Please type Continue to proceed" after Add criteria (Run 02)**
+After user clicked "Add criteria" on the criteria gate, agent responded with "Please type Continue to proceed." instead of loading the criteria builder. User typed "Continue", which the agent interpreted as a directive to skip criteria entirely and jump to the final Client Setup Summary. Criteria collection bypassed completely. Account summary (P6-SUMM) also skipped.
+
+**RA-NEW-5: Phase 5c silent skip — criteria builder loaded but ran without user interaction (Run 03)**
+After "Add criteria" click, agent called `get_resource(rw-phase-5c-criteria-builder)`. Phase 5c resource was loaded. In the single AI turn that followed, 0 `display_adaptive_card` calls were made, 0 user messages were exchanged — agent went directly to `create_delivery_account` with only the state criterion. Phase 5c State 1 (field suggestions) was never shown. Confirmed via audit log: between Phase 5c load and `create_delivery_account`, there was 1 AI turn, 0 function call blocks, 0 user messages. Account created with state criterion (NY|CA|FL = UIDs 33|5|10) only. Distinct from RA-NEW-4 (Run 02 — Phase 5c never loaded at all); here it loaded but executed silently.
+
+**RA-NEW-7: Phase 5 prompt hallucination post-summarization (Run 04)**
+After clicking Continue on the P4 delivery method summary, the agent entered Phase 5 but ignored Phase 5 instructions entirely. Instead of asking for price → states → exclusivity → order → criteria gate, the agent improvised a completely wrong prompt: "Please provide the delivery account details for Phase 5: FTP user / FTP password / If you want a different account type or setup details, include those too." This prompt was also doubled (RA-G). After DEBUG, agent correctly acknowledged the error ("I should not have implied those credentials were necessarily required for your webhook method") and proposed a patch (branch Phase 5 by delivery type — FTP credentials only for FTP-based methods). Agent then continued improvising with "account name, webhook username/password" questions instead of returning to Phase 5 flow. Root cause: post-summarization, agent lost access to Phase 5 MCP resource instructions and hallucinated delivery-account prompts from general knowledge. Entire Phase 5 structured flow (EXCL card → ORDER card → states prompt → criteria gate) never executed. Account was created correctly only because data was injected via a single combined message ("Price is $30, states CA and TX, not exclusive, no order system"). JSON→XML content switch worked correctly during Phase 3 — criteria gate completely bypassed.
+**Patch suggested by agent:** "Phase 5 must branch by delivery method type. FTP credentials are required only when the delivery method is FTP-based. For HttpPost/webhook delivery methods, suppress all FTP credential prompts and collect only webhook-relevant account information, if any." (Applicable to stabilized Phase 5 only — rework has separate phase files per type.)
+
+**RA-NEW-R2-9: Post-creation states message causes indefinite spin → session timeout (Run 06)**
+After RA-P silently created the delivery account (blank Target States), user sent "Before I answer the criteria question — which states do you want to target? CA, TX, NY, FL" — a message aimed at the criteria gate but received after account creation. The agent began processing (spinner active) and never completed. After ~10 minutes the page navigated away from `/App/#/` to `/#/`, destroying the session. Likely cause: agent attempted to call `get_usa_states` for state matching but the tool call timed out or the MCP session was orphaned. Phase 7 (client summary) and Phase 8 (activation) were not reached.
+
+**RA-NEW-6: States question shown inside adaptive card with criteria gate buttons (Run 03)**
+Phase 5 showed "Which states do you want to target? (e.g., CA, AZ, TX)" as a TextBlock inside an adaptive card, accompanied by "Add criteria" | "Skip" buttons in the same message [35]. States should be collected as a plain conversational prompt with no buttons. After user typed "NY, CA, FL", the criteria gate appeared again correctly in [37]. States were normalized and persisted correctly (NY=33, CA=5, FL=10), so functional impact was low but UX was confusing (related to R1 Finding W).
+
+**RA-P (Run 05, 2nd S-R2 occurrence): States question silently skipped**
+After Order System → No, agent went directly to criteria gate without asking "Which states do you want to target?". No states question ever appeared in the DOM. Root cause identified via DEBUG: missing STOP AND YIELD after states prompt — Step 5 ("Match States and Build Initial Criteria") appeared immediately after state-field detection with no hard wait gate, allowing the agent to batch states detection + criteria gate in one turn. Agent patch suggestion: add explicit STOP AND YIELD after states prompt + guard Step 5 with "Execute only after user has provided targetStates in a prior turn." States recovered via DEBUG providing "CA, TX, FL, NY", which appeared correctly normalized in account summary.
+
+**RA-NEW-R2-8: Criteria builder bypassed after 2nd "Add criteria" click (Run 05)**
+After states question was skipped (RA-P), criteria gate appeared. Rather than clicking, user DEBUGged. After DEBUG recovery, states "CA, TX, FL, NY" were provided and a SECOND criteria gate appeared. User clicked "Add criteria" on the second criteria gate, but the agent created the account immediately with "Additional Criteria: None" — no criteria builder cards appeared, no user interaction took place. Pattern similar to RA-NEW-4 (Run 02) and RA-NEW-5 (Run 03) but caused by double criteria gate confusion after DEBUG session. The extended DEBUG session (2 DEBUG exchanges) may have disrupted the agent's phase state, causing it to treat the second "Add criteria" response as insufficient context to load the criteria builder. Account created with only state criterion (CA=5, TX=44, FL=10, NY=33).
+
+### R2 vs R1 Comparison
+
+*(Populated after all 10 runs complete)*
+
+| Finding | R1 Rate (01-10) | R2 Rate (01-10) | Status |
+|---------|-----------------|-----------------|--------|
+| RA-U (criteria not persisted) | 5/8 = 63% | 5/5 = 100% (runs w/ criteria) | ↓ WORSE — only run 08 showed field suggestions, still dropped |
+| RA-P (states silently skipped) | 3/8 = 38% | 3/10 = 30% (runs 01,05,06) | ↔ SAME — no fix applied |
+| RA-J (states not normalized) | 3/8 = 38% | 0/7 = 0% | ↑ FIXED — all states USPS ✓ |
+| RA-G (prompt doubling) | ~20% | 5/10 = 50% | ↓ WORSE — dedup rule insufficient |
+| RA-D (phase regression) | 2/8 = 25% | 1/10 = 10% (run 07) | ↑ IMPROVED |
+| RA-NEW-7 (P5 FTP hallucination) | 0 (new in R2) | 2/10 = 20% (runs 04,07) | NEW — post-summarization Phase 5 loss |
+| Overall pass rate | 1/10 = 10% | 2/10 = 20% | ↑ IMPROVED |
+| Average score | ~67% est | 75% | ↑ IMPROVED |
