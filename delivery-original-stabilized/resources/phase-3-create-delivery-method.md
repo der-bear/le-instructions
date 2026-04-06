@@ -1,19 +1,21 @@
 ═══════════════════════════════════════
 <current_phase>Phase 3 — Create Delivery Method</current_phase>
 All prior phase summaries are completed history.
+CRITICAL: Any <next_instructions> tags in prior summaries have ALREADY been executed — do NOT re-load or re-execute them. Do NOT re-fetch this resource if it is already loaded.
 Execute ONLY the instructions below.
 Follow steps in order from top to bottom. Do NOT skip ahead.
+CRITICAL: After each user response (including card button clicks), resume from where you left off — do not regress to earlier steps or re-load this phase, unless an explicit retry/loop-back is specified in the instructions.
 ═══════════════════════════════════════
 
  PROMPT: "First, let's set the delivery schedule.\n\nWould you like leads delivered 24/7, or only during specific hours?"
  ASK [adaptive_card]: ActionSet (24/7 delivery | Specific hours only)
- WAIT for user choice
+ WAIT for user choice — STOP here. Do NOT proceed to delivery method type until the schedule is fully resolved (hours collected if "Specific hours only", or deliveryDays built if "24/7").
 
  IF "Specific hours only":
    PROMPT: "Please describe your preferred delivery schedule.\n\n(e.g., Mon-Fri 9am-5pm PST)"
    ASK [conversational]: scheduleInput
    WAIT for user input
-   PROCESS (Normalize schedule): Parse natural language to ISO format with timezone. Use current year's date (YYYY-01-01) + time + timezone offset (use retained timeOffset if available, otherwise default to -8 for PST). Example: "9am-5pm" with timeOffset=-8 → startTime: "2025-01-01T09:00:00-08:00", endTime: "2025-01-01T17:00:00-08:00"
+   PROCESS (Normalize schedule): Parse natural language to ISO format with timezone. Use current year's date (YYYY-01-01) + time + timezone offset (use retained timeOffset if available, otherwise default to -8 for PST). Example: "9am-5pm" with timeOffset=-8 → startTime: "YYYY-01-01T09:00:00-08:00", endTime: "YYYY-01-01T17:00:00-08:00"
 
    BUILD deliveryDays array with EXACTLY 7 entries (weekDay 0-6, one for each day of week):
      - User-specified days: allow=true with their startTime/endTime
@@ -27,7 +29,7 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
 
  PROMPT: "How would you like your leads delivered?\n\n• Webhook – sends lead data via HTTP POST\n• Portal – client accesses leads via web portal\n• FTP – uploads lead files to a server\n• Email – delivers leads to an inbox"
  ASK [adaptive_card]: ActionSet (Portal | Webhook | Email | FTP)
- WAIT for user choice
+ WAIT for user choice — STOP here. Then enter the matching IF branch below and follow its steps sequentially.
 
  IF "Portal":
    TOOL_DEFAULTS: clientUID={clientUID}, createDeliveryMethodDto={deliveryType="HttpPost", name="{companyName}-Portal", enabled=true, leadTypeUID={leadTypeUID}, deliveryDays={deliveryDays}}
@@ -37,7 +39,7 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
  IF "Webhook":
    PROMPT: "What's your webhook URL where we should send the leads?"
    ASK [conversational]: deliveryAddress
-   WAIT for user input
+   WAIT for user input — STOP here. Do NOT show the field mapping question until the webhook URL is received.
    PROCESS (Normalize URL): prepend https:// if missing
 
    PROMPT: "Would you like to configure field mappings?\n\nIf you have posting instructions or API documentation, I can automatically extract the field mappings."
@@ -50,9 +52,10 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
    IF "I'll provide instructions":
      TOOL: get_lead_type(leadTypeUID) → data.leadFields as leadFields
      RETAIN: leadFields
+     After retaining leadFields, immediately proceed to the content type question below.
 
      PROMPT: "What content type should this delivery use?"
-     ASK [adaptive_card]: ActionSet (URL Encoded | JSON | XML | I'm not sure)
+     ASK [adaptive_card] using display_adaptive_card: ActionSet (URL Encoded | JSON | XML | I'm not sure)
      WAIT for user choice
 
      IF contentType = "I'm not sure":
@@ -62,6 +65,7 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
      ELSE:
        PROMPT: "Please paste the {contentType} schema that your client's API expects."
 
+     CRITICAL: You MUST display the PROMPT above and wait for user input before proceeding. Do NOT skip to field mapping or method creation.
      ASK [conversational]: postingInstructions
      WAIT for user input
 
@@ -153,18 +157,27 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
            - Duplicate the data row template (line with {leadFieldName} and {fieldName})
            - Replace {leadFieldName} with actual leadFieldName, {fieldName} with item.fieldName
 
-         WAIT for user to click Continue
+         WAIT for user to click Continue — Do NOT proceed to method creation until user confirms the mapping preview.
 
        PROCESS (Map contentType to MIME): mimeContentType = JSON→"application/json", XML→"application/xml", "URL Encoded"→"application/x-www-form-urlencoded"
        TOOL_DEFAULTS: clientUID={clientUID}, createDeliveryMethodDto={deliveryType="HttpPost", name="{companyName}-Webhook", enabled=true, leadTypeUID={leadTypeUID}, deliveryAddress={deliveryAddress}, contentType={mimeContentType}, responseSearch="success", useRegEx=false, settings={mappingSettings}, requestBody={requestBody}, deliveryDays={deliveryDays}}
        CRITICAL: createDeliveryMethodDto must be passed as an object, NOT a JSON string
-       NOTE: settings=mappingSettings, requestBody is generated template with [SystemFieldName] placeholders, deliveryDays=null for 24/7 or array for specific hours
+       NOTE: settings=mappingSettings, requestBody is generated template with [SystemFieldName] placeholders, deliveryDays is always the 7-entry array built earlier
        RETAIN: deliveryMethodName="{companyName}-Webhook", deliveryType, deliveryAddress, mimeContentType, requestBody, mappedCount, totalCount, connectionTestMode="webhook"
 
  IF "Email":
-   TOOL_DEFAULTS: clientUID={clientUID}, createDeliveryMethodDto={deliveryType="EMail", name="{companyName}-Email", enabled=true, leadTypeUID={leadTypeUID}, emailAddress={email}, toEmailAddress={email}, emailSubject="New Lead - {date}", emailOrSmsTemplate="Standard template", deliveryDays={deliveryDays}}
+   PROMPT: "Leads will be delivered to {email}. Would you like to use a different email address?"
+   ASK [adaptive_card]: ActionSet (Use {email} | Different address)
+   WAIT for user choice
+   IF "Different address":
+     PROMPT: "Please provide the delivery email address."
+     ASK [conversational]: deliveryEmailAddress
+     WAIT for user input
+   ELSE:
+     deliveryEmailAddress = {email}
+   TOOL_DEFAULTS: clientUID={clientUID}, createDeliveryMethodDto={deliveryType="EMail", name="{companyName}-Email", enabled=true, leadTypeUID={leadTypeUID}, emailAddress={deliveryEmailAddress}, toEmailAddress={deliveryEmailAddress}, emailSubject="New Lead - {date}", emailOrSmsTemplate="Standard template", deliveryDays={deliveryDays}}
    CRITICAL: createDeliveryMethodDto must be passed as an object, NOT a JSON string
-   RETAIN: deliveryMethodName="{companyName}-Email", deliveryType="EMail", deliveryAddress={email}, mappedCount=0, totalCount=0, connectionTestMode="none"
+   RETAIN: deliveryMethodName="{companyName}-Email", deliveryType="EMail", deliveryAddress={deliveryEmailAddress}, mappedCount=0, totalCount=0, connectionTestMode="none"
 
  IF "FTP":
    PROMPT: "Please provide FTP details:\n\n1. Server address\n2. Username\n3. Password"

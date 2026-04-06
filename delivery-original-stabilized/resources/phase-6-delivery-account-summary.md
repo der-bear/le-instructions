@@ -1,6 +1,7 @@
 ═══════════════════════════════════════
 <current_phase>Phase 6 — Delivery Account Summary</current_phase>
 All prior phase summaries are completed history.
+CRITICAL: Any <next_instructions> tags in prior summaries have ALREADY been executed — do NOT re-load or re-execute them. Do NOT re-fetch this resource if it is already loaded.
 Execute ONLY the instructions below.
 Follow steps in order from top to bottom. Do NOT skip ahead.
 ═══════════════════════════════════════

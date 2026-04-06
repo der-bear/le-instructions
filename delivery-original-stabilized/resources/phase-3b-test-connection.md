@@ -1,6 +1,7 @@
 ═══════════════════════════════════════
 <current_phase>Phase 3b — Test Connection</current_phase>
 All prior phase summaries are completed history.
+CRITICAL: Any <next_instructions> tags in prior summaries have ALREADY been executed — do NOT re-load or re-execute them. Do NOT re-fetch this resource if it is already loaded.
 Execute ONLY the instructions below.
 Follow steps in order from top to bottom. Do NOT skip ahead.
 ═══════════════════════════════════════
@@ -32,7 +33,9 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
 
      IF test success:
        PROMPT: "✓ Connection test successful."
-       Go directly to summarize_history below. Do NOT re-ask the test question.
+       ASK [adaptive_card]: ActionSet (Continue)
+       WAIT for user to click Continue
+       Then go to summarize_history below. Do NOT re-ask the test question.
 
      IF test failure:
        PROMPT: "✗ Connection test failed: {error}. The delivery method is saved; you can update the configuration later."
