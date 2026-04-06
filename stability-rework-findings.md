@@ -56,7 +56,7 @@
 
 ## Combined Scoring Matrix
 
-| Run | Round | P1-PROMPT | P2-DROP | P3-SCHED | P3-WURL | P3-JSON | P3-TABLE | P3-COUNT | P3B-TEST | P4-SUMM | P5-PRICE | P5-EXCL | P5-ORDER | P5-STATE | P5-NORM | P5-FIELD | P5-CR1 | P5-ENUM | P5-CR3 | P5-DONE | P6-BOOL | P6-SUMM | P7-SUMM | P8-ACT | RESULT | Notes |
+| Run | Round | P1-PROMPT† | P2-DROP | P3-SCHED | P3-WURL | P3-JSON | P3-TABLE | P3-COUNT | P3B-TEST | P4-SUMM | P5-PRICE | P5-EXCL | P5-ORDER | P5-STATE | P5-NORM | P5-FIELD | P5-CR1 | P5-ENUM | P5-CR3 | P5-DONE | P6-BOOL | P6-SUMM | P7-SUMM | P8-ACT | RESULT | Notes |
 |-----|-------|-----------|---------|----------|---------|---------|----------|----------|----------|---------|----------|---------|----------|----------|---------|----------|--------|---------|--------|---------|---------|---------|---------|--------|--------|-------|
 | 01 | R1 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | N/A | F | F | Y | Y | Y | Y | 20/22 (91%) | States normalized ✓; RB-A: criteria loop premature exit after 1 criterion |
 | 02 | R1 | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | F | N/A | F | F | Y | Y | Y | Y | 17/22 (77%) | States not normalized; criteria prompt entirely skipped; acct name asked before price |
@@ -99,7 +99,7 @@
 | 09 | R2 | F* | Y | F | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | F | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | 12/14 (86%) | RB-G: P1+P3-SCHED+P5-PRICE all doubled; Portal skip criteria; states merged with criteria gate (RB-NEW-R2-4); states loop ×4 — agent kept re-asking despite valid "NY, OH" input; recovered after DEBUG; schedule card buttons not rendered (text fallback); NY/OH normalized ✓; Skip ✓; ACTIVE ✓ |
 | 10 | R2 | F* | Y | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | F | F | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | 12/14 (86%) | RB-G: P1 doubled; Email + no criteria; RB-N: states skipped (Order→criteria builder error directly); criteria builder load failed → Skip accepted → Additional Criteria: None (correct for scenario); Target States blank (no states collected); no criteria gate shown; ACTIVE ✓ |
 
-\* P1-PROMPT F* = cosmetic (prompt text doubled, not a functional failure). Not counted as a failure in the percentage calculation.
+† P1-PROMPT = cosmetic checkpoint. Failures are prompt text doubling only (intro text appears twice) — no functional impact, user can still proceed normally. F* = cosmetic failure, not counted in the percentage calculation.
 
 ---
 
@@ -110,7 +110,7 @@ Denominator excludes N/A and ? entries. 🔴 = ≥50% · 🟡 = 20–49% · ✅ 
 
 | Checkpoint | R1 fail (n=10) | R2 fail (n=5) | Trend |
 |------------|----------------|----------------|-------|
-| P1-PROMPT | 6/10 = 60% 🔴 | 4/5 = 80% 🔴 | ↓ |
+| P1-PROMPT† | 6/10 = 60% 🔴 | 4/5 = 80% 🔴 | ↓ |
 | P2-DROP | 0/10 = 0% ✅ | 0/5 = 0% ✅ | ↔ |
 | P3-SCHED | 2/10 = 20% 🟡 | 2/5 = 40% 🟡 | ↓ |
 | P3-WURL | 0/10 = 0% ✅ | 0/5 = 0% ✅ | ↔ |
@@ -134,7 +134,7 @@ Denominator excludes N/A and ? entries. 🔴 = ≥50% · 🟡 = 20–49% · ✅ 
 | P7-SUMM | 0/9 = 0% ✅ | 1/5 = 20% 🟡 | ↓ |
 | P8-ACT | 0/10 = 0% ✅ | 1/5 = 20% 🟡 | ↓ |
 
-**Key observations:** P1-PROMPT (RB-G prompt doubling) is the most persistent failure — 60→80% in R2, fix had no effect. P5-DONE improved dramatically (90%→40%), indicating criteria are now persisting more reliably. P5-CR3 and P5-ENUM remain critical. P3-P4 phases largely stable. P7/P8 showing new failures in R2 (tool access loss after extended DEBUG sessions).
+**Key observations:** P1-PROMPT† (RB-G prompt doubling) is the most persistent failure — 60→80% in R2, fix had no effect. P5-DONE improved dramatically (90%→40%), indicating criteria are now persisting more reliably. P5-CR3 and P5-ENUM remain critical. P3-P4 phases largely stable. P7/P8 showing new failures in R2 (tool access loss after extended DEBUG sessions).
 
 ---
 
@@ -161,7 +161,7 @@ Denominator excludes N/A and ? entries. 🔴 = ≥50% · 🟡 = 20–49% · ✅ 
 
 | Phase | GPT-5.4 Fail% (01–20) | GPT-5-mini Fail% (21–30) | Delta | Notes |
 |-------|----------------------|--------------------------|-------|-------|
-| P1-PROMPT (RB-G doubling) | ~95% | 40% (B27,B28,B29,B30 of 10) | **↓ improved** | B21–B26 clean; returned B27–B30 |
+| P1-PROMPT† (RB-G doubling) | ~95% | 40% (B27,B28,B29,B30 of 10) | **↓ improved** | B21–B26 clean; returned B27–B30 |
 | P2-DROP (RB-AA) | 0% (01–20) | 70% (B24–B30, all 7 of last 7) | **↑ new regression** | New finding; 0 in 01–20, systematic from B24 |
 | P3-SCHED | ~10% | ~10% | = | Similar rate |
 | P3B-TEST (conn test card) | ~5% | 10% (B30 FTP) | slight ↑ | RB-DD new in B30 |

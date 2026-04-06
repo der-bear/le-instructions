@@ -65,7 +65,7 @@
 
 ## Combined Scoring Matrix
 
-| Run | Round | P1-PROMPT | P2-DROP | P3-SCHED | P3-WURL | P3-JSON | P3-TABLE | P3-COUNT | P3B-TEST | P4-SUMM | P5-PRICE | P5-EXCL | P5-ORDER | P5-STATE | P5-NORM | P5-FIELD | P5-CR1 | P5-ENUM | P5-CR3 | P5-DONE | P6-BOOL | P6-SUMM | P7-SUMM | P8-ACT | RESULT | Notes |
+| Run | Round | P1-PROMPT† | P2-DROP | P3-SCHED | P3-WURL | P3-JSON | P3-TABLE | P3-COUNT | P3B-TEST | P4-SUMM | P5-PRICE | P5-EXCL | P5-ORDER | P5-STATE | P5-NORM | P5-FIELD | P5-CR1 | P5-ENUM | P5-CR3 | P5-DONE | P6-BOOL | P6-SUMM | P7-SUMM | P8-ACT | RESULT | Notes |
 |-----|-------|-----------|---------|----------|---------|---------|----------|----------|----------|---------|----------|---------|----------|----------|---------|----------|--------|---------|--------|---------|---------|---------|---------|--------|--------|-------|
 | 01 | R1a | Y | Y | Y | Y | Y | Y | F | Y | Y | Y | Y | Y | F | F | F | F | F | F | F | Y | Y | Y | Y | 14/23 (61%) | A–K; criteria+states skipped post-summarization |
 | 02 | R1a | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | F | F | Y | Y | F | Y | F | Y | Y | Y | Y | 18/23 (78%) | J (states not normalized); L ("done" as criteria); M (enum handling) | |
@@ -108,7 +108,7 @@
 | 09 | R2 | Y | Y | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | 14/14 (100%) PASS | Portal + skip criteria; cleanest run in R2; no regression, no hallucination; states prompt doubled (RA-G cosmetic) but functional; NY/OH normalized ✓; Skip criteria → None ✓; ACTIVE ✓ |
 | 10 | R2 | Y | Y | Y | N/A | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | Y | N/A | N/A | N/A | N/A | Y | Y | Y | Y | Y | 14/14 (100%) PASS | Email + no criteria; clean run; criteria gate skipped (correct for scenario — no user-facing skip needed); states GA/WA not doubled ✓; no prompt doubling anywhere; ACTIVE ✓ |
 
-\* P1-PROMPT F* = cosmetic (prompt text doubled, not a functional failure). Not counted as a failure in the percentage calculation.
+† P1-PROMPT = cosmetic checkpoint. Failures are prompt text doubling only (intro text appears twice) — no functional impact, user can still proceed normally. F* = cosmetic failure, not counted in the percentage calculation.
 
 ---
 
@@ -119,7 +119,7 @@ Denominator excludes N/A and ? entries. 🔴 = ≥50% · 🟡 = 20–49% · ✅ 
 
 | Checkpoint | R1 fail (n=10) | R2 fail (n=6) | Trend |
 |------------|----------------|----------------|-------|
-| P1-PROMPT | 0/10 = 0% ✅ | 1/6 = 17% ✅ | ↔ |
+| P1-PROMPT† | 0/10 = 0% ✅ | 1/6 = 17% ✅ | ↔ |
 | P2-DROP | 0/10 = 0% ✅ | 0/6 = 0% ✅ | ↔ |
 | P3-SCHED | 2/10 = 20% 🟡 | 2/6 = 33% 🟡 | ↔ |
 | P3-WURL | 1/10 = 10% ✅ | 0/6 = 0% ✅ | ↑ |
@@ -234,7 +234,7 @@ Denominator excludes N/A and ? entries. 🔴 = ≥50% · 🟡 = 20–49% · ✅ 
 
 | Phase | Pass | Fail | Fail % |
 |-------|------|------|--------|
-| P1-PROMPT | 20 | 0 | 0% |
+| P1-PROMPT† | 20 | 0 | 0% |
 | P2-DROP | 20 | 0 | 0% |
 | P3-SCHED | 18 | 2 | 10% |
 | P3-WURL | 19 | 1 | 5% |
@@ -793,7 +793,7 @@ Add safeguard: preserve every leaf field name from JSON/XML and attempt mapping 
 
 #### Phase 1 — Create Client
 
-- **P1-PROMPT: Y** — Agent correctly opened the flow and prompted for company name and email.
+- **P1-PROMPT†: Y** — Agent correctly opened the flow and prompted for company name and email.
 
 #### Phase 2 — Lead Type
 
@@ -847,7 +847,7 @@ Add safeguard: preserve every leaf field name from JSON/XML and attempt mapping 
 
 | Checkpoint | Result | Notes |
 |-----------|--------|-------|
-| P1-PROMPT | Y | |
+| P1-PROMPT† | Y | |
 | P2-DROP | Y | Card rendered; typed text fallback broken (Finding A) |
 | P3-SCHED | Y | deliveryDays not built correctly (Finding C) |
 | P3-WURL | Y | |
@@ -881,7 +881,7 @@ Add safeguard: preserve every leaf field name from JSON/XML and attempt mapping 
 
 #### Phase 1 — Create Client
 
-- **P1-PROMPT: Y** — Flow opened correctly; company name and email collected.
+- **P1-PROMPT†: Y** — Flow opened correctly; company name and email collected.
 
 #### Phase 2 — Lead Type
 
@@ -933,7 +933,7 @@ Add safeguard: preserve every leaf field name from JSON/XML and attempt mapping 
 
 | Checkpoint | Result | Notes |
 |-----------|--------|-------|
-| P1-PROMPT | Y | |
+| P1-PROMPT† | Y | |
 | P2-DROP | Y | Card rendered; selected via card (Finding A not triggered) |
 | P3-SCHED | Y | deliveryDays built correctly |
 | P3-WURL | Y | |
@@ -967,7 +967,7 @@ Add safeguard: preserve every leaf field name from JSON/XML and attempt mapping 
 
 #### Phase 1 — Create Client
 
-- **P1-PROMPT: Y** — Flow opened correctly; company name and email collected.
+- **P1-PROMPT†: Y** — Flow opened correctly; company name and email collected.
 
 #### Phase 2 — Lead Type
 
@@ -1025,7 +1025,7 @@ Add safeguard: preserve every leaf field name from JSON/XML and attempt mapping 
 
 | Checkpoint | Result | Notes |
 |-----------|--------|-------|
-| P1-PROMPT | Y | |
+| P1-PROMPT† | Y | |
 | P2-DROP | Y | |
 | P3-SCHED | F | Hours not collected after "Specific hours only" (Finding N) |
 | P3-WURL | Y | |
@@ -1060,7 +1060,7 @@ Add safeguard: preserve every leaf field name from JSON/XML and attempt mapping 
 
 #### Phase 1 — Create Client
 
-- **P1-PROMPT: Y** — No doubling; flow opened normally.
+- **P1-PROMPT†: Y** — No doubling; flow opened normally.
 
 #### Phase 2 — Lead Type
 
@@ -1109,7 +1109,7 @@ Add safeguard: preserve every leaf field name from JSON/XML and attempt mapping 
 
 | Checkpoint | Result | Notes |
 |-----------|--------|-------|
-| P1-PROMPT | Y | |
+| P1-PROMPT† | Y | |
 | P2-DROP | Y | LendingTree 5689 |
 | P3-SCHED | F | Hours not collected after "Specific hours only" (Finding N — 2/4) |
 | P3-WURL | F | Webhook URL never asked (Finding S — 1/4) |
@@ -1144,7 +1144,7 @@ Add safeguard: preserve every leaf field name from JSON/XML and attempt mapping 
 
 #### Phase 1 — Create Client
 
-- **P1-PROMPT: Y** — Flow opened normally; text prompt, no doubling.
+- **P1-PROMPT†: Y** — Flow opened normally; text prompt, no doubling.
 
 #### Phase 2 — Lead Type
 
@@ -1196,7 +1196,7 @@ Add safeguard: preserve every leaf field name from JSON/XML and attempt mapping 
 
 | Checkpoint | Result | Notes |
 |-----------|--------|-------|
-| P1-PROMPT | Y | |
+| P1-PROMPT† | Y | |
 | P2-DROP | Y | LendingTree 5689 |
 | P3-SCHED | Y | 24/7 accepted |
 | P3-WURL | Y | |
@@ -1231,7 +1231,7 @@ Add safeguard: preserve every leaf field name from JSON/XML and attempt mapping 
 
 #### Phase 1 — Create Client
 
-- **P1-PROMPT: Y** — Flow opened normally; no doubling.
+- **P1-PROMPT†: Y** — Flow opened normally; no doubling.
 
 #### Phase 2 — Lead Type
 
@@ -1284,7 +1284,7 @@ Add safeguard: preserve every leaf field name from JSON/XML and attempt mapping 
 
 | Checkpoint | Result | Notes |
 |-----------|--------|-------|
-| P1-PROMPT | Y | |
+| P1-PROMPT† | Y | |
 | P2-DROP | Y | LendingTree 5689 |
 | P3-SCHED | Y | Card appeared; Finding D reproduced (regression, 2/6) |
 | P3-WURL | Y | After 2nd Webhook click |
@@ -1322,7 +1322,7 @@ First attempt loaded wrong instructions (generic agent — asked for phone numbe
 
 #### Phase 1 — Create Client
 
-- **P1-PROMPT: Y** — Stabilized instructions loaded via action card click; standard "Company Name + Contact Email" prompt.
+- **P1-PROMPT†: Y** — Stabilized instructions loaded via action card click; standard "Company Name + Contact Email" prompt.
 
 #### Phase 2 — Lead Type
 
@@ -1374,7 +1374,7 @@ First attempt loaded wrong instructions (generic agent — asked for phone numbe
 
 | Checkpoint | Result | Notes |
 |-----------|--------|-------|
-| P1-PROMPT | Y | Stabilized instructions via action card click |
+| P1-PROMPT† | Y | Stabilized instructions via action card click |
 | P2-DROP | Y | LendingTree 5689 |
 | P3-SCHED | Y | Mon/Wed/Fri 8am-6pm CST parsed correctly; Finding N NOT reproduced |
 | P3-WURL | Y | Finding D NOT reproduced |
@@ -1412,7 +1412,7 @@ Action card clicked directly (not text-typed) to load stabilized instructions �
 
 #### Phase 1 — Create Client
 
-- **P1-PROMPT: Y** — Stabilized instructions loaded; standard company name + email prompt.
+- **P1-PROMPT†: Y** — Stabilized instructions loaded; standard company name + email prompt.
 
 #### Phase 2 — Lead Type
 
@@ -1463,7 +1463,7 @@ Action card clicked directly (not text-typed) to load stabilized instructions �
 
 | Checkpoint | Result | Notes |
 |-----------|--------|-------|
-| P1-PROMPT | Y | Stabilized via action card click |
+| P1-PROMPT† | Y | Stabilized via action card click |
 | P2-DROP | Y | LendingTree 5689 |
 | P3-SCHED | Y | 24/7; Finding N NOT reproduced |
 | P3-WURL | Y | FTP server/user/pass correctly requested |
@@ -1500,7 +1500,7 @@ Action card clicked directly (not text-typed) to load stabilized instructions �
 Action card clicked. Agent timed out after LendingTree selection (response was reset after ~2 min). Recovered by sending "continue" — agent resumed correctly with P3 schedule card.
 
 #### Phase 1 — Create Client
-- **P1-PROMPT: Y** — Stabilized instructions loaded via action card.
+- **P1-PROMPT†: Y** — Stabilized instructions loaded via action card.
 
 #### Phase 2 — Lead Type
 - **P2-DROP: Y** — LendingTree 5689 selected via dropdown.
@@ -1542,7 +1542,7 @@ Action card clicked. Agent timed out after LendingTree selection (response was r
 
 | Checkpoint | Result | Notes |
 |-----------|--------|-------|
-| P1-PROMPT | Y | |
+| P1-PROMPT† | Y | |
 | P2-DROP | Y | LendingTree 5689; agent timeout recovered with nudge |
 | P3-SCHED | Y | Mon-Fri 9-5 PST; Finding N NOT reproduced |
 | P3-WURL | Y | N/A (Portal) |
@@ -1579,7 +1579,7 @@ Action card clicked. Agent timed out after LendingTree selection (response was r
 Action card clicked. No timeout this run.
 
 #### Phase 1 — Create Client
-- **P1-PROMPT: Y** — Stabilized instructions loaded.
+- **P1-PROMPT†: Y** — Stabilized instructions loaded.
 
 #### Phase 2 — Lead Type
 - **P2-DROP: Y** — LendingTree 5689 selected.
@@ -1622,7 +1622,7 @@ Action card clicked. No timeout this run.
 
 | Checkpoint | Result | Notes |
 |-----------|--------|-------|
-| P1-PROMPT | Y | |
+| P1-PROMPT† | Y | |
 | P2-DROP | Y | LendingTree 5689 |
 | P3-SCHED | Y | Mon-Fri 9-5 PST |
 | P3-WURL | Y | N/A (Email) |
@@ -1658,7 +1658,7 @@ Action card clicked. No timeout this run.
 **Scenario:** LendingTree, Webhook/JSON, Weekdays 8am-8pm Eastern, Exclusive, Order ON
 
 #### Phase 1 — Create Client
-- **P1-PROMPT: Y** — Stabilized instructions loaded; company name + email prompt appeared.
+- **P1-PROMPT†: Y** — Stabilized instructions loaded; company name + email prompt appeared.
 
 #### Phase 2 — Lead Type
 - **P2-DROP: Y** — LendingTree (LeadTypeUID: 5689) selected.
@@ -1702,7 +1702,7 @@ Action card clicked. No timeout this run.
 
 | Checkpoint | Result | Notes |
 |-----------|--------|-------|
-| P1-PROMPT | Y | |
+| P1-PROMPT† | Y | |
 | P2-DROP | Y | LendingTree 5689 |
 | P3-SCHED | Y | Hours prompt appeared; Finding N NOT reproduced |
 | P3-WURL | Y | Webhook URL accepted |
@@ -1741,7 +1741,7 @@ Action card clicked. No timeout this run.
 Session restored mid-run via history icon after a page navigation accident (wrong "Continue" button clicked on P4 summary navigated away from chat). P5 adaptive cards for Exclusive/Shared and Yes/No steps did not render — questions appeared as plain text, requiring text responses. Assessed as UI session-restore rendering artifact, not an instruction bug. Criteria builder adaptive card (Show more fields / Continue) did render correctly once criteria loop was reached.
 
 #### Phase 1 — Create Client
-- **P1-PROMPT: Y** — Stabilized instructions loaded correctly; company name + email collected.
+- **P1-PROMPT†: Y** — Stabilized instructions loaded correctly; company name + email collected.
 
 #### Phase 2 — Lead Type
 - **P2-DROP: Y** — LendingTree (LeadTypeUID: 5689) selected via dropdown.
@@ -1784,7 +1784,7 @@ Session restored mid-run via history icon after a page navigation accident (wron
 
 | Checkpoint | Result | Notes |
 |-----------|--------|-------|
-| P1-PROMPT | Y | |
+| P1-PROMPT† | Y | |
 | P2-DROP | Y | LendingTree 5689 |
 | P3-SCHED | Y | 24/7; Finding N NOT reproduced |
 | P3-WURL | Y | FTP credentials collected |
@@ -1819,7 +1819,7 @@ Session restored mid-run via history icon after a page navigation accident (wron
 **Session:** `69d2099f2697c9202c0bc899`
 
 #### Phase 1 — Create Client
-- **P1-PROMPT: Y** — Flow opened; company name + email collected.
+- **P1-PROMPT†: Y** — Flow opened; company name + email collected.
 
 #### Phase 2 — Lead Type
 - **P2-DROP: Y** — LendingTree (5689) selected via dropdown card.
@@ -1866,7 +1866,7 @@ State UIDs: NY=33 ✓, OH=36 ✓, GA=11 ✓. SelfCreditRating and LoanRequestPur
 
 | Checkpoint | Result | Notes |
 |-----------|--------|-------|
-| P1-PROMPT | Y | |
+| P1-PROMPT† | Y | |
 | P2-DROP | Y | LendingTree 5689 |
 | P3-SCHED | Y | Mon-Fri 8am-5pm CST; Finding V (schedule doubled — 3rd/13th) |
 | P3-WURL | Y | N/A (Email) |
@@ -1901,7 +1901,7 @@ State UIDs: NY=33 ✓, OH=36 ✓, GA=11 ✓. SelfCreditRating and LoanRequestPur
 **Session:** `69d20e762697c9202c0bc8dd`
 
 #### Phase 1 — Create Client
-- **P1-PROMPT: Y** — Flow opened; company name + email collected.
+- **P1-PROMPT†: Y** — Flow opened; company name + email collected.
 
 #### Phase 2 — Lead Type
 - **P2-DROP: Y** — LendingTree (5689) selected via dropdown card.
@@ -1948,7 +1948,7 @@ State UIDs: NY=33 ✓, CA=5 ✓, TX=44 ✓. Despite full-name display failure in
 
 | Checkpoint | Result | Notes |
 |-----------|--------|-------|
-| P1-PROMPT | Y | |
+| P1-PROMPT† | Y | |
 | P2-DROP | Y | LendingTree 5689 |
 | P3-SCHED | Y | 24/7 |
 | P3-WURL | Y | |
@@ -1983,7 +1983,7 @@ State UIDs: NY=33 ✓, CA=5 ✓, TX=44 ✓. Despite full-name display failure in
 **Session:** `69d213222697c9202c0bc92e`
 
 #### Phase 1 — Create Client
-- **P1-PROMPT: Y** — Flow opened; company name + email collected.
+- **P1-PROMPT†: Y** — Flow opened; company name + email collected.
 
 #### Phase 2 — Lead Type
 - **P2-DROP: Y** — LendingTree (5689) selected via dropdown card.
@@ -2038,7 +2038,7 @@ State UID 5 = CA (phantom — no states were collected). LoanAmount criterion **
 
 | Checkpoint | Result | Notes |
 |-----------|--------|-------|
-| P1-PROMPT | Y | |
+| P1-PROMPT† | Y | |
 | P2-DROP | Y | LendingTree 5689 |
 | P3-SCHED | Y | Mon-Fri 9am-5pm CST; single prompt (no doubling) |
 | P3-WURL | Y | No phase regression |
@@ -2073,7 +2073,7 @@ State UID 5 = CA (phantom — no states were collected). LoanAmount criterion **
 **Session:** `69d218d92697c9202c0bc97f`
 
 #### Phase 1 — Create Client
-- **P1-PROMPT: Y** — Flow opened; company name + email collected (required 3 messages — first two were sent separately and agent asked for company name again).
+- **P1-PROMPT†: Y** — Flow opened; company name + email collected (required 3 messages — first two were sent separately and agent asked for company name again).
 
 #### Phase 2 — Lead Type
 - **P2-DROP: Y** — LendingTree selected via JS (UID 5689) + Continue.
@@ -2130,7 +2130,7 @@ State UIDs: 38=OR, 48=WA ✓. LoanAmount criterion persisted ✓.
 
 | Check | Result | Notes |
 |-------|--------|-------|
-| P1-PROMPT | Y | |
+| P1-PROMPT† | Y | |
 | P2-DROP | Y | |
 | P3-SCHED | Y | No doubling |
 | P3-WURL | Y | |
@@ -2169,7 +2169,7 @@ State UIDs: 38=OR, 48=WA ✓. LoanAmount criterion persisted ✓.
 **Session:** `69d221662697c9202c0bc9d0`
 
 #### Phase 1 — Create Client
-- **P1-PROMPT: Y** — Agent asked for company name and email together. No doubling.
+- **P1-PROMPT†: Y** — Agent asked for company name and email together. No doubling.
 
 #### Phase 2 — Lead Type
 - **P2-DROP: Y** — LendingTree (5689) selected via dropdown card. No Finding D triggered.
@@ -2221,7 +2221,7 @@ create_delivery_account criteria=[
 
 | Checkpoint | Result | Notes |
 |-----------|--------|-------|
-| P1-PROMPT | Y | |
+| P1-PROMPT† | Y | |
 | P2-DROP | Y | LendingTree 5689; no Finding D |
 | P3-SCHED | Y | 24/7 |
 | P3-WURL | Y | FTP details accepted |
@@ -2261,7 +2261,7 @@ create_delivery_account criteria=[
 
 | Check | Result | Notes |
 |-------|--------|-------|
-| P1-PROMPT | Y | Client flow opened correctly |
+| P1-PROMPT† | Y | Client flow opened correctly |
 | P2-DROP | Y | LendingTree selected |
 | P3-SCHED | Y | Mon-Fri 9am-5pm PST |
 | P3-WURL | Y | N/A — Email delivery |
@@ -2316,7 +2316,7 @@ criteria=[
 
 | Check | Result | Notes |
 |-------|--------|-------|
-| P1-PROMPT | Y | Client flow opened correctly |
+| P1-PROMPT† | Y | Client flow opened correctly |
 | P2-DROP | Y | LendingTree selected |
 | P3-SCHED | Y | 24/7 |
 | P3-WURL | Y | Webhook URL accepted |
@@ -2368,7 +2368,7 @@ criteria=[
 
 | Check | Result | Notes |
 |-------|--------|-------|
-| P1-PROMPT | Y | Client flow opened correctly |
+| P1-PROMPT† | Y | Client flow opened correctly |
 | P2-DROP | Y | LendingTree selected |
 | P3-SCHED | Y | "Specific hours only" selected; Mon-Fri 9am-5pm PST |
 | P3-WURL | Y | N/A (Portal) |

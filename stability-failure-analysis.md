@@ -356,7 +356,7 @@ All checkpoints, all rounds, both variants. Denominator excludes N/A runs. Fail%
 
 | Checkpoint | R1a 01-20 (5.4-mini) Pass | R1a Fail% | R1b 21-30 (5-mini mix) Pass | R1b Fail% | R2 01-10 (5.4-mini) Pass | R2 Fail% |
 |------------|---------------------------|-----------|-------------------------------|-----------|---------------------------|----------|
-| P1-PROMPT | 20/20 | 0% | 10/10 | 0% | 8/10 | 20% |
+| P1-PROMPT† | 20/20 | 0% | 10/10 | 0% | 8/10 | 20% |
 | P2-DROP | 20/20 | 0% | 10/10 | 0% | 10/10 | 0% |
 | P3-SCHED | 18/20 | 10% | 8/9 | 11% | 7/8 | 13% |
 | P3-WURL | 19/20 | 5% | 9/9 | 0% | 5/6 | 17% |
@@ -384,7 +384,7 @@ All checkpoints, all rounds, both variants. Denominator excludes N/A runs. Fail%
 
 | Checkpoint | R1 01-12 (5.4-mini) Pass | R1 Fail% | R2 01-10 (5.4-mini) Pass | R2 Fail% |
 |------------|--------------------------|----------|---------------------------|----------|
-| P1-PROMPT | 4/12 | 67% | 1/10 | 90% |
+| P1-PROMPT† | 4/12 | 67% | 1/10 | 90% |
 | P2-DROP | 12/12 | 0% | 10/10 | 0% |
 | P3-SCHED | 9/12 | 25% | 5/10 | 50% |
 | P3-WURL | 8/9 | 11% | 8/8 | 0% |
