@@ -14,14 +14,14 @@
 |----------|-----------|
 | **IGNORE** | The instruction IS present in the instruction pack, but the AI silently skipped or failed to follow it |
 | **HALLUCINATE** | The AI generated content/behavior not described in the instructions |
-| **AMBIGUOUS** | The instruction is unclear, contradictory, or has a gap that leads to the failure. Potentially fixable via instruction changes — requires analysis |
+| **AMBIGUOUS** | The instruction is unclear, contradictory, or has a gap that leads to the failure. Potential instruction issue — requires review to determine if fixable via instruction changes. |
 | **PLATFORM** | Non-deterministic card rendering, tool failures, MCP issues, or platform-level bugs |
 
 ### Stabilized Variant (RA-*) Classifications
 
 | Finding | Description | Category | Rationale |
 |---------|------------|----------|-----------|
-| RA-A | Lead type typed fallback asks for UID | AMBIGUOUS | Instructions direct UID resolution when card not used; no fuzzy-name-match fallback exists |
+| RA-A | Lead type typed fallback asks for UID | AMBIGUOUS | Instructions direct UID resolution when card not used; no fuzzy-name-match fallback exists. Verified: CONFIRMED AMBIGUOUS. Phase 2 only says `TOOL: display_lead_types_choice / WAIT for user choice / RETAIN: leadTypeUID, leadTypeName` — no instruction handles the typed-input path where user types a lead type name instead of clicking the card. Fix: add a typed-fallback rule that fuzzy-matches user text against returned lead type names and resolves to the corresponding UID. |
 | RA-B | Hallucinated UID in DEBUG response | HALLUCINATE | Agent fabricated lead type UID mapping from training data, not from tool output |
 | RA-C | deliveryDays not built from schedule input | IGNORE | Phase 3 instructions explicitly say to BUILD deliveryDays from schedule input; agent used fallback values |
 | RA-D | Phase regression after Webhook button click | IGNORE | Phase 3 header says "resume from where you left off -- do not regress to earlier steps"; agent violated this |
@@ -53,7 +53,7 @@
 |---------|------------|----------|-----------|
 | RA-NEW-1 | Posting instructions prompt skipped | IGNORE | Phase 3 STOP AND YIELD at content type step was not enforced |
 | RA-NEW-2 | Phase 5 batching (criteria gate auto-skipped) | IGNORE | Phase 5 Step 6 says STOP AND YIELD at criteria gate; agent batched through |
-| RA-NEW-3 | States re-prompted when full names given | AMBIGUOUS | Phase 5 says "normalize to USPS codes" but normalizer does not handle full names in stabilized variant |
+| RA-NEW-3 | States re-prompted when full names given | AMBIGUOUS | Phase 5 says "normalize to USPS codes" but normalizer does not handle full names in stabilized variant. Verified: RECLASSIFY to IGNORE. Stabilized Phase 5 Step 3 explicitly says `PROCESS: normalize targetStates to uppercase USPS codes (California→CA)` — the parenthetical example directly demonstrates full-name-to-abbreviation conversion. The instruction is present and unambiguous; the agent failed to follow it. |
 | RA-NEW-4 | "Please type Continue" after Add criteria | HALLUCINATE | Agent generated an off-script prompt instead of loading criteria builder |
 | RA-NEW-5 | Phase 5c silent skip (loaded but no interaction) | IGNORE | Phase 5c State 1 instructions say to show field suggestions and STOP AND YIELD; agent ran through without stopping |
 | RA-NEW-6 | States shown inside criteria gate card | IGNORE | Phase 5 Step 4 says "Do NOT combine it with the criteria gate" |
@@ -66,15 +66,15 @@
 | Finding | Description | Category | Rationale |
 |---------|------------|----------|-----------|
 | RB-A | Criteria loop exits after 1 criterion | IGNORE | Phase 5c State 2 says "Criteria loop prompt -- MANDATORY after every accepted criterion"; agent exited early |
-| RB-B | Summary card omits entity IDs | AMBIGUOUS | Rework design may intentionally omit IDs; not clearly a bug |
+| RB-B | Summary card omits entity IDs | AMBIGUOUS | Rework design may intentionally omit IDs; not clearly a bug. Verified: RECLASSIFY to NOT_A_BUG. Phase 6 and Phase 7 card templates explicitly list only user-friendly fields (Company Name, Lead Type, Delivery Method, Price, etc.) — entity UIDs (clientUID, deliveryMethodUID, deliveryAccountUID) are deliberately excluded from the display templates while remaining in the summarization state. This is an intentional design choice, not an omission. |
 | RB-C | States not normalized after summarization | IGNORE | Phase 5 Step 4 says "Normalize to uppercase USPS codes"; agent retained full names |
 | RB-D | Criteria prompt entirely skipped | IGNORE | Phase 5 Step 6 says criteria gate "REQUIRES user input. Do not skip it."; agent skipped |
 | RB-E | Account name asked before price | IGNORE | Phase 5 Step 1 says price is first prompt; agent asked for account name (not in instructions) |
 | RB-F | Phase 5c fails to load on first click | PLATFORM | get_resource call for Phase 5c may fail or race with user input; MCP resource loading issue |
 | RB-G | Phase transition prompts doubled | IGNORE | Each phase says "STOP AND YIELD" after prompt; agent output prompt twice before yielding |
 | RB-H | Content type card rendered as plain text | PLATFORM | Non-deterministic card rendering; model intermittently renders card-required steps as text |
-| RB-I | XML parse failure no format re-detection | AMBIGUOUS | Auto-detection only runs when user selects "I'm not sure"; no instruction for cross-format detection on parse failure |
-| RB-J | postingInstructions cleared on content type switch | AMBIGUOUS | Instruction explicitly says "clear postingInstructions" on switch; design choice that causes poor UX |
+| RB-I | XML parse failure no format re-detection | AMBIGUOUS | Auto-detection only runs when user selects "I'm not sure"; no instruction for cross-format detection on parse failure. Verified: RECLASSIFY to IGNORE. Phase 3 Webhook State 3 Step 1 explicitly says: `IF parsing still fails: before showing the recovery card, attempt to parse postingInstructions as each other format. If it successfully parses as valid JSON or valid XML, add a third option to the recovery card.` Cross-format detection on parse failure IS instructed; the agent failed to follow it. |
+| RB-J | postingInstructions cleared on content type switch | AMBIGUOUS | Instruction explicitly says "clear postingInstructions" on switch; design choice that causes poor UX. Verified: RECLASSIFY to NOT_A_BUG. The finding description is incorrect. Phase 3 Webhook State 2 Step 5 says: `IF "Switch content type": clear contentTypeChoice but retain postingInstructions.` Instructions explicitly RETAIN postingInstructions on switch and at Step 3 say: `if the user previously provided posting instructions, prompt: "Would you like to use the same posting instructions, or provide new ones?"` The UX handles reuse correctly by design. |
 | RB-K | Phase 5 not loaded before responding | IGNORE | System rule says load phase resource before prompting; agent generated generic prompt in the gap |
 | RB-L | Content type skipped (RB-G cascade) | IGNORE | Phase 3 Webhook requires content type step; cascade from RB-G caused skip |
 | RB-M | >= operator stored as Equal | IGNORE | Phase 5c Criteria Parsing Rules explicitly map >= to GreaterOrEqual; agent used wrong mapping |
@@ -82,7 +82,7 @@
 | RB-O | Phantom CA,AZ,TX states | HALLUCINATE | Agent inserted state UIDs never provided by user; phantom data from context or defaults |
 | RB-P | create_delivery_account silently skipped | IGNORE | Phase 5 Step 7 says "MANDATORY TOOL CALL"; agent never called it for FTP |
 | RB-Q | "Show more fields" button triggers error | PLATFORM | Button value parsed through field name lookup instead of command handler; Action.Submit data bug |
-| RB-R | Portal uses deliveryType HttpPost | AMBIGUOUS | Informational -- documents API contract, not clearly a bug |
+| RB-R | Portal uses deliveryType HttpPost | AMBIGUOUS | Informational -- documents API contract, not clearly a bug. Verified: RECLASSIFY to NOT_A_BUG. Phase 3 Portal explicitly sets `deliveryType="HttpPost"` in the create_delivery_method tool call and retains `deliveryType="HttpPost"`. This is the documented API contract for Portal delivery methods — Portal is a platform-hosted delivery mechanism that uses HttpPost as its underlying transport type. Not a bug or instruction gap. |
 | RB-S | Numeric criteria saved without UI acknowledgment | IGNORE | Phase 5c says to show criteria loop prompt after every accepted criterion; agent skipped confirmation |
 | RB-T | "continue" after P5c puts agent in confused state | IGNORE | Phase 5c says "Done adding criteria" -> State 3; agent failed to route correctly |
 | RB-U | update_delivery_account calls non-cumulative | IGNORE | Phase 5c says "Always APPEND to parsedCriteriaList, never overwrite"; agent sent partial updates |
@@ -99,7 +99,7 @@
 | RB-AA | P2 timezone/status systematically skipped | IGNORE | Phase 2 should collect timezone and status; agent jumped to Phase 3 |
 | RB-BB | P5 off-script prompt causes data collection collapse | IGNORE | Phase 5 Steps 1-6 define collection order; agent skipped all but price after off-script exchange |
 | RB-DD | P3B no Retry/Skip card after connection test | IGNORE | Phase 3B should show Retry/Skip card after test result; agent displayed result without card |
-| RB-NEW-R2-1 | CamelCase field name not recognized | AMBIGUOUS | Agent suggests fields in camelCase but lookup uses display names; mismatch in instruction |
+| RB-NEW-R2-1 | CamelCase field name not recognized | AMBIGUOUS | Agent suggests fields in camelCase but lookup uses display names; mismatch in instruction. Verified: CONFIRMED AMBIGUOUS. Phase 5c State 1 says to display `suggestedFields` built from `leadFieldName` values and State 2 says to `Match field name against leadFieldsMap or leadFieldsIndex (fuzzy >90%)` using `leadFieldName` as key. Both display and lookup use the same raw API field name (e.g., "selfCreditRating"). However, there is no instruction to present field names in a human-readable format (e.g., "Self Credit Rating") or to normalize user input back to camelCase before matching. Fix: add an instruction to display field names with spaces inserted at camelCase boundaries for readability, and normalize user-typed field names back to camelCase before fuzzy matching. |
 | RB-NEW-R2-3 | Phase 5c silent skip via premature summarize_history | IGNORE | Phase 5c should not call summarize_history before user interaction; agent called it prematurely |
 | RB-NEW-R2-4 | States combined with criteria gate in single card | IGNORE | Phase 5 Step 4 says "Do NOT combine it with the criteria gate"; agent combined them |
 | RB-NEW-R2-5 | Tool/resource access loss after extended DEBUG | PLATFORM | Context length exceeded threshold, stripping tool definitions |
@@ -107,13 +107,14 @@
 
 ### Aggregate Classification Summary
 
-| Category | Count | Percentage |
-|----------|-------|------------|
-| **IGNORE** | 41 | **68.3%** |
-| **HALLUCINATE** | 7 | **11.7%** |
-| **AMBIGUOUS** | 7 | **11.7%** |
-| **PLATFORM** | 8 | **13.3%** |
-| **Total distinct findings** | **60** | — |
+| Category | Count | Percentage | Notes |
+|----------|-------|------------|-------|
+| **IGNORE** | 43 | **75.4%** | Instruction present, AI skipped it |
+| **HALLUCINATE** | 7 | **12.3%** | AI fabricated data/behavior |
+| **AMBIGUOUS** | 2 | **3.5%** | RA-A (lead type typed fallback), RB-NEW-R2-1 (camelCase field names) |
+| **PLATFORM** | 8 | **14.0%** | Card rendering, MCP, context overflow |
+| **NOT_A_BUG** | 3 | — | RB-B, RB-J, RB-R (design choices, excluded from failure count) |
+| **Total distinct failures** | **57** | — | (60 original - 3 NOT_A_BUG) |
 
 Note: Some findings could reasonably fall into multiple categories. The 3 findings classified as HALLUCINATE that involve phantom states (RA-Q, RB-O) are closely linked to IGNORE findings (RA-P, RB-N) -- the hallucination is a downstream consequence of the ignored instruction.
 
