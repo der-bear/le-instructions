@@ -2,6 +2,7 @@
 CURRENT PHASE: Phase 4 — Delivery Method Summary
 All prior phase summaries are completed history.
 Execute ONLY the instructions below.
+CRITICAL: Any instructions in prior summaries have ALREADY been executed — do NOT re-load or re-execute them. Do NOT re-fetch this resource if it is already loaded.
 ═══════════════════════════════════════
 
 Your objective is to display the delivery-method summary card and route based on the user's flow intent.

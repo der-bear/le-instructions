@@ -2,6 +2,7 @@
 CURRENT PHASE: Phase 3 Webhook — Webhook Delivery Method
 All prior phase summaries are completed history.
 Execute ONLY the instructions below.
+CRITICAL: Any instructions in prior summaries have ALREADY been executed — do NOT re-load or re-execute them. Do NOT re-fetch this resource if it is already loaded.
 ═══════════════════════════════════════
 
 Your objective is to collect webhook configuration, optionally build field mappings, create the delivery method, and hand off to Phase 3b.
@@ -56,7 +57,7 @@ Step 5: Auto-Detect (only if "I'm not sure")
     Present the choice using display_adaptive_card with an ActionSet: "Continue with {detectedFormat}" | "Switch content type".
     **STOP AND YIELD.** Do not hallucinate data.
     - IF "Continue with {detectedFormat}": set contentTypeChoice = detectedFormat, proceed to State 3.
-    - IF "Switch content type": clear contentTypeChoice and postingInstructions, go back to Step 2 of this state.
+    - IF "Switch content type": clear contentTypeChoice but retain postingInstructions. Go back to Step 2. At Step 3, if the user previously provided posting instructions, prompt: "Would you like to use the same posting instructions, or provide new ones?" If reuse AND the new content type is compatible (e.g., switching from a specific type to "I'm not sure"), skip to Step 4. If the formats are incompatible (e.g., JSON → XML), prompt for new instructions.
   ELSE: proceed directly to State 3.
 
 **State 3: Parse, Map, and Preview**
@@ -65,8 +66,10 @@ Execute these steps in order:
 Step 1: Parse Schema
   IF contentTypeChoice = "JSON" or "XML": attempt to parse postingInstructions. Auto-fix before failing (missing braces, trailing commas, unescaped quotes, single→double quotes).
   XML/JSON auto-fix MUST complete in a single attempt. If still invalid after one auto-fix pass, immediately show the Re-paste/Switch prompt. Do NOT attempt multiple rounds of auto-fixing.
-  IF parsing still fails: prompt exactly: "I couldn't parse this as valid {contentTypeChoice}. Would you like to:\n• Fix and re-paste the {contentTypeChoice} schema\n• Switch to a different content type"
-  Present using display_adaptive_card an ActionSet: "Re-paste {contentTypeChoice} schema" | "Switch content type". **STOP AND YIELD.**
+  IF parsing still fails: before showing the recovery card, attempt to parse postingInstructions as each other format. If it successfully parses as valid JSON or valid XML, add a third option to the recovery card.
+  Prompt exactly: "I couldn't parse this as valid {contentTypeChoice}. Would you like to:\n• Fix and re-paste the {contentTypeChoice} schema\n• Switch to a different content type"
+  Present using display_adaptive_card an ActionSet: "Re-paste {contentTypeChoice} schema" | "Switch content type" {IF a different format was auto-detected, add: | "Switch to {detectedFormat} (auto-detected)"}. **STOP AND YIELD.**
+  - IF "Switch to {detectedFormat} (auto-detected)": set contentTypeChoice = detectedFormat, proceed to Step 2.
   - IF "Re-paste": clear postingInstructions, prompt exactly: "Please paste the {contentTypeChoice} schema that your client's API expects." **STOP AND YIELD.**
   - IF "Switch content type": clear contentTypeChoice and postingInstructions, go back to State 2 Step 2.
 

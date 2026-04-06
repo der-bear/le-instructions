@@ -2,6 +2,7 @@
 CURRENT PHASE: Phase 3b — Webhook Connection Test
 All prior phase summaries are completed history.
 Execute ONLY the instructions below.
+CRITICAL: Any instructions in prior summaries have ALREADY been executed — do NOT re-load or re-execute them. Do NOT re-fetch this resource if it is already loaded.
 ═══════════════════════════════════════
 
 Your objective is to optionally test the webhook connection, then hand off to Phase 4.
@@ -24,12 +25,10 @@ Execute the first incomplete state below. Follow its steps in order.
   2. IF mimeContentType and requestBody are known, call test_webhook_connection with: `url={deliveryAddress}, method="POST", contentType={mimeContentType}, payload={testPayload}, timeoutSeconds=30`
   3. ELSE call test_webhook_connection with: `url={deliveryAddress}, method="POST", payload="", timeoutSeconds=30`
   4. IF the test succeeds:
-     - Prompt the user exactly as follows: "✓ Connection test successful."
-     - Present using display_adaptive_card an ActionSet: "Continue".
+     - Present using display_adaptive_card: TextBlock "✓ Connection test successful." + ActionSet: "Continue".
      - **STOP AND YIELD.** Do not hallucinate data. When the user says Continue, proceed to State 2.
   5. IF the test fails:
-     - Prompt the user exactly as follows: "✗ Connection test failed: {error}. The delivery method is saved; you can update the configuration later."
-     - Present using display_adaptive_card an ActionSet: "Retry" | "Skip".
+     - Present using display_adaptive_card: TextBlock "✗ Connection test failed: {error}. The delivery method is saved; you can update the configuration later." + ActionSet: "Retry" | "Skip".
      - **STOP AND YIELD.** Do not hallucinate data. If the user says Retry, re-run the test. If Skip, proceed to State 2.
 
 **State 2: Summarize**

@@ -15,9 +15,10 @@ Select an existing client, load the client profile, summarize the result, and ha
   3. Ask: "Which client would you like to create a delivery method for?"
   4. If using `display_adaptive_card`, render a compact `Input.ChoiceSet` of clients plus `Action.Submit` with no extra submit `data`. The submitted value must be only `clientUID`.
   5. Accept typed company name or typed `clientUID` as fallback.
-  6. If the typed match is ambiguous or low confidence, re-display the selector and wait again.
+  6. Resolve any typed fallback to exactly one row in `clientsList` before retaining `clientUID`.
+  7. If the typed match is ambiguous or low confidence, re-display the selector and wait again.
 
-## TOOL
+## LOAD
 - After `clientUID` is known, call `get_client(clientUID)` and retain:
   - `clientUID`
   - `companyName`

@@ -99,24 +99,27 @@ Rejected:
 
 ## Round 7 — Phase 3 Delivery Method Flow
 Decision:
-- Keep Portal, Email, and FTP inline.
-- Split only Webhook.
-- Reintroduce summary after successful simple method creation for full setup.
+- Keep a dedicated Phase 3 router.
+- Split Portal, Email, FTP, and Webhook into method-specific resources.
+- Let each method-specific resource collect and build the delivery schedule locally.
+- Reintroduce summary after successful method creation for full setup.
 
 Adopted:
 - rework router split
+- method-specific create resources for Portal, Email, and FTP
+- self-contained method branches that each own schedule parsing and method payload construction
 - stabilized deliveryDays parsing rules
-- stabilized create payloads for Portal/Email/FTP
+- stabilized create payloads for Portal/Email/FTP/Webhook
 
 Rejected:
 - connection-test phases
 - method-summary review phase
 
 Exception kept:
-- no summarization before loading the webhook resource
+- no summarization in the router before loading a method-specific resource
 
 Reason:
-- `deliveryDays` is a native array and should not be reduced to summary text mid-path.
+- self-contained method branches are more stable than native `deliveryDays` handoff across resources.
 
 ## Round 8 — Webhook Nuance
 Decision:

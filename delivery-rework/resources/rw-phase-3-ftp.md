@@ -2,6 +2,7 @@
 CURRENT PHASE: Phase 3 FTP — Create FTP Method
 All prior phase summaries are completed history.
 Execute ONLY the instructions below.
+CRITICAL: Any instructions in prior summaries have ALREADY been executed — do NOT re-load or re-execute them. Do NOT re-fetch this resource if it is already loaded.
 ═══════════════════════════════════════
 
 Your objective is to collect FTP credentials, create the FTP delivery method, and hand off to Phase 3a for connection testing.

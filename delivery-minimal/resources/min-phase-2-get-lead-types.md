@@ -10,12 +10,16 @@ Select the lead type, summarize the result, and hand off to Phase 3.
 ## ASK
 - Preferred path: call `display_lead_types_choice` with prompt: "Please select a Lead Type for this client."
 - Wait for the user's selection.
-- On a successful selector choice, immediately retain the returned `leadTypeUID` and `leadTypeName`.
 - If the user types instead of selecting:
   - call `get_lead_types` if needed and retain `leadTypesList`
-  - match the typed value against `leadTypeName`
+  - accept an exact typed `leadTypeUID`
+  - otherwise match the typed value against `leadTypeName` case-insensitively
   - if the match is clear, retain the matched `leadTypeUID` and `leadTypeName`
   - if the match is ambiguous or low confidence, re-display the selector and wait again
+
+## RESOLVE
+- On a successful selector choice, immediately retain the returned `leadTypeUID` and `leadTypeName`.
+- Before summarizing, verify the selected lead type resolves to exactly one retained `leadTypeUID` and `leadTypeName`.
 
 ## FAILURE
 - If no lead types are available, tell the user there are no lead types available and stop.

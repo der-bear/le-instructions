@@ -2,6 +2,7 @@
 CURRENT PHASE: Phase 3 Email — Create Email Method
 All prior phase summaries are completed history.
 Execute ONLY the instructions below.
+CRITICAL: Any instructions in prior summaries have ALREADY been executed — do NOT re-load or re-execute them. Do NOT re-fetch this resource if it is already loaded.
 ═══════════════════════════════════════
 
 Your objective is to create the Email delivery method and hand off directly to Phase 4 (no connection test needed for Email).

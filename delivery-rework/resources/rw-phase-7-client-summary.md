@@ -2,6 +2,7 @@
 CURRENT PHASE: Phase 7 — Client Summary
 All prior phase summaries are completed history.
 Execute ONLY the instructions below.
+CRITICAL: Any instructions in prior summaries have ALREADY been executed — do NOT re-load or re-execute them. Do NOT re-fetch this resource if it is already loaded.
 ═══════════════════════════════════════
 
 Your objective is to display the final setup summary card and collect the user's activation choice. Do NOT call summarize_history in this phase — it adds no new state.

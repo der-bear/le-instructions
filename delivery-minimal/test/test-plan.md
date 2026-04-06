@@ -1,7 +1,7 @@
 # Delivery Minimal — Test Plan
 
 ## Goal
-Validate that the new pack keeps the current platform-facing architecture while removing the brittle summary/state-transfer behavior seen in the other variants.
+Validate that the new pack keeps the current platform-facing architecture while removing the brittle summary/state-transfer behavior seen in the other variants, while still showing the user each created entity before the workflow moves forward.
 
 ## Required Scenarios
 1. Full setup, Portal, 24/7, all states, keep inactive.
@@ -9,18 +9,35 @@ Validate that the new pack keeps the current platform-facing architecture while 
 3. Full setup, Email, activate at end.
 4. Full setup, FTP, no extra criteria.
 5. Full setup, Webhook, skip mappings.
-6. Full setup, Webhook, JSON schema, auto-detect content type.
-7. Full setup, Webhook, large or messy spec prompts for a smaller excerpt.
-8. Method-only flow for an existing client.
-9. Account-only flow for an existing client and method.
-10. Typed-text fallback at every card step instead of button clicks.
-11. State-field ambiguity fallback.
-12. Extra criteria compile failure offers `fix` or `continue geography-only`.
-13. Webhook malformed JSON repair: missing braces, trailing comma, single quotes.
-14. Webhook review branch coverage: create, revise URL, revise spec, change content type, skip mapping after review.
-15. Geography recovery rejects partial matches and offers only `Re-enter states` or `All states`.
-16. Criteria builder enum flow works with ChoiceSet and typed `continue` exits cleanly.
-17. Activation failure offers `Retry activation` or `Keep inactive`.
+6. Full setup, Webhook, explicit JSON content type and mapped review card.
+7. Full setup, Webhook, `I'm not sure` auto-detects and confirms content type once.
+8. Full setup, Webhook, large or messy spec prompts for a smaller excerpt.
+9. Method-only flow for an existing client using Portal or Email.
+10. Account-only flow for an existing client and method.
+11. Typed-text fallback at every card step instead of button clicks.
+12. State-field ambiguity fallback.
+13. Extra criteria compile failure offers `fix` or `continue geography-only`.
+14. Webhook malformed JSON repair: missing braces, trailing comma, single quotes.
+15. Webhook review branch coverage: create, revise URL, revise spec, change content type, skip mapping after review.
+16. Geography recovery rejects partial matches and offers only `Re-enter states` or `All states`.
+17. Criteria builder enum flow works with ChoiceSet and typed `continue`/`done` exits cleanly.
+18. Activation failure offers `Retry activation` or `Keep inactive`.
+19. Client-created preview appears before Phase 2.
+20. Simple method-created preview appears before Phase 4 for Portal, Email, and FTP.
+21. Webhook pre-create review is followed by a webhook post-create preview before Phase 4.
+22. Account-created preview appears before Phase 5.
+23. Add-method flow shows the method preview and ends only after `Finish` for Portal, Email, FTP, and Webhook.
+24. Add-account flow shows the account preview and ends only after `Finish`.
+25. Preview and review cards render with exact required row labels and no extra rows.
+26. Normalized preview values are shown instead of raw DTO/internal values.
+27. Webhook review size cap forces `Revise spec` or `Skip mapping` instead of rendering an oversized card.
+28. Activation plain-text summary shows the `useOrder=true` follow-up note only when applicable.
+29. Required card render failure retries once and then falls back cleanly.
+30. Phase 4 loads Phase 4b and stops until the criteria builder returns.
+31. Webhook ambiguity resolution asks one delivery field at a time and recomputes counts before review.
+32. Webhook summary handoff carries `requestTemplateStatus`, not raw `requestBody`.
+33. Activation can fail more than once and still re-offer `Retry activation` or `Keep inactive`.
+34. Re-entering Phase 3 through the router clears stale method-attempt state so a new branch does not silently reuse an old schedule, URL, or FTP credentials.
 
 ## Acceptance Criteria
 - No repeated intro prompts.
@@ -29,12 +46,14 @@ Validate that the new pack keeps the current platform-facing architecture while 
   - Phase 0 -> 2
   - Phase 1 -> 2
   - Phase 2 -> 3
-  - Phase 3 -> 4 for created simple methods
+  - Phase 3 Portal -> 4
+  - Phase 3 Email -> 4
+  - Phase 3 FTP -> 4
   - Phase 3 Webhook -> 4
   - Phase 4 -> 5
-- No summary-review phases or "Continue" summary gates.
-- No summary-card gating.
-- No table-card dependency.
+- No standalone summary-review phases or generic "Continue" summary gates.
+- No standalone summary-card gating.
+- Table cards are required only for mapping reviews and preview checkpoints, not as separate phases.
 - No hidden required tool steps between user prompts.
 - `deliveryMethodUID` is available when creating the account.
 - Geography is always collected before account creation.
@@ -42,22 +61,38 @@ Validate that the new pack keeps the current platform-facing architecture while 
 - The criteria builder never mutates the account directly.
 - All DTOs are passed as nested native objects, never JSON strings or flattened loose fields.
 - `deliveryDays` is always a native 7-entry array of day objects inside method payloads.
-- Manual selectors use compact ChoiceSet plus Submit with no extra submit data, and table cards are not required.
-- Webhook methods are never created until the user explicitly confirms `Create method`.
+- Manual selectors use compact ChoiceSet plus Submit with no extra submit data.
+- Webhook pasted-spec methods are never created until the user explicitly confirms `Create method`.
+- Webhook skip-mapping creates immediately without an extra confirmation card.
 - Webhook malformed JSON/XML is repaired once losslessly before the user is asked to revise.
 - Webhook `settings` is either `null` or a native mapping array, and `requestBody` is the direct template text with placeholders.
+- Raw webhook `requestBody` is not serialized through summaries; later phases carry only `requestTemplateStatus`.
 - Partial state matches are rejected instead of silently creating a narrowed geography.
 - Account `criteria` is always a native array of criterion objects.
-- Enum criteria always use a compact ChoiceSet plus Submit with no extra submit data.
+- Enum criteria use a compact ChoiceSet plus Submit with no extra submit data when the user has not already provided a concrete enum value.
 - Activation retries always resend the full DTO with a fresh password.
+- Successful create phases show an adaptive-card table created-state preview before handoff.
+- Post-create preview acknowledgements do not trigger a duplicate create mutation.
+- The next phase is not loaded until the preview is acknowledged.
+- Preview state is transient and is not serialized through `summarize_history`.
+- Preview values come from the validated created entity, not inferred state.
+- Typed acknowledgement responses work the same as card clicks.
+- Simple-method preview replay is guarded by transient preview state, not by reusing a previously retained `deliveryMethodUID`.
+- FTP previews redact the password as `set`.
+- Webhook mapping review renders as an adaptive-card table.
+- Activation presents a short plain-text summary plus a simple choice card.
+- Preview and review cards are tested at the contract level, not by full raw-card snapshots.
 
 ## Explicit Checks
 ### Core Flow Checks
 - `min-create-single-client` goes:
   - create client
+  - client-created preview
   - select lead type
   - create delivery method
+  - method-created preview
   - create delivery account
+  - account-created preview
   - activation
 - Scalar phase context is transferred via summaries rather than relying only on raw conversation history.
 - `min-create-delivery-method` ends after the method is created.
@@ -69,12 +104,23 @@ Validate that the new pack keeps the current platform-facing architecture while 
 
 ### Webhook Checks
 - `get_lead_type` is not called until after the user has pasted a usable spec.
+- The explicit JSON path and the `I'm not sure` auto-detect path are both covered separately.
 - URL-only specs are rejected.
 - Large or repetitive specs trigger `smaller excerpt` or `skip mapping`.
-- No mapping preview table is required.
+- Webhook mapping review uses an adaptive-card table rather than plain text.
 - No connection-test phase is loaded.
 - The router does not summarize before loading the webhook phase because `deliveryDays` must stay native.
+- The router does not summarize before loading Portal, Email, FTP, or Webhook.
+- The router never calls `create_delivery_method`; creation happens only in the method-specific resource.
+- The router clears stale Phase 3 method-attempt state before loading the selected branch.
+- Each method-specific resource collects and builds its own `deliveryDays` payload locally instead of receiving a native schedule handoff from the router.
 - The webhook review summary includes content type, mapped count, total extracted count, and unresolved or omitted fields by name.
+- The webhook review summary includes mapped field pairs only.
+- The webhook review card contains:
+  - one summary table with exact rows for content type, mapped fields, and unresolved or omitted fields
+  - one mapping table with exact header text `Delivery Field | System Field | Status`
+  - mapped rows in extracted field order
+  - `Mapped` as the status text for every mapped row
 - Review choices are explicit:
   - `Create method`
   - `Revise URL`
@@ -83,6 +129,10 @@ Validate that the new pack keeps the current platform-facing architecture while 
   - `Skip mapping`
 - Revision choices reset only the intended inputs and do not silently discard unrelated webhook state.
 - `Re-paste excerpt` returns to the posting-instructions step without clearing the accepted URL or current content type.
+- After webhook creation succeeds, a second post-create method preview is shown before handoff or final completion.
+- If the webhook review would exceed the size cap, the flow does not render a giant table and instead offers only `Revise spec` or `Skip mapping`.
+- Ambiguous mappings are resolved one delivery field at a time before the review card is shown.
+- `totalCount` still includes unmapped extracted fields, and nested JSON/XML paths stay explicit in the mapping contract.
 
 ### Account Checks
 - The account flow asks in this exact order:
@@ -98,9 +148,33 @@ Validate that the new pack keeps the current platform-facing architecture while 
 - Extra criteria are compiled before `create_delivery_account`.
 - The account is created once in the normal path.
 - The criteria builder does not summarize before returning to Phase 4 because `compiledCriteria` must stay native.
+- Phase 4 stops immediately when it loads Phase 4b and does not fall through into account creation on the same turn.
 - If any entered state is unmatched, the full input is rejected and the flow does not silently keep the matched subset.
 - Multiple criteria in one message are handled one at a time.
 - On criteria failure inside Phase 4, `Fix criteria` reloads Phase 4b and `Continue with geography only` clears extra criteria and proceeds without them.
+- Criteria parsing handles deterministic comparator phrases like `at least`, `more than`, `less than`, and `between`.
+- Typed `done` exits the criteria loop the same way as typed `continue`.
+- The account is not summarized or finalized until the post-create account preview is acknowledged.
+
+### Preview Checks
+- Phase 1 waits for `Continue to Lead Type` before summarizing and loading Phase 2.
+- Simple method phases wait for `Continue to Delivery Account` or `Finish` before summarizing or completing.
+- Webhook phases keep the pre-create mapping review and then wait for the post-create method preview acknowledgement.
+- Phase 4 waits for `Continue to Activation` or `Finish` before summarizing or completing.
+- If a preview is pending, the phase re-shows that preview instead of re-running the create mutation.
+- Client, method, and account previews render as adaptive-card tables.
+- Preview cards contain the exact required row labels for their phase and no extra rows.
+- Preview action labels and action counts are exact for the pending phase.
+- Typed equivalents map only to the pending card's allowed action set.
+- Preview cards show normalized display values:
+  - no raw `HttpPost` or `EMail`
+  - no raw boolean `true/false`
+  - price shows as `$NN.NN`
+  - geography shows a human-readable state list when targeted
+- Activation plain-text summary shows the order follow-up note only when `useOrder=true`.
+- Activation choice handling is stateful: once the user chooses `Activate now` or `Keep inactive`, the phase handles that choice instead of re-asking from the start.
+- Activation failure can repeat and continues to offer the same retry-or-keep-inactive choice.
+- If a required card fails to render, the system retries once and then falls back without sending both card and plain text in the same turn.
 
 ## Defaults To Verify
 - `dayMax=50`

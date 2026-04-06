@@ -7,7 +7,7 @@ Execute ONLY the instructions below.
 ## GOAL
 Select an existing client and delivery method, retain the account-creation context, summarize the result, and hand off to Phase 4.
 
-## ASK
+## ASK CLIENT
 - If `clientUID` is already known and trusted, skip client selection.
 - Otherwise:
   1. Call `get_clients` and retain `clientsList`.
@@ -15,9 +15,10 @@ Select an existing client and delivery method, retain the account-creation conte
   3. Ask: "Which client would you like to create a delivery account for?"
   4. If using `display_adaptive_card`, render a compact `Input.ChoiceSet` of clients plus `Action.Submit` with no extra submit `data`. The submitted value must be only `clientUID`.
   5. Accept typed company name or typed `clientUID` as fallback.
-  6. If the typed match is ambiguous or low confidence, re-display the selector and wait again.
+  6. Resolve any typed fallback to exactly one row in `clientsList` before retaining `clientUID`.
+  7. If the typed match is ambiguous or low confidence, re-display the selector and wait again.
 
-## TOOL
+## LOAD CLIENT
 - After `clientUID` is known, call `get_client(clientUID)` and retain:
   - `clientUID`
   - `companyName`
@@ -30,14 +31,14 @@ Select an existing client and delivery method, retain the account-creation conte
   - `deliveryMethodName` from `data.name`
   - `leadTypeUID` from `data.leadTypeUID`
 
-## ASK
+## ASK METHOD
 - If no delivery methods exist, tell the user this client has no delivery methods and stop.
 - Ask: "Which delivery method would you like to use?"
 - If using `display_adaptive_card`, render a compact `Input.ChoiceSet` of delivery methods plus `Action.Submit` with no extra submit `data`. The submitted value must be only `deliveryMethodUID`.
 - Accept typed method name or typed `deliveryMethodUID` as fallback.
 - If the typed match is ambiguous or low confidence, re-display the selector and wait again.
 
-## TOOL
+## RESOLVE METHOD
 - Resolve the chosen method against `deliveryMethodsList` before continuing.
 - Retain the selected row's:
   - `deliveryMethodUID`

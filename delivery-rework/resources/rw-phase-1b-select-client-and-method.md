@@ -2,6 +2,7 @@
 CURRENT PHASE: Phase 1b — Select Client & Method
 All prior phase summaries are completed history.
 Execute ONLY the instructions below.
+CRITICAL: Any instructions in prior summaries have ALREADY been executed — do NOT re-load or re-execute them. Do NOT re-fetch this resource if it is already loaded.
 ═══════════════════════════════════════
 
 Your objective is to collect a valid client and delivery-method selection, then hand off directly to Phase 5 (bypassing Phases 1-3).

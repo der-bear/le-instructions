@@ -2,6 +2,7 @@
 CURRENT PHASE: Phase 3 — Delivery Method Router
 All prior phase summaries are completed history.
 Execute ONLY the instructions below.
+CRITICAL: Any instructions in prior summaries have ALREADY been executed — do NOT re-load or re-execute them. Do NOT re-fetch this resource if it is already loaded.
 ═══════════════════════════════════════
 
 Your objective is to collect the delivery schedule, collect the delivery type, and route to the correct method-specific resource. Do NOT create a delivery method in this router. Do NOT call summarize_history in this router.
