@@ -90,7 +90,7 @@ Ranked by Avg Score.
 |-------|-----------|--------|
 | Stabilized R1b (mixed pre-fix) | **98.2%** | 🥇 Best stabilized — mixed model alone wins |
 | Rework R2c (mixed post-fix) | **92.5%** | 🥇 Best rework — fixes + mixed model required |
-| Stabilized R2c (mixed post-fix) | 89.5% | 🥈 Stab post-fix |
+| Stabilized R2c (mixed post-fix) | 92.2% | 🥈 Stab post-fix |
 | Rework R1a (gpt-5.4 pre-fix) | 85.7% | 🥉 Rework baseline |
 | Stabilized R1a (gpt-5.4 pre-fix) | 85.1% | 🥉 Stab baseline |
 | Rework R2 (gpt-5.4 post-fix) | 81.9% | ⚠️ Cosmetic doubling persisted |
@@ -105,7 +105,7 @@ Ranked by Avg Score.
 | Checkpoint | Stab R1a | Rew R1a | Stab R1b | Rew R1b | Stab R2 | Rew R2 | Stab R2c | **Rew R2c** |
 |------------|----------|---------|----------|---------|---------|--------|----------|-------------|
 | P1-PROMPT† | 20/20 (100%) 🟢 | 5/6 (83%) ✅ | 9/9 (100%) 🟢 | 6/6 (100%) 🟢 | 9/9 (100%) 🟢 | 1/1 (100%) 🟢 | 9/9 (100%) 🟢 | 8/8 (100%) 🟢 |
-| P2-DROP | 20/20 (100%) 🟢 | 20/20 (100%) 🟢 | 9/9 (100%) 🟢 | **3/10 (30%) 🔴** | 10/10 (100%) 🟢 | 10/10 (100%) 🟢 | 10/10 (100%) 🟢 | 10/10 (100%) 🟢 |
+| P2-DROP | 20/20 (100%) 🟢 | 20/20 (100%) 🟢 | 9/9 (100%) 🟢 | 3/10 (30%) 🔴 | 10/10 (100%) 🟢 | 10/10 (100%) 🟢 | 10/10 (100%) 🟢 | 10/10 (100%) 🟢 |
 | P3-SCHED | 18/20 (90%) ✅ | 16/16 (100%) 🟢 | 8/9 (89%) ✅ | 10/10 (100%) 🟢 | 8/10 (80%) 🟡 | 5/6 (83%) ✅ | 10/10 (100%) 🟢 | 10/10 (100%) 🟢 |
 | P3-WURL | 19/20 (95%) ✅ | 15/15 (100%) 🟢 | 9/9 (100%) 🟢 | 4/4 (100%) 🟢 | 7/8 (88%) ✅ | 8/8 (100%) 🟢 | 8/8 (100%) 🟢 | 4/4 (100%) 🟢 |
 | P3-JSON | 18/20 (90%) ✅ | 11/12 (92%) ✅ | 9/9 (100%) 🟢 | 4/4 (100%) 🟢 | 4/7 (57%) 🔴 | 6/6 (100%) 🟢 | 5/5 (100%) 🟢 | 4/4 (100%) 🟢 |
@@ -116,52 +116,24 @@ Ranked by Avg Score.
 | P5-PRICE | 20/20 (100%) 🟢 | 18/19 (95%) ✅ | 9/9 (100%) 🟢 | 9/9 (100%) 🟢 | 7/10 (70%) 🟡 | 9/10 (90%) ✅ | 10/10 (100%) 🟢 | 10/10 (100%) 🟢 |
 | P5-EXCL | 20/20 (100%) 🟢 | 15/16 (94%) ✅ | 9/9 (100%) 🟢 | 9/10 (90%) ✅ | 8/10 (80%) 🟡 | 9/10 (90%) ✅ | 10/10 (100%) 🟢 | 9/10 (90%) ✅ |
 | P5-ORDER | 20/20 (100%) 🟢 | 17/18 (94%) ✅ | 9/9 (100%) 🟢 | 9/10 (90%) ✅ | 8/10 (80%) 🟡 | 9/10 (90%) ✅ | 10/10 (100%) 🟢 | 10/10 (100%) 🟢 |
-| P5-STATE | 10/20 (50%) 🔴 | 10/16 (62%) 🟡 | 7/9 (78%) ✅ | **3/10 (30%) 🔴** | 5/10 (50%) 🔴 | 5/10 (50%) 🔴 | 10/10 (100%) 🟢 | **9/10 (90%) ✅** |
+| P5-STATE | 10/20 (50%) 🔴 | 10/16 (62%) 🟡 | 7/9 (78%) ✅ | 3/10 (30%) 🔴 | 5/10 (50%) 🔴 | 5/10 (50%) 🔴 | 10/10 (100%) 🟢 | 9/10 (90%) ✅ |
 | P5-NORM | 9/20 (45%) 🔴 | 7/10 (70%) 🟡 | 9/9 (100%) 🟢 | 4/7 (57%) 🔴 | 6/9 (67%) 🟡 | 8/9 (89%) ✅ | 9/10 (90%) ✅ | 7/10 (70%) 🟡 |
-| P5-FIELD | 18/20 (90%) ✅ | 6/15 (40%) 🔴 | 9/9 (100%) 🟢 | 4/10 (40%) 🔴 | 2/8 (25%) 🔴 | 3/8 (38%) 🔴 | **4/10 (40%) 🔴** | 7/10 (70%) 🟡 |
-| P5-CR1 | 16/20 (80%) 🟡 | 8/11 (73%) 🟡 | 9/9 (100%) 🟢 | **2/9 (22%) 🔴** | 2/8 (25%) 🔴 | 5/8 (62%) 🟡 | 5/7 (71%) 🟡 | **6/6 (100%) 🟢** |
-| P5-ENUM | 16/20 (80%) 🟡 | 1/2 (50%) 🔴 | 8/9 (89%) ✅ | **0/6 (0%) 🔴** | 1/6 (17%) 🔴 | 3/8 (38%) 🔴 | 6/7 (86%) ✅ | **5/5 (100%) 🟢** |
-| P5-CR3 | 8/20 (40%) 🔴 | **1/12 (8%) 🔴** | 9/9 (100%) 🟢 | 1/8 (12%) 🔴 | **0/6 (0%) 🔴** | 1/8 (12%) 🔴 | **2/5 (40%) 🔴** | **4/5 (80%) 🟡** |
-| P5-DONE | 8/20 (40%) 🔴 | **1/12 (8%) 🔴** | 9/9 (100%) 🟢 | 3/10 (30%) 🔴 | 4/10 (40%) 🔴 | 6/10 (60%) 🟡 | 9/10 (90%) ✅ | **7/8 (88%) ✅** |
+| P5-FIELD | 18/20 (90%) ✅ | 6/15 (40%) 🔴 | 9/9 (100%) 🟢 | 4/10 (40%) 🔴 | 2/8 (25%) 🔴 | 3/8 (38%) 🔴 | 9/10 (90%) ✅ | 7/10 (70%) 🟡 |
+| P5-CR1 | 16/20 (80%) 🟡 | 8/11 (73%) 🟡 | 9/9 (100%) 🟢 | 2/9 (22%) 🔴 | 2/8 (25%) 🔴 | 5/8 (62%) 🟡 | 5/7 (71%) 🟡 | 6/6 (100%) 🟢 |
+| P5-ENUM | 16/20 (80%) 🟡 | 1/2 (50%) 🔴 | 8/9 (89%) ✅ | 0/6 (0%) 🔴 | 1/6 (17%) 🔴 | 3/8 (38%) 🔴 | 6/7 (86%) ✅ | 5/5 (100%) 🟢 |
+| P5-CR3 | 8/20 (40%) 🔴 | 1/12 (8%) 🔴 | 9/9 (100%) 🟢 | 1/8 (12%) 🔴 | 0/6 (0%) 🔴 | 1/8 (12%) 🔴 | 2/5 (40%) 🔴 | 4/5 (80%) 🟡 |
+| P5-DONE | 8/20 (40%) 🔴 | 1/12 (8%) 🔴 | 9/9 (100%) 🟢 | 3/10 (30%) 🔴 | 4/10 (40%) 🔴 | 6/10 (60%) 🟡 | 9/10 (90%) ✅ | 7/8 (88%) ✅ |
 | P6-BOOL | 20/20 (100%) 🟢 | 16/17 (94%) ✅ | 9/9 (100%) 🟢 | 8/10 (80%) 🟡 | 10/10 (100%) 🟢 | 9/9 (100%) 🟢 | 8/10 (80%) 🟡 | 9/10 (90%) ✅ |
 | P6-SUMM | 19/20 (95%) ✅ | 13/17 (76%) 🟡 | 9/9 (100%) 🟢 | 9/10 (90%) ✅ | 8/10 (80%) 🟡 | 10/10 (100%) 🟢 | 8/10 (80%) 🟡 | 9/10 (90%) ✅ |
 | P7-SUMM | 20/20 (100%) 🟢 | 16/16 (100%) 🟢 | 9/9 (100%) 🟢 | 10/10 (100%) 🟢 | 9/9 (100%) 🟢 | 9/9 (100%) 🟢 | 6/7 (86%) ✅ | 10/10 (100%) 🟢 |
 | P8-ACT | 19/20 (95%) ✅ | 17/17 (100%) 🟢 | 9/9 (100%) 🟢 | 10/10 (100%) 🟢 | 9/9 (100%) 🟢 | 9/10 (90%) ✅ | 9/9 (100%) 🟢 | 10/10 (100%) 🟢 |
-
-### What failed in Stab R2c P5-FIELD (4/10 = 40% pass)?
-
-6 of 10 Stab R2c runs failed P5-FIELD — all due to **criteria gate skipped or rendered as plain text**:
-
-| Run | Scenario | Failure |
-|-----|----------|---------|
-| 04 | Webhook URL-Encoded, skip criteria | Criteria gate plain text — no adaptive card |
-| 06 | Webhook XML auto-detect, 2 enum criteria | Criteria gate entirely skipped, jumped to field suggestions |
-| 07 | Webhook JSON auto-detect, 3 criteria | Criteria gate skipped (7th R2c occurrence) |
-| 08 | FTP, 2 criteria | Criteria gate skipped (8th R2c occurrence) |
-| 09 | Portal, skip criteria | Criteria gate skipped (9th R2c occurrence) |
-| 10 | Email, skip criteria | Criteria gate skipped (10th R2c occurrence) |
-
-**Pass runs:** R2c-01, R2c-02, R2c-03, R2c-05 (criteria gate shown correctly).
-
-### What failed in Stab R2c P5-CR3 (2/5 = 40% pass)?
-
-3 of 5 applicable Stab R2c runs failed P5-CR3:
-
-| Run | Scenario | Failure |
-|-----|----------|---------|
-| 03 | Webhook XML→JSON recovery, 2 enum criteria | Loop prompt skipped after 2nd criterion — jumped to account creation |
-| 05 | Webhook URL-Encoded, 4 criteria | LoanRequestPurpose dropped from payload after SelfCreditRating loop |
-| 07 | Webhook JSON auto-detect, 2 of 3 criteria added | Agent exited criteria loop after 2nd criterion (3rd never collected) |
-
-**Pass runs:** R2c-01, R2c-02 (both 100% PASSes — all criteria persisted).
-**N/A runs:** R2c-04, R2c-06, R2c-08, R2c-09, R2c-10 (skip-criteria scenarios or only 2 criteria planned).
 
 ### Key checkpoint trends across rounds
 
 **Stabilized variant:**
 - **P5-CR3/P5-DONE remained the dominant failure** in R1a (8/20 each) and R2 (0/6, 4/10). Mixed model rounds (R1b, R2c) dramatically improved both.
 - **R1b mixed model is the best stabilized config** for criteria persistence (9/9 P5-CR3 and P5-DONE).
-- **R2c achieves perfect P5-EXCL/ORDER/STATE/NORM** (10/10 all four) but P5-FIELD remains weak (4/10) — criteria gate skipped/plain text in 6/10 runs.
+- **R2c achieves perfect P5-EXCL/ORDER/STATE/NORM** (10/10 all four) and field suggestion step is now strong (9/10 after audit-driven reclassification — only Run 04 remained a real failure where the card was rendered as plain text). Note: this is a corrected figure; the original 4/10 score had counted phantom failures against a "criteria gate" step that doesn't exist in stabilized.
 
 **Rework variant:**
 - **R1a P5-CR3 = 1/12** and **P5-DONE = 1/12** — the worst criteria persistence in any variant/round. Improved to 4/5 and 7/8 in R2c.
@@ -196,7 +168,7 @@ Ranked by Avg Score.
 | 4 | **P5-CR1** | R2 (gpt-5.4 post-fix) | 25% | 71% | **+46pp** | |
 | 5 | **P5-NORM** | R1a (gpt-5.4 pre-fix) | 45% | 90% | **+45pp** | |
 | 6 | **P5-CR3** | R2 (gpt-5.4 post-fix) | 0% | 40% | **+40pp** | Recovered but still weak |
-| 7 | **P5-FIELD** | R2 (gpt-5.4 post-fix) | 25% | 40% | **+15pp** | Smallest stabilized improvement |
+| 7 | **P5-FIELD** | R2 (gpt-5.4 post-fix) | 25% | 90% | **+65pp** | After phantom-finding reclassification (only Run 04 real failure — card rendered as plain text) |
 
 ### 🎯 Resolved Findings — Per Variant
 
@@ -245,13 +217,13 @@ No verified closures in stabilized R2c. The stabilized variant did NOT receive t
 
 ### 🔍 Deep Dive: Where Stabilized R2c Failed vs R1b
 
-**R1b (5/9 PASS, 98.2% avg) → R2c (2/10 PASS, 89.5% avg) regression breakdown:**
+**R1b (5/9 PASS, 98.2% avg) → R2c (post-reclassification: ~3-4/10 PASS, 92.2% avg) regression breakdown:**
 
 #### Checkpoint-level deltas
 
 | Checkpoint | R1b | R2c | Δ | Direction |
 |------------|-----|-----|---|-----------|
-| **P5-FIELD** | 100% | 40% | **-60pp** | 🔴 biggest regression |
+| **P5-FIELD** | 100% | 90% | **-10pp** | 🟡 minor regression after reclassification (was -60pp before phantom-findings audit) |
 | **P5-CR3** | 100% | 40% | **-60pp** | 🔴 biggest regression |
 | **P5-CR1** | 100% | 71% | **-28pp** | 🔴 |
 | **P6-BOOL** | 100% | 80% | **-20pp** | 🔴 |
@@ -268,26 +240,26 @@ No verified closures in stabilized R2c. The stabilized variant did NOT receive t
 
 **R2c PASSes (matching R1b quality):** R2c-01, R2c-02 — both 100% PASS, all 23 checkpoints clean.
 
-**R2c partial failures (8 runs):**
+**R2c partial failures (post-reclassification):**
 
-| Run | Score | Failed checkpoints | Root cause |
+| Run | Score (post) | Failed checkpoints | Root cause |
 |-----|-------|---------------------|------------|
 | 03 | 91% | P5-CR3 | Loop prompt skipped after 2nd criterion |
-| 04 | 95% | P5-FIELD | Criteria gate plain text (RA-K/RB-D pattern) |
-| 05 | 86% | P5-FIELD, P5-CR1, P5-CR3 | Criteria gate plain text + LoanRequestPurpose dropped + loop exit |
-| **06** | **68%** | **P5-FIELD, P5-CR1, P5-ENUM, P5-DONE, P6-BOOL, P6-SUMM, P7-SUMM** | **Cascade failure** — auto-detect content type confirmation skipped → criteria gate skipped → enum stored as Equal/string → criteria not persisted → P6/P7 cards corrupted |
-| 07 | 91% | P5-FIELD, P5-CR3 | Auto-detect (JSON) confirmation skipped + criteria gate skipped + loop exit after 2nd |
-| 08 | 95% | P5-FIELD | Criteria gate skipped (FTP) |
-| 09 | 75% | P3B-TEST, P5-FIELD, P6-BOOL, P6-SUMM | **NEW R2c bug**: Portal asked for connection test (should skip entirely for Portal) + criteria gate skipped + cascade |
-| 10 | 94% | P5-FIELD | Criteria gate skipped (Email skip-criteria) |
+| 04 | 95% | P5-FIELD | Field suggestion step rendered as plain text (real STEP 7 card violation; RA-K/RB-D pattern) |
+| 05 | 86% | P5-NORM, P5-CR1, P5-CR3 | LoanRequestPurpose dropped + loop exit (P5-FIELD was already Y in matrix; prior note "criteria gate plain text" was a stale annotation) |
+| **06** | **73%** | **P5-CR1, P5-ENUM, P5-DONE, P6-BOOL, P6-SUMM, P7-SUMM** | **Cascade failure** — auto-detect content type confirmation skipped → enum stored as Equal/string → criteria not persisted → P6/P7 cards corrupted (P5-FIELD reclassified to Y) |
+| 07 | 96% | P5-CR3 | Auto-detect (JSON) confirmation skipped + loop exit after 2nd (P5-FIELD reclassified to Y) |
+| 08 | 100% | (none) | Reclassified PASS — only failure was phantom P5-FIELD |
+| 09 | 81% | P3B-TEST, P6-BOOL, P6-SUMM | **NEW R2c bug**: Portal asked for connection test (should skip for Portal) + cascade (P5-FIELD reclassified to Y) |
+| 10 | 100% | (none) | Reclassified PASS — only failure was phantom P5-FIELD |
 
 #### Root cause analysis
 
-**1. P5-FIELD (criteria gate skipped) — 6 of 10 R2c runs failed**
-- **Pattern:** Agent jumps directly to field suggestions or shows criteria gate as plain text instead of adaptive card
-- **Affected runs:** 04, 06, 07, 08, 09, 10
-- **Why R1b didn't show this:** R1b ran the same scenarios (Portal/Email/FTP/skip criteria) but the criteria gate consistently rendered correctly. The Post-fix #1 instructions introduced changes to the criteria gate flow that the mixed model now struggles with.
-- **Equivalent rework finding:** RB-D (criteria gate entirely skipped)
+**1. P5-FIELD — RECLASSIFIED: 1 of 10 R2c runs failed (was 6 before audit)**
+- **Audit finding:** Stabilized has no separate "criteria gate" — the field suggestion card (STEP 7 of phase-5-create-delivery-account.md) IS the criteria entry point. Original scoring counted "criteria gate skipped, jumped to field suggestions" as a failure, but that's exactly what STEP 7 does (jumps to field suggestions). The P5-FIELD checkpoint definition is "field suggestions list shown with actual field names" — the field suggestions DID appear in 5 of the 6 originally-failed runs.
+- **Real failure (Run 04):** Field suggestion step rendered as plain text rather than as adaptive card. STEP 7 mandates `ASK [adaptive_card]: ActionSet (Show more fields | Skip)`. This is a real STEP 7 violation.
+- **Reclassified passes:** Runs 06, 07, 08, 09, 10 — all rendered the field suggestion card correctly; the prior "criteria gate skipped" framing was a phantom finding.
+- **Cross-variant note:** The "criteria gate" terminology entered Stabilized findings via cross-contamination from Rework, where a separate "Add criteria | Skip" gate genuinely exists at Step 6 of `rw-phase-5-create-delivery-account.md`. RB-D in rework is a real defect; Stabilized's analogous Finding R is now reframed as "field suggestion step bypassed".
 
 **2. Auto-detect content type confirmation skipped — NEW R2c bug**
 - **Pattern:** When user selects "I'm not sure" for content type, agent goes directly to mapping preview without showing the auto-detect confirmation card
@@ -310,13 +282,13 @@ No verified closures in stabilized R2c. The stabilized variant did NOT receive t
 **Hypothesis:** The post-fix #1 instructions were designed for the gpt-5.4-mini all-phases track. They added:
 - More aggressive STOP AND YIELD requirements
 - New auto-detect content type handling (FIX-15/16)
-- More complex criteria gate logic (FIX-3/5)
+- More complex field suggestion logic (FIX-3/5; note FIX-3 is named after rework's criteria gate but in stabilized it affected field suggestion ordering)
 - Connection test card refinements (FIX-14)
 
 When applied to the mixed model track (gpt-5-mini for P3+P5):
 - gpt-5-mini handles the simpler pre-fix instructions cleanly
 - The added complexity in post-fix #1 exceeds gpt-5-mini's reliable instruction-following capacity for Phase 5
-- Result: 7-8 of 10 R2c runs hit criteria gate failures that R1b never showed
+- Result: 1 of 10 R2c runs hit a real field suggestion card-rendering failure (Run 04) that R1b never showed; other "criteria gate" failures were phantom findings reclassified as PASS
 
 **Verdict:** Stabilized R2c's regression vs R1b is **real and consistent**. Post-fix #1 is incompatible with the mixed-model track for stabilized. **Recommendation:** Either (a) revert stabilized to R1b config (mixed + pre-fix) for production, or (b) develop a separate Post-fix #2 specifically tuned for the mixed-model architecture.
 
@@ -351,7 +323,7 @@ R1b ran with pre-fix instructions. R2c ran after these stabilized commits:
 - Added: "NEVER hallucinate or assume the data" to Tool Execution Prerequisites
 - Added: "Never output the same prompt text more than once in the same message"
 - Added: DEBUG transparency override
-- **Did NOT touch:** Phase 5 logic, criteria gate, P5-FIELD rendering, connection tests, Portal flow
+- **Did NOT touch:** Phase 5 logic, field suggestion step, P5-FIELD rendering, connection tests, Portal flow
 
 **Commit 57d0a98 (Apr 6 19:20)** — "Update delivery instruction packs" — **STRUCTURAL CHANGE TO PHASE 5**:
 - 2 files changed: system/1-global.md (+1/-1), phase-5-create-delivery-account.md (+5/-5)
@@ -369,8 +341,8 @@ R1b ran with pre-fix instructions. R2c ran after these stabilized commits:
 The R2c regression IS partially attributable to instruction changes, specifically commit **57d0a98**. The states question reorder restructured Phase 5 flow:
 - States now collected BEFORE `get_lead_type`
 - This changes the prompt sequence the agent follows
-- The criteria gate (P5-FIELD) comes immediately after `get_lead_type` now (with no states question in between as a "buffer step")
-- Mixed model on this restructured flow appears to skip the criteria gate or render it as plain text 6/10 times
+- The field suggestion step (P5-FIELD) comes immediately after `get_lead_type` now (with no states question in between as a "buffer step")
+- Mixed model on this restructured flow rendered the field suggestion card as plain text in 1/10 runs (Run 04). The other 5 originally-flagged "P5-FIELD failures" turned out to be phantom findings — they were field-suggestion-shown-correctly behavior misclassified against a non-existent "criteria gate" step.
 
 **However**, the regression is NOT 100% explained by instructions:
 - R2c also tested NEW scenarios (auto-detect content type) that R1b didn't run
@@ -486,7 +458,7 @@ Counts produced by independent classification table audit (Agent 2 round 2 verif
 | RA-O | Phase 5 restart after "continue" | IGNORE | Open |
 | RA-P | States silently skipped entirely | IGNORE | Open (improved in mixed model rounds) |
 | RA-Q | Phantom CA,AZ,TX states | HALLUCINATE | Open |
-| RA-R | Criteria gate bypassed after state skip | IGNORE | Open |
+| RA-R | Field suggestion step bypassed after state skip | IGNORE | Open |
 | RA-S | Webhook URL never requested | IGNORE | Open |
 | RA-T | JSON parse error before schema provided | IGNORE | Open |
 | RA-U | Criteria not persisted to account | IGNORE | Open (improved in R1b/R2c) |
@@ -495,16 +467,17 @@ Counts produced by independent classification table audit (Agent 2 round 2 verif
 | RA-X | Phase 3 instructions loaded 3x | PLATFORM | Open |
 | RA-Y | Typed criterion input ignored | IGNORE | Open |
 | RA-NEW-1 | Posting instructions prompt skipped | IGNORE | Open |
-| RA-NEW-2 | Phase 5 batching (criteria gate auto-skipped) | IGNORE | Open |
+| RA-NEW-2 | Phase 5 batching (hallucinated criteria gate auto-skipped) | HALLUCINATE | Open (cross-variant; see RA-HALLUC-CG) |
 | RA-NEW-3 | States re-prompted when full names given | IGNORE | Open |
 | RA-NEW-4 | "Please type Continue" after Add criteria | HALLUCINATE | Open |
 | RA-NEW-5 | Phase 5c silent skip | IGNORE | Open |
-| RA-NEW-6 | States shown inside criteria gate card | IGNORE | Open |
+| RA-NEW-6 | States shown inside hallucinated criteria gate card | HALLUCINATE | Open (cross-variant; see RA-HALLUC-CG) |
 | RA-NEW-7 | Phase 5 prompt hallucination (FTP creds on webhook) | HALLUCINATE | Open |
 | RA-NEW-R2-8 | Criteria builder bypassed after 2nd Add click | IGNORE | Open |
 | RA-NEW-R2-9 | Post-creation states msg causes indefinite spin | PLATFORM | Open |
+| RA-HALLUC-CG | Agent hallucinates rework "Add criteria \| Skip" criteria gate prompt in Stabilized; the stabilized phase-5 file has no such gate (STEP 7 uses "Show more fields \| Skip" on the field suggestion card). Observed in R2 runs 01, 03, 05, R2b run 03 (notes), and possibly others. Causes ambiguity when scoring P5-FIELD because the rendered gate-style buttons are mistaken for legitimate behavior. | HALLUCINATE | Open (cross-variant prompt contamination) |
 
-**Stabilized totals:** 25 IGNORE · 6 HALLUCINATE · 1 AMBIGUOUS · 2 PLATFORM · 0 CLOSED · 0 NOT_A_BUG = **34 entries**
+**Stabilized totals:** 23 IGNORE · 9 HALLUCINATE · 1 AMBIGUOUS · 2 PLATFORM · 0 CLOSED · 0 NOT_A_BUG = **35 entries** (RA-NEW-2 and RA-NEW-6 reclassified IGNORE→HALLUCINATE; RA-HALLUC-CG added as new entry; RA-R kept IGNORE but renamed)
 
 #### Rework Variant (RB-*) — 36 findings
 
