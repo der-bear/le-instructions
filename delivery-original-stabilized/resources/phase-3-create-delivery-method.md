@@ -126,10 +126,9 @@ CRITICAL: After each user response (including card button clicks), resume from w
            - Store valid schema structure
 
        PROCESS (Field Mapping & RequestBody Generation):
-         - Extract field names from postingInstructions
-         - Fuzzy match to leadFields (of selected lead type) in the following priority: exact match → underscore/CamelCase variations → abbreviations → semantic mapping (>90% confidence only).
-         - If multiple fields match at the same priority level, prompt the user to select the correct field from the candidates.
-         - If no confident match is found, ask the user for clarification before proceeding.
+         - Extract field names from postingInstructions. Match field NAMES only — do NOT analyze field values, data types, or enumeration values.
+         - Fuzzy match to leadFields (of selected lead type) in the following priority: exact match → underscore/CamelCase variations → abbreviations → semantic mapping (>85% confidence only).
+         - Leave unmapped: any field with multiple candidates at the same priority level, and any field with no confident match.
          - Build mappingSettings: [{fieldType:"LeadField", fieldName:<delivery field>, leadFieldUID:<system field uid>}]
          - Compute mappedCount, totalCount
 
@@ -140,7 +139,8 @@ CRITICAL: After each user response (including card button clicks), resume from w
                1. Extract structure from user's schema (hierarchy, nesting, arrays)
                2. Auto-correct any syntax errors
                3. Generate requestBody template:
-                  - Include only mapped fields, preserving hierarchy from user's schema
+                  - Include ONLY fields present in mappingSettings. Do NOT include any field from the user's schema that was not mapped. Do NOT invent placeholders to fill structural slots.
+                  - Preserve hierarchy from user's schema for the included fields only.
                   - Replace values with [SystemFieldName] placeholders
                   - JSON: placeholders are quoted strings "[SystemFieldName]"
                   - XML: placeholders are unquoted content <field>[SystemFieldName]</field>

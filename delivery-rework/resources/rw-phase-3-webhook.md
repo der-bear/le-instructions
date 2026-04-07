@@ -74,30 +74,21 @@ Step 1: Parse Schema
   - IF "Switch content type": clear contentTypeChoice and postingInstructions, go back to State 2 Step 2.
 
 Step 2: Match Fields (silent — do NOT display results)
-  Extract field names from postingInstructions.
-  Match extracted fields to leadFields by priority: exact match → underscore/CamelCase variations → abbreviations → semantic (>90% only). Auto-map confident matches silently — do NOT display mapping results, the preview comes in Step 5.
+  Extract field names from postingInstructions. Match field NAMES only — do NOT analyze field values, data types, or enumeration values.
+  Match extracted fields to leadFields by priority: exact match → underscore/CamelCase variations → abbreviations → semantic (>85% only). Auto-map confident matches silently.
+  Leave unmapped: any field with multiple candidates at the same priority level, and any field with no confident match. Do not display results — the preview comes in Step 4.
 
-Step 3: Resolve Unclear Mappings
-  If any ambiguous fields (multiple candidates at the same priority level) or unmatched fields (no confident match) remain after Step 2, you MUST ask the user for clarification before proceeding.
-  For each ambiguous field, prompt the user to select the correct system field from the candidate matches.
-  For each unmatched field, ask the user which system field it should map to.
-  Do NOT auto-resolve ambiguous or unmatched fields.
-  Do NOT present an adaptive card for each ambiguous field. Ask in plain text. You may batch multiple unresolved fields into one clarification message.
-  **STOP AND YIELD.** Do not hallucinate data.
-  On re-entry, apply the user's answers to the unresolved fields.
-  If unresolved fields still remain, ask again and **STOP AND YIELD** until they are resolved.
-
-Step 4: Build Mapping Payload
-  Build mappingSettings using the confidently matched fields plus any user-resolved fields: [{fieldType:"LeadField", fieldName:<delivery field>, leadFieldUID:<system field uid>}, ...]
+Step 3: Build Mapping Payload
+  Build mappingSettings using the confidently matched fields: [{fieldType:"LeadField", fieldName:<delivery field>, leadFieldUID:<system field uid>}, ...]
   Build requestBody with [SystemFieldName] placeholders:
   - URL Encoded: `field1=[SystemField1]&field2=[SystemField2]&`
-  - JSON/XML: preserve the user's posted structure, replace mapped values with [SystemFieldName] placeholders. JSON placeholders are quoted strings "[SystemFieldName]". XML placeholders are unquoted content `<field>[SystemFieldName]</field>`. Use 2-space indentation, one element per line.
-  Include only mapped fields in mappingSettings and in requestBody.
+  - JSON/XML: preserve the user's posted structure for mapped fields only, replace mapped values with [SystemFieldName] placeholders. JSON placeholders are quoted strings "[SystemFieldName]". XML placeholders are unquoted content `<field>[SystemFieldName]</field>`. Use 2-space indentation, one element per line.
+  Include ONLY fields present in mappingSettings — in both mappingSettings and requestBody. Do NOT include unmapped fields from the user's schema. Do NOT invent placeholders for structural slots.
   Compute mappedCount (number of successfully mapped fields) and totalCount (total number of fields extracted from postingInstructions, including unmapped). Both MUST be shown in the preview.
   Map contentTypeChoice to mimeContentType: JSON → "application/json", XML → "application/xml", URL Encoded → "application/x-www-form-urlencoded".
   Retain: mappingSettings, requestBody, mappedCount, totalCount, mimeContentType, connectionTestMode="webhook".
 
-Step 5: Display Mapping Preview
+Step 4: Display Mapping Preview
   CRITICAL: You MUST call display_adaptive_card with the EXACT JSON template below IMMEDIATELY — in the same message as field matching completes, no progress text, no intermediate messages. Do NOT render mappings as plain text or arrows. The preview MUST be a Table card. MUST show preview for ALL content types (JSON, XML, URL Encoded).
   Show only the mapped rows in the table preview.
 
