@@ -15,7 +15,9 @@ IF deliveryType = "FTP" OR (deliveryType = "HttpPost" AND deliveryAddress starts
      IF deliveryType = "FTP":
        PROCESS (Detect protocol from deliveryAddress): if starts with "sftp://" → protocol="SFTP", else → protocol="FTP"
        TOOL: test_ftp_sftp_connection
-       TOOL_DEFAULTS: protocol={detectedProtocol}, host={deliveryAddress}, username={ftpUser}, password={ftpPassword}, remotePath="/incoming/"
+       TOOL_DEFAULTS: protocol={protocol}, host={deliveryAddress}, username={ftpUser}, password={ftpPassword}, remotePath="/incoming/"
+       PROCESS: connectionTestSucceeded = test_ftp_sftp_connection.IsSuccess
+       PROCESS: connectionTestError = test_ftp_sftp_connection.Error
 
      IF deliveryType = "HttpPost":
        TOOL: test_webhook_connection
@@ -24,13 +26,15 @@ IF deliveryType = "FTP" OR (deliveryType = "HttpPost" AND deliveryAddress starts
          TOOL_DEFAULTS: url={deliveryAddress}, method="POST", contentType={mimeContentType}, payload={testPayload}, timeoutSeconds=30
        ELSE:
          TOOL_DEFAULTS: url={deliveryAddress}, method="POST", payload="", timeoutSeconds=30
+       PROCESS: connectionTestSucceeded = test_webhook_connection.IsSuccess
+       PROCESS: connectionTestError = test_webhook_connection.Error
 
-     IF tool result test_webhook_connection.IsSuccess = true OR test_ftp_sftp_connection.IsSuccess = true:
+     IF connectionTestSucceeded = true:
        PROMPT: "✓ Connection test successful."
        ASK [adaptive_card]: ActionSet (Continue)
        WAIT for user to click Continue THEN Proceed to summarize_history
      ELSE:
-       PROMPT: "✗ Connection test failed: {test_webhook_connection.Error OR test_ftp_sftp_connection.Error}. The delivery method is saved; you can update the configuration later."
+       PROMPT: "✗ Connection test failed: {connectionTestError}. The delivery method is saved; you can update the configuration later."
        ASK [adaptive_card]: ActionSet (Retry | Skip)
        WAIT for user choice
        IF "Retry": Retry connection test tool call
@@ -39,4 +43,4 @@ IF deliveryType = "FTP" OR (deliveryType = "HttpPost" AND deliveryAddress starts
    IF "Skip": Proceed to summarize_history
 
  TOOL: summarize_history - mandatory
- TOOL_DEFAULTS: start_anchor_substring="DELIVERY_SETUP_START", summarization_text="<summary><completed>Phase 3b — Connection Tested</completed><current_state>...</current_state><next_instructions>Load and execute Phase 4 from mcp://resource/phase-4-delivery-method-summary</next_instructions></summary>"
+ TOOL_DEFAULTS: start_anchor_substring="DELIVERY_SETUP_START", summarization_text="<summary><completed>Phase 3b — Connection Tested</completed><current_state>deliveryMethodUID={deliveryMethodUID}</current_state><next_instructions>Load and execute Phase 4 from mcp://resource/phase-4-delivery-method-summary</next_instructions></summary>"

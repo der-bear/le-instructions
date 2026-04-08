@@ -16,7 +16,7 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
  IF flowIntent = "full-setup":
    WAIT for user to click Continue
    TOOL: summarize_history - mandatory
-   TOOL_DEFAULTS: start_anchor_substring="DELIVERY_SETUP_START", summarization_text="<summary><completed>Phase 4 — Delivery Method Summary Reviewed</completed><current_state>...</current_state><next_instructions>Load and execute Phase 5 from mcp://resource/phase-5-create-delivery-account</next_instructions></summary>"
+   TOOL_DEFAULTS: start_anchor_substring="DELIVERY_SETUP_START", summarization_text="<summary><completed>Phase 4 — Delivery Method Summary Reviewed</completed><current_state>deliveryMethodUID={deliveryMethodUID}</current_state><next_instructions>Load and execute Phase 5 from mcp://resource/phase-5-create-delivery-account</next_instructions></summary>"
  ELSE:
    WAIT for user to click Done
    PROMPT: "✓ Your delivery method is ready to use for {companyName}."

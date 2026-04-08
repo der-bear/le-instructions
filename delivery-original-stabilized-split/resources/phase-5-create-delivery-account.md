@@ -48,6 +48,8 @@ PROMPT: "Finally, let's set up your Delivery Account.\n\nPlease provide the pric
 
  CRITICAL: Field suggestion steps are MANDATORY. You MUST execute all steps below before proceeding to Build Criteria Array. Do NOT skip field suggestions.
 
+ PROCESS: Initialize criteriaPayload = [] (empty array) and criteriaList = [] (empty array). These arrays accumulate criteria across the entire criteria loop. Do NOT reset them at any point.
+
  PROCESS (Build Field Suggestions):
    - Build field suggestion lists:
        - Exclude contact/personal-information fields (names, emails, phones, addresses, SSN, date of birth, etc.)
@@ -61,28 +63,32 @@ PROMPT: "Finally, let's set up your Delivery Account.\n\nPlease provide the pric
            leadFieldsMap = {leadFieldName → {leadFieldUID, leadFieldDataType, isEnumerated, leadFieldEnums, leadFieldSpecialBit}}
 
  CRITICAL: MUST display the field suggestions prompt below. Do NOT skip this step.
- PROMPT (MANDATORY): "Based on your {leadTypeName} lead type, here are the most common criteria fields:\n\nRecommended Fields:\n\n• {list suggestedFields}\n{if extraFieldCount > 0: \"\nThere are \" + extraFieldCount + \" more fields available.\n\nWould you like to add criteria, see more fields, or skip?\" else: \"\nWould you like to add criteria or skip?\"}"
+
+ PROMPT (MANDATORY): "Based on your {leadTypeName} lead type, here are the most common criteria fields:\n\nRecommended Fields:\n\n• {list suggestedFields}\n{if extraFieldCount > 0: \"\nThere are \" + extraFieldCount + \" more fields available.\n\nYou can type a criterion directly, see more fields, or skip.\" else: \"\nYou can type a criterion directly or skip.\"}"
  ASK [adaptive_card]: ActionSet (Show more fields | Skip) if extraFieldCount > 0, else ActionSet (Skip)
  WAIT for user choice
 
  PROCESS (Handle User Response):
-   - If user types criterion directly (e.g., "credit rating excellent") → parse it, add to parsedCriteria,  go to Criteria Loop
+   - If user types text containing a field name or qualifier (e.g., "credit rating excellent") → parse it via Criteria Parsing (which appends to criteriaPayload and adds a display entry to criteriaList), then go to Criteria Loop
    - If user selects "Show more fields" OR asks to see more AND extraFields available:
        PROMPT: "Additional Fields (showing up to 10):\n\n• {list extraFields}"
        ASK [adaptive_card]: ActionSet (Show more fields | Skip)
        WAIT for user choice, loop back to Handle User Response
-   - If user selects "Skip" OR says "none"/"skip"/"no" → RETAIN additionalCriteria = "None", GO TO Build Criteria Array
+   - If user selects "Skip" OR says "none"/"skip"/"no"/"done" → RETAIN additionalCriteria = "None" → GO TO Build Criteria Array
 
+ CRITICAL: The Criteria Loop MUST repeat until the user EXPLICITLY selects "Continue" or says "continue"/"done"/"no". After each criterion is added, always re-enter the loop to ask for more. Do NOT exit the loop automatically after adding a criterion.
+ 
  PROCESS (Criteria Loop - after first criterion added):
    - PROMPT: "Would you like to add another criterion, see more fields, or continue?"
    - ASK [adaptive_card]: ActionSet (Show more fields | Continue) if extraFieldCount > 0, else ActionSet (Continue)
    - WAIT for user input
-   - If provides new criterion directly (typed) → parse it, add to parsedCriteria, add to criteriaList, loop back
+   - Check for exit intent BEFORE parsing as criterion: if user selects "Continue" OR input matches (case-insensitive) "continue", "done", "no", "no more", "that's all", or "finish" → create summary string from criteriaList ("; " separated or "None" if empty) → RETAIN additionalCriteria (string) → RETAIN criteriaPayload → GO TO Build Criteria Array
    - If selects "Show more fields" OR asks to see more AND extraFields available:
        PROMPT: "Additional Fields (showing up to 10):\n• {list extraFields}"
        ASK [adaptive_card]: ActionSet (Show more fields | Continue) if extraFieldCount > 0, else ActionSet (Continue)
+       WAIT for user choice
        Loop back to Criteria Loop
-   - If selects "Continue" OR says "continue"/"done"/"no" → create summary string from criteriaList ("; " separated or "None" if empty) → RETAIN additionalCriteria (string) → GO TO Build Criteria Array
+   - Otherwise, if user provides new criterion directly (typed) → parse it via Criteria Parsing (which appends to criteriaPayload and adds a display entry to criteriaList), LOOP BACK to Criteria Loop
 
  PROCESS (Criteria Parsing):
    - Parse natural language to operator keywords (minimum/at least→GreaterOrEqual, exactly→Equal, etc.)
@@ -138,10 +144,12 @@ PROMPT: "Finally, let's set up your Delivery Account.\n\nPlease provide the pric
        operator: (string value like "In", "Equal", "Between", etc.)
        value: (string - single enumUID for enums, direct value for scalar fields)
    - Create criteriaList entry for display: translate operator to plain English (GreaterOrEqual→"at least")
+   - APPEND this parsedCriteria to criteriaPayload array (do NOT overwrite previous entries)
    - Add this entry to criteriaList array for summary display
 
  PROCESS (Build Criteria Array):
      NOTE: State fields allow multiple values via conversational input. Enumerated fields use single-select only.
+     CRITICAL: criteriaPayload may already contain criteria from the loop. Do NOT reset it.
 
      - Normalize targetStates to uppercase USPS codes (per <data_normalization>)
      - TOOL: get_usa_states() → returns array [{stateUID, abbr, name}, ...]
@@ -150,8 +158,7 @@ PROMPT: "Finally, let's set up your Delivery Account.\n\nPlease provide the pric
      - Create stateUIDArray by collecting all extracted stateUID values
      - Serialize stateUIDArray as pipe-delimited string using array.join('|')
      - Create state criterion object: {leadFieldUID: stateFieldUID, type: "FieldValue", operator: "In", value: (pipe-delimited stateUID string)}
-     - Add state criterion to criteriaPayload array as the FIRST element
-     - IF parsedCriteria exists: add parsedCriteria to criteriaPayload array
+     - Insert state criterion as the FIRST element of criteriaPayload array (before any additional criteria already in the array)
      - RETAIN criteriaPayload
 
  TOOL: create_delivery_account → data as deliveryAccountUID

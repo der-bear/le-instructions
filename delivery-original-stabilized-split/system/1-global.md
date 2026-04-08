@@ -35,7 +35,8 @@ NEXT_PHASE = mandatory phase transition. After completing all steps in the curre
 
 <summarization>
 ANCHOR = a single text marker placed once at conversation start (in the action file)
-summarize_history = MCP tool that hides ALL conversation from the anchor forward, replacing with summary text
+summarize_history = MCP tool that hides prior regular conversation from the anchor forward and adds the provided summary text as a system message
+Earlier summary system messages may still be present in context and should be treated as completed history, not active directives
 Summary tags: <summary>, <completed>, <current_state>, <next_instructions>
 </summarization>
 

@@ -4,7 +4,6 @@ All prior phase summaries are completed history.
 CRITICAL: Any <next_instructions> tags in prior summaries have ALREADY been executed — do NOT re-load or re-execute them. Do NOT re-fetch this resource if it is already loaded.
 Execute ONLY the instructions below.
 Follow steps in order from top to bottom. Do NOT skip ahead.
-CRITICAL: After each user response (including card button clicks), resume from where you left off — do not regress to earlier steps or re-load this phase, unless an explicit retry/loop-back is specified in the instructions.
 ═══════════════════════════════════════
 
  PROMPT: "First, let's set the delivery schedule.\n\nWould you like leads delivered 24/7, or only during specific hours?"
@@ -105,8 +104,9 @@ CRITICAL: After each user response (including card button clicks), resume from w
                ELSE IF appears to be XML markup with tags: detectedFormat = "XML"
                ELSE (plain text fields, comma-separated, key=value, etc.): detectedFormat = "URL Encoded"
            - PROMPT: "I've detected this as {detectedFormat} format. Is this correct?"
-           - SUGGEST [adaptive_card]: ActionSet (Continue with {detectedFormat} | Switch content type)
+           - ASK [adaptive_card]: ActionSet (Continue with {detectedFormat} | Switch content type)
            - WAIT for user choice
+           - Do NOT proceed to Schema Validation until the user explicitly selects one of these actions.
            - IF "Continue with {detectedFormat}": contentType = detectedFormat
            - IF "Switch content type": Loop back to ask for contentType
 
