@@ -19,4 +19,4 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
  RETAIN: companyName, email, clientStatus, timeZoneName, timeOffset
 
  TOOL: summarize_history - mandatory
- TOOL_DEFAULTS: start_anchor_substring="DELIVERY_SETUP_START", summarization_text="<summary><completed>Phase 0a — Client Selected</completed><current_state>flowIntent={flowIntent}, clientUID={clientUID}, companyName={companyName}, email={email}, clientStatus={clientStatus}, timeZoneName={timeZoneName}, timeOffset={timeOffset}</current_state><next_instructions>Load and execute Phase 2 from mcp://resource/phase-2-get-lead-types</next_instructions></summary>"
+ TOOL_DEFAULTS: start_anchor_substring="DELIVERY_SETUP_START", summarization_text="<summary><completed>Phase 0a — Client Selected</completed><current_state>flowIntent={flowIntent}, clientUID={clientUID}, companyName={companyName}, email={email}, clientStatus={clientStatus}, timeZoneName={timeZoneName}, timeOffset={timeOffset}</current_state><next_instructions>Load and execute Phase 2 from mcp://resource/split-phase-2-get-lead-types</next_instructions></summary>"

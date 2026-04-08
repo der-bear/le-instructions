@@ -10,7 +10,7 @@ Flow Sequence:
      → Phase 6: Account Summary
 
 <next_instructions>
-Load and execute Phase 0b from mcp://resource/phase-0-select-client-and-method
+Load and execute Phase 0b from mcp://resource/split-phase-0-select-client-and-method
 After loading, follow ONLY the loaded resource's instructions.
 Phase summaries in this conversation are completed history, not active directives.
 </next_instructions>

@@ -11,4 +11,4 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
 
  Use the template above, replacing {variable} placeholders with actual retained values.
  WAIT for user choice
- NEXT_PHASE: mcp://resource/phase-8-activation - mandatory
+ NEXT_PHASE: mcp://resource/split-phase-8-activation - mandatory

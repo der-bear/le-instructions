@@ -22,4 +22,4 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
  RETAIN: deliveryMethodUID, deliveryMethodName, leadTypeUID
 
  TOOL: summarize_history - mandatory
- TOOL_DEFAULTS: start_anchor_substring="DELIVERY_SETUP_START", summarization_text="<summary><completed>Phase 0b — Client & Method Selected</completed><current_state>flowIntent={flowIntent}, clientUID={clientUID}, companyName={companyName}, deliveryMethodUID={deliveryMethodUID}, deliveryMethodName={deliveryMethodName}, leadTypeUID={leadTypeUID}</current_state><next_instructions>Load and execute Phase 5 from mcp://resource/phase-5-create-delivery-account</next_instructions></summary>"
+ TOOL_DEFAULTS: start_anchor_substring="DELIVERY_SETUP_START", summarization_text="<summary><completed>Phase 0b — Client & Method Selected</completed><current_state>flowIntent={flowIntent}, clientUID={clientUID}, companyName={companyName}, deliveryMethodUID={deliveryMethodUID}, deliveryMethodName={deliveryMethodName}, leadTypeUID={leadTypeUID}</current_state><next_instructions>Load and execute Phase 5 from mcp://resource/split-phase-5-create-delivery-account</next_instructions></summary>"

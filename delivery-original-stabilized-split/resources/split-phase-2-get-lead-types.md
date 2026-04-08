@@ -12,4 +12,4 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
  RETAIN: leadTypeUID, leadTypeName
 
  TOOL: summarize_history - mandatory
- TOOL_DEFAULTS: start_anchor_substring="DELIVERY_SETUP_START", summarization_text="<summary><completed>Phase 2 — Lead Type Selected</completed><current_state>leadTypeUID={leadTypeUID}, leadTypeName={leadTypeName}</current_state><next_instructions>Load and execute Phase 3 from mcp://resource/phase-3-create-delivery-method</next_instructions></summary>"
+ TOOL_DEFAULTS: start_anchor_substring="DELIVERY_SETUP_START", summarization_text="<summary><completed>Phase 2 — Lead Type Selected</completed><current_state>leadTypeUID={leadTypeUID}, leadTypeName={leadTypeName}</current_state><next_instructions>Load and execute Phase 3 from mcp://resource/split-phase-3-create-delivery-method</next_instructions></summary>"

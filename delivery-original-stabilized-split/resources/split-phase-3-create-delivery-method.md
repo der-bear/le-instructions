@@ -31,10 +31,10 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
  WAIT for user choice
 
  PROCESS (Route to method-specific phase):
-   IF "Portal":  load mcp://resource/phase-3a-portal
-   IF "Webhook": load mcp://resource/phase-3a-webhook
-   IF "Email":   load mcp://resource/phase-3a-email
-   IF "FTP":     load mcp://resource/phase-3a-ftp
+   IF "Portal":  load mcp://resource/split-phase-3a-portal
+   IF "Webhook": load mcp://resource/split-phase-3a-webhook
+   IF "Email":   load mcp://resource/split-phase-3a-email
+   IF "FTP":     load mcp://resource/split-phase-3a-ftp
 
  Do NOT call summarize_history in this router. Working memory (deliveryDays, deliveryScheduleDisplay) must carry into the routed phase.
  Do NOT call create_delivery_method in this router. The routed phase owns that tool call.

@@ -31,4 +31,4 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
  IF "Skip": Proceed to summarize_history
 
  TOOL: summarize_history - mandatory
- TOOL_DEFAULTS: start_anchor_substring="DELIVERY_SETUP_START", summarization_text="<summary><completed>Phase 3b — Connection Tested</completed><current_state>deliveryMethodUID={deliveryMethodUID}</current_state><next_instructions>Load and execute Phase 4 from mcp://resource/phase-4-delivery-method-summary</next_instructions></summary>"
+ TOOL_DEFAULTS: start_anchor_substring="DELIVERY_SETUP_START", summarization_text="<summary><completed>Phase 3b — Connection Tested</completed><current_state>deliveryMethodUID={deliveryMethodUID}</current_state><next_instructions>Load and execute Phase 4 from mcp://resource/split-phase-4-delivery-method-summary</next_instructions></summary>"

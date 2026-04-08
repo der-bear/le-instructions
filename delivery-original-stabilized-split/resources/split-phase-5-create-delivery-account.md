@@ -68,9 +68,9 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
 
  IF "Add criteria":
    TOOL: summarize_history - mandatory
-   TOOL_DEFAULTS: start_anchor_substring="DELIVERY_SETUP_START", summarization_text="<summary><completed>Phase 5 — Delivery Account Created, Adding Criteria</completed><current_state>deliveryAccountUID={deliveryAccountUID}, stateFieldUID={stateFieldUID}, targetStates={targetStates}, price={price}, isExclusive={isExclusive}, useOrder={useOrder}</current_state><next_instructions>Load and execute Phase 5b from mcp://resource/phase-5b-criteria-builder</next_instructions></summary>"
+   TOOL_DEFAULTS: start_anchor_substring="DELIVERY_SETUP_START", summarization_text="<summary><completed>Phase 5 — Delivery Account Created, Adding Criteria</completed><current_state>deliveryAccountUID={deliveryAccountUID}, stateFieldUID={stateFieldUID}, targetStates={targetStates}, price={price}, isExclusive={isExclusive}, useOrder={useOrder}</current_state><next_instructions>Load and execute Phase 5b from mcp://resource/split-phase-5b-criteria-builder</next_instructions></summary>"
 
  IF "Continue with state targeting only":
    RETAIN: additionalCriteria = "None"
    TOOL: summarize_history - mandatory
-   TOOL_DEFAULTS: start_anchor_substring="DELIVERY_SETUP_START", summarization_text="<summary><completed>Phase 5 — Delivery Account Created</completed><current_state>deliveryAccountUID={deliveryAccountUID}, price={price}, targetStates={targetStates}, additionalCriteria={additionalCriteria}, isExclusive={isExclusive}, useOrder={useOrder}</current_state><next_instructions>Load and execute Phase 6 from mcp://resource/phase-6-delivery-account-summary</next_instructions></summary>"
+   TOOL_DEFAULTS: start_anchor_substring="DELIVERY_SETUP_START", summarization_text="<summary><completed>Phase 5 — Delivery Account Created</completed><current_state>deliveryAccountUID={deliveryAccountUID}, price={price}, targetStates={targetStates}, additionalCriteria={additionalCriteria}, isExclusive={isExclusive}, useOrder={useOrder}</current_state><next_instructions>Load and execute Phase 6 from mcp://resource/split-phase-6-delivery-account-summary</next_instructions></summary>"
