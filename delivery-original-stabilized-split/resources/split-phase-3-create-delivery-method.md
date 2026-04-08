@@ -36,6 +36,5 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
    IF "Email":   load mcp://resource/split-phase-3a-email
    IF "FTP":     load mcp://resource/split-phase-3a-ftp
 
- Do NOT call summarize_history in this router. Working memory (deliveryDays, deliveryScheduleDisplay) must carry into the routed phase.
- Do NOT call create_delivery_method in this router. The routed phase owns that tool call.
- Immediately load the selected resource and execute its instructions. Do not emit any assistant message between this routing step and the loaded resource's first instruction.
+CRITICAL: Do NOT call create_delivery_method or summarize_history in this phase.
+CRITICAL: After loading the selected Phase 3a resource, do not execute later instructions in this file.
