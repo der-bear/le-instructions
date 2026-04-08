@@ -96,7 +96,7 @@ Keep technical details hidden behind user-friendly descriptions.
 <data_normalization>
 Accept natural language input, normalize for API payloads, display to users in user-friendly format only.
 
-- Email: strip whitespace, lowercase domain, validate RFC-5322
+- Email: strip whitespace, lowercase domain
 - URLs: prepend https:// if missing
 - US States: normalize to uppercase USPS codes (California→CA), accept any separator
 - Numeric values: extract numbers ("$25"→25.00), 2 decimals, positive only
