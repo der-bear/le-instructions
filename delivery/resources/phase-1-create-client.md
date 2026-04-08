@@ -8,7 +8,6 @@
  TOOL: create_client → data as clientUID
  TOOL_DEFAULTS: createClientDto={companyName={companyName}, email={email}, clientStatus="New", clientAutomationType="Price", username={email}, password={generate-password}, timeZoneName="Pacific Standard Time", timeOffset=-8}
  CRITICAL: createClientDto must be passed as an object, NOT a JSON string
- NOTE: Password generated during client creation but not retained - will be regenerated at activation (Phase 8)
  RETAIN: clientUID, companyName, email, clientStatus="New", flowIntent="full-setup", timeZoneName="Pacific Standard Time", timeOffset=-8
 
  TOOL: summarize_history - mandatory

@@ -1,6 +1,7 @@
 # RESOURCE - PHASE 3b:
 
 <phase_3b_test_connection>
+ ANCHOR: anchor_test_connection
  IF deliveryType = "FTP" OR (deliveryType = "HttpPost" AND deliveryAddress starts with "http"):
    PROMPT: "Would you like to test the connection to your endpoint before continuing?"
    ASK [adaptive_card]: ActionSet (Test Connection | Skip)
@@ -20,24 +21,19 @@
        ELSE:
          TOOL_DEFAULTS: url={deliveryAddress}, method="POST", payload="", timeoutSeconds=30
 
-     IF test success:
+     IF tool result test_webhook_connection.IsSuccess = true OR test_ftp_sftp_connection.IsSuccess = true:
        PROMPT: "✓ Connection test successful."
        ASK [adaptive_card]: ActionSet (Continue)
-       WAIT for user to click Continue
-       IF "Continue":
-         Proceed to summarize_history
+       WAIT for user to click Continue THEN Proceed to summarize_history
      ELSE:
-       PROMPT: "✗ Connection test failed: {error}. The delivery method is saved; you can update the configuration later."
+       PROMPT: "✗ Connection test failed: {test_webhook_connection.Error OR test_ftp_sftp_connection.Error}. The delivery method is saved; you can update the configuration later."
        ASK [adaptive_card]: ActionSet (Retry | Skip)
        WAIT for user choice
-       IF "Retry":
-         Loop back to test connection tool call
-       IF "Skip":
-         Proceed to summarize_history
+       IF "Retry": Retry connection test tool call
+       IF "Skip": Proceed to summarize_history (do not retry if skipped)
 
-   IF "Skip":
-     Proceed to summarize_history
+   IF "Skip": Proceed to summarize_history
 
  TOOL: summarize_history - mandatory
- TOOL_DEFAULTS: start_anchor_substring="anchor_delivery_method_start", summarization_text="<summary><next_phase>mcp://resource/phase-4-delivery-method-summary</next_phase></summary>"
+ TOOL_DEFAULTS: start_anchor_substring="anchor_test_connection", summarization_text="<summary><next_phase>mcp://resource/phase-4-delivery-method-summary</next_phase></summary>"
 </phase_3b_test_connection>

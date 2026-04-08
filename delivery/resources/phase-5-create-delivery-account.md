@@ -6,24 +6,25 @@
  PROMPT: "Finally, let's set up your Delivery Account.\n\nPlease provide the price per lead."
  ASK [conversational]: price
  WAIT for user input
+ RETAIN: price
 
  PROMPT: "Will this client receive exclusive or shared leads?"
  ASK [adaptive_card]: ActionSet (Exclusive | Shared)
  WAIT for user choice
 
  IF "Exclusive":
-   isExclusive = true
+   RETAIN: isExclusive = true
  ELSE:
-   isExclusive = false
+   RETAIN: isExclusive = false
 
  PROMPT: "Would you like to enable the Order System for this client?"
  ASK [adaptive_card]: ActionSet (Yes | No)
  WAIT for user choice
 
  IF "Yes":
-   useOrder = true
+   RETAIN: useOrder = true
  ELSE:
-   useOrder = false
+   RETAIN: useOrder = false
 
  TOOL: get_lead_type(leadTypeUID) → data.leadTypeName as leadTypeName, data.leadFields as leadFields
  RETAIN: leadTypeName, leadFields
@@ -35,12 +36,13 @@
        3) leadFieldName contains 'state'
      Do not process lower tiers once matched.
      Semantically validate selected field represents US state; if confidence <5%, confirm correct field with user.
-     Remember as stateFieldUID.
+     RETAIN: stateFieldUID
 
  PROMPT: "Which states do you want to target? (e.g., CA, AZ, TX)"
  ASK [conversational]: targetStates
  WAIT for user input
- 
+ RETAIN: targetStates
+
  CRITICAL: Field suggestion steps are MANDATORY. You MUST execute all steps below before proceeding to Build Criteria Array. Do NOT skip field suggestions.
 
  PROCESS (Silent - Build Field Suggestions):
@@ -156,23 +158,3 @@
  TOOL: summarize_history - mandatory
  TOOL_DEFAULTS: start_anchor_substring="anchor_delivery_account_start", summarization_text="<summary><retain>leadTypeName={leadTypeName}, deliveryAccountUID={deliveryAccountUID}, price={price}, targetStates={targetStates}, additionalCriteria={additionalCriteria}, isExclusive={isExclusive}, useOrder={useOrder}</retain><next_phase>mcp://resource/phase-6-delivery-account-summary</next_phase></summary>"
 </phase_5_create_delivery_account>
-
----
-
-## Resource: mcp://resource/phase-6-delivery-account-summary
-
-<phase_6_delivery_account_summary>
- DISPLAY [adaptive_card] using this template as base:
- {"type": "AdaptiveCard", "version": "1.5", "body": [{"type": "TextBlock", "text": "Delivery Account Created", "weight": "bolder"}, {"type": "Table", "firstRowAsHeader": false, "showGridLines": true, "columns": [{"width": 1}, {"width": 2}], "rows": [{"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "Company Name"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{companyName}"}]}]}, {"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "Lead Type"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{leadTypeName}"}]}]}, {"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "Delivery Method"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{deliveryMethodName}"}]}]}, {"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "Price per Lead"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{price}"}]}]}, {"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "Lead Exclusivity"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{isExclusive}"}]}]}, {"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "Target States"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{targetStates}"}]}]}, {"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "Additional Criteria"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{additionalCriteria}"}]}]}, {"type": "TableRow", "cells": [{"type": "TableCell", "items": [{"type": "TextBlock", "text": "Order System"}]}, {"type": "TableCell", "items": [{"type": "TextBlock", "text": "{useOrder}"}]}]}]}], "actions": [{"type": "Action.Submit", "title": "{accountSummaryButtonTitle}", "data": {"action": "{accountSummaryButtonAction}"}}]}
-
- Replace {variable} placeholders with actual retained values.
- Apply boolean display formatting per <data_normalization> rules.
- IF flowIntent = "full-setup": accountSummaryButtonTitle = "Continue", accountSummaryButtonAction = "Continue" ELSE: accountSummaryButtonTitle = "Done", accountSummaryButtonAction = "Done"
-
- IF flowIntent = "full-setup":
-   WAIT for user to click Continue
-   NEXT_PHASE: mcp://resource/phase-6-delivery-account-summary - mandatory
- ELSE:
-   WAIT for user to click Done
-   PROMPT: "✓ Your delivery account is ready to use for {companyName}."
-</phase_6_delivery_account_summary>
