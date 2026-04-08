@@ -10,9 +10,6 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
    USE clientUID from context
  ELSE:
    TOOL: get_clients → data as clientsList (clientUID, companyName, clientStatus)
-   IF clientsList is empty:
-     PROMPT: "No clients found. Please create a client first."
-     END
    PROMPT: "Which client would you like to create a delivery method for?"
    ASK [adaptive_card]: companyName (clientUID) (Input.ChoiceSet with style=compact)
    WAIT for user choice
