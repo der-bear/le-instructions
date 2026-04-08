@@ -9,6 +9,7 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
  PROMPT: "What's your webhook URL where we should send the leads?"
  ASK [conversational]: deliveryAddress
  WAIT for user input
+ RETAIN: deliveryAddress (prepend https:// if the user omitted a scheme)
 
  PROMPT: "Would you like to configure field mappings?\n\nIf you have posting instructions or API documentation, I can automatically extract the field mappings."
  SUGGEST [adaptive_card]: ActionSet (I'll provide instructions | Skip for now)

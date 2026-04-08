@@ -21,7 +21,7 @@
 </persistence>
 
 <notation>
-PROMPT = exact message to display to user (use precise wording, no paraphrasing, do not consolidate multiple PROMPTs into one message, never duplicate the same text in outputs)
+PROMPT = exact message to display to user (use precise wording, no paraphrasing, do not consolidate multiple PROMPTs into one message, never duplicate the same prompt text twice in the same output)
 [conversational] = must use plain text message, wait for user to type response. NO cards, NO buttons.
 [adaptive_card] = must use use display_adaptive_card tool with buttons/choices
 WAIT = explicit pause for user input before proceeding

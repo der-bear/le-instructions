@@ -26,6 +26,8 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
      All days: allow=true, startTime="YYYY-01-01T00:00:00+00:00", endTime="YYYY-01-01T23:59:59+00:00"
    RETAIN: deliveryDays, deliveryScheduleDisplay="24/7"
 
+ CRITICAL: Complete the schedule branch above before showing the delivery type prompt.
+
  PROMPT: "How would you like your leads delivered?\n\n• Webhook – sends lead data via HTTP POST\n• Portal – client accesses leads via web portal\n• FTP – uploads lead files to a server\n• Email – delivers leads to an inbox"
  ASK [adaptive_card]: ActionSet (Portal | Webhook | Email | FTP)
  WAIT for user choice

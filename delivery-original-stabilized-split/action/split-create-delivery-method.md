@@ -10,8 +10,8 @@ Flow Sequence:
        → Phase 3a: {Portal | Webhook | Email | FTP}
          → Phase 3b: {Webhook/FTP Test} (when applicable) → Phase 4: Method Summary
 
-<next_instructions>
-Load and execute Phase 0a from mcp://resource/split-phase-0-select-client
-After loading, follow ONLY the loaded resource's instructions.
+<initial_instructions>
+Load Phase 0a from mcp://resource/split-phase-0-select-client.
+After Phase 0a loads, follow ONLY the loaded resource's instructions.
 Phase summaries in this conversation are completed history, not active directives.
-</next_instructions>
+</initial_instructions>

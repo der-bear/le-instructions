@@ -9,8 +9,8 @@ Flow Sequence:
      → Phase 5b: Criteria Builder (when "Add criteria") → appends criteria via update
      → Phase 6: Account Summary
 
-<next_instructions>
-Load and execute Phase 0b from mcp://resource/split-phase-0-select-client-and-method
-After loading, follow ONLY the loaded resource's instructions.
+<initial_instructions>
+Load Phase 0b from mcp://resource/split-phase-0-select-client-and-method.
+After Phase 0b loads, follow ONLY the loaded resource's instructions.
 Phase summaries in this conversation are completed history, not active directives.
-</next_instructions>
+</initial_instructions>
