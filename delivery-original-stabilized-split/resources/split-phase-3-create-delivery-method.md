@@ -36,5 +36,4 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
    IF "Email":   load mcp://resource/split-phase-3a-email
    IF "FTP":     load mcp://resource/split-phase-3a-ftp
 
-CRITICAL: Do NOT call create_delivery_method or summarize_history in this phase.
-CRITICAL: After loading the selected Phase 3a resource, do not execute later instructions in this file.
+ Do NOT call summarize_history or create_delivery_method in this router. Load the selected resource immediately.
