@@ -41,9 +41,10 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
      Semantically validate selected field represents US state; if confidence <5%, confirm correct field with user.
      RETAIN: stateFieldUID
 
+ CRITICAL: Display the prompt below and STOP. Do NOT read or execute anything below this line until the user replies with their target states.
  PROMPT: "Which states do you want to target? (e.g., CA, AZ, TX)"
  ASK [conversational]: targetStates
- WAIT for user input
+ WAIT for user input.
  RETAIN: targetStates
 
  PROCESS (Build State Criterion):
@@ -62,9 +63,10 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
  CRITICAL: createDeliveryAccountDto must be passed as an object, NOT a JSON string
  RETAIN: deliveryAccountUID
 
+ CRITICAL: Display the card below and STOP. Do NOT auto-select. Do NOT execute either IF block below until the user responds.
  PROMPT: "Would you like to add additional lead criteria, or continue with state targeting only?"
  ASK [adaptive_card]: ActionSet (Add criteria | Continue with state targeting only)
- WAIT for user choice
+ WAIT for user choice. Do NOT execute the IF blocks below until the user selects.
 
  IF "Add criteria":
    TOOL: summarize_history - mandatory

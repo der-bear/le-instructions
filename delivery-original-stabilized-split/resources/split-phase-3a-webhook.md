@@ -69,7 +69,7 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
              ELSE IF appears to be XML markup with tags: detectedFormat = "XML"
              ELSE (plain text fields, comma-separated, key=value, etc.): detectedFormat = "URL Encoded"
          - PROMPT: "I've detected this as {detectedFormat} format. Is this correct?"
-         - ASK [adaptive_card]: ActionSet (Continue with {detectedFormat} | Switch content type)
+         - SUGGEST [adaptive_card]: ActionSet (Continue with {detectedFormat} | Switch content type)
          - WAIT for user choice
          - Do NOT proceed to Schema Validation until the user explicitly selects one of these actions.
          - IF "Continue with {detectedFormat}": contentType = detectedFormat

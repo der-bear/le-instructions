@@ -1,93 +1,13 @@
-# Stability Test Failure Analysis (v2)
+# Stability Test Failure Analysis (v3)
 
-**Date:** 2026-04-07 (Split + Production comparison added 2026-04-08)
-**Scope:** Stabilized (RA-*), Rework (RB-*), and Split (RC-*) variants across rounds R1a, R1b, R2, R2c, and Split R1
-**Total runs:** 107 (Stabilized 49 + Rework 48 + Split 10) · **Findings cataloged:** 84 (RA-* 35, RB-* 36, RC-* 13)
+**Date:** 2026-04-08
+**Scope:** Stabilized (RA-*), Rework (RB-*), and Split (RC-*) variants across rounds R1a, R1b, R2, R2c, and Split R1.
+**Total runs:** 107 · **Findings cataloged:** 84 (RA-* 35, RB-* 36, RC-* 13)
 **Source data:** `stability-stabilized-findings.md`, `stability-rework-findings.md`, `stability-split-findings.md`, `stability-production-findings.md`
 
 ---
 
-## Table of Contents
-
-1. [Rounds Glossary](#rounds-glossary)
-2. [Pass Rate Summary (Variant × Round)](#pass-rate-summary)
-3. [Per-Checkpoint Failure Rate Scoreboard (All Variants × All Rounds)](#per-checkpoint-grid)
-4. [Round Progression Analysis](#progression)
-5. [Findings Classification](#classification)
-6. [IGNORE Verification](#ignore-verification)
-7. [Cosmetic vs Functional Convention](#cosmetic-convention)
-8. [Test vs Production Comparison](#test-vs-production)
-
----
-
-## <a name="rounds-glossary"></a>1. Rounds Glossary
-
-Round identifiers use the format `{Variant} - {Round} ({model config})` for clarity.
-
-### Stabilized Variant Rounds
-
-| Round | Runs | Model Configuration | Instructions | n |
-|-------|------|---------------------|--------------|---|
-| **Stabilized - R1a (gpt-5.4 only)** | 01-20 | gpt-5.4-mini all phases | Pre-fix baseline | 20 (Run 21 blank) |
-| **Stabilized - R1b (mixed)** | 21-30 | gpt-5-mini for Webhook+criteria, gpt-5.4 for others | Pre-fix baseline | 9 |
-| **Stabilized - R2 (gpt-5.4 only)** | 01-10 | gpt-5.4-mini all phases | **Post-fix #1** (commit 5200cc3) | 10 |
-| **Stabilized - R2c (mixed)** | 01-10 | gpt-5.4 main router + gpt-5-mini for P3/P5 phases | Post-fix #1 | 10 |
-
-### Rework Variant Rounds
-
-| Round | Runs | Model Configuration | Instructions | n |
-|-------|------|---------------------|--------------|---|
-| **Rework - R1a (gpt-5.4 only)** | 01-20 | gpt-5.4-mini all phases | Pre-fix baseline | 18 |
-| **Rework - R1b (mixed)** | 21-30 | gpt-5-mini for P3+P5, gpt-5.4 for others | Pre-fix baseline | 10 |
-| **Rework - R2 (gpt-5.4 only)** | 01-10 | gpt-5.4-mini all phases | **Post-fix #1** (commit 5200cc3, FIXes 1-17) | 10 |
-| **Rework - R2c (mixed)** | 01-10 | gpt-5-mini for P3+P5, gpt-5.4 for others | Post-fix #1 (same as R2) | 10 |
-
-**Critical:** Rework R2c is the only round combining post-fix instructions with mixed model. Cannot attribute R2c gains to fixes alone.
-
-### Split Variant Rounds
-
-| Round | Runs | Model Configuration | Instructions | n |
-|-------|------|---------------------|--------------|---|
-| **Split - R1 (mixed)** | 01-10 | gpt-5.4-mini general, gpt-5-mini for P3/P5 | Split variant baseline (Raw 91% (2 PASS); Audited 94.4% (6 PASS after F*/F reclassification 2026-04-08)) | 10 |
-
-### Round Naming Convention
-
-- **R{n}** = round number (R1, R2)
-- **a/b/c suffix** = sub-round: `a` = baseline, `b` = alternate model/config, `c` = clean re-run / corrected
-- The most important distinction is **pre-fix vs post-fix** instructions (R1x vs R2x)
-
----
-
-## <a name="pass-rate-summary"></a>2. Pass Rate Summary (Variant × Round)
-
-Avg Score uses each row's stated score from the source matrix.
-
-| Variant - Round | Model | Instructions | n | Avg Score |
-|-----------------|-------|--------------|---|-----------|
-| Stabilized - R1a (gpt-5.4 only) | gpt-5.4-mini all | Pre-fix | 20 | 86.8% |
-| Stabilized - R1b (mixed) | gpt-5-mini critical + gpt-5.4 others | Pre-fix | 9 | **97.8%** |
-| Stabilized - R2 (gpt-5.4 only) | gpt-5.4-mini all | Post-fix | 10 | 76.0% |
-| Stabilized - R2c (mixed) | gpt-5.4 main + gpt-5-mini P3/P5 | Post-fix | 10 | 93.1% |
-| Rework - R1a (gpt-5.4 only) | gpt-5.4-mini all | Pre-fix | 18 | 85.7% |
-| Rework - R1b (mixed) | gpt-5-mini P3+P5 + gpt-5.4 others | Pre-fix | 10 | 72.9% |
-| Rework - R2 (gpt-5.4 only) | gpt-5.4-mini all | Post-fix | 10 | 81.9% |
-| **Rework - R2c (mixed)** | gpt-5-mini P3+P5 + gpt-5.4 others | Post-fix | 10 | **93.0%** |
-| Split - R1 (mixed) | gpt-5-mini P3+P5 + gpt-5.4 others | Split baseline | 10 | 91.0% raw / **94.4% audited** (6/10 PASS) |
-
-### Key observations
-
-- **Stabilized R1b achieves the highest avg score (97.8%)** — the mixed model on the simpler stabilized architecture works exceptionally well pre-fix.
-- **Rework R2c achieves 93.0% avg** — fixes + mixed model combine for measurable improvement. Stabilized R2c (93.1%) is now marginally higher than Rework R2c post-audit.
-- **All three variants benefit from mixed model** when paired with their respective best-fit configuration:
-  - Stabilized: mixed alone (R1b pre-fix) is the winner
-  - Rework: mixed + post-fix instructions (R2c) is the winner
-  - Split: mixed config baseline lands at 91.0% raw / **94.4% audited** — above Stabilized R2c and Rework R2c, within 0.6 pp of production
-- **Split R1 audited (94.4%)** is the second-highest dev score after Stabilized R1b (97.8%), beating both Rework R2c and Stabilized R2c. Split also has the highest audited PASS rate of any variant at 6/10.
-- **Post-fix instructions alone don't unlock improvement** — Stabilized R2 (76.0%) < R1b (97.8%); Rework R2 (81.9%) < R2c (93.0%). Fix combinations matter.
-
----
-
-## <a name="per-checkpoint-grid"></a>3. Per-Checkpoint Failure Rate Scoreboard
+## 3. Per-Checkpoint Failure Rate Scoreboard
 
 **Cell format:** `pass/applicable (pass%)` followed by emoji indicating fail rate.  
 Color coding (by fail rate): 🟢 0% (perfect) · ✅ 1-19% fail · 🟡 20-49% fail · 🔴 ≥50% fail
@@ -112,6 +32,12 @@ Ranked by Avg Score.
 
 **Sorted by ROUND (R1a → R2c), not by variant.** Each round shows all three variants side-by-side.  
 **Source:** All findings matrices extracted to CSV (`/tmp/stability-matrix.csv`) and computed programmatically.
+
+| IGNORE | HALLUCINATE | PLATFORM | CLOSED | FLAKY | AMBIGUOUS |
+|:------:|:-----------:|:--------:|:------:|:-----:|:---------:|
+| **51** (63.0%) | **11** (13.6%) | **7** (8.6%) | **6** (7.4%) | **6** (7.4%) | **2** (2.5%) |
+
+<sub>**IGNORE** = agent skipped explicit instruction · **HALLUCINATE** = agent invented behavior not in instructions · **PLATFORM** = non-deterministic rendering / MCP / timeout · **CLOSED** = verified fixed · **FLAKY** = intermittent, under observation · **AMBIGUOUS** = instruction gap or contradiction</sub>
 
 | Checkpoint | Stab R1a | Rew R1a | Stab R1b | Rew R1b | Stab R2 | Rew R2 | Stab R2c | **Rew R2c** | Split R1 |
 |------------|----------|---------|----------|---------|---------|--------|----------|-------------|----------|
@@ -154,7 +80,7 @@ Ranked by Avg Score.
 - **P5-NORM regression in R2c (7/10 vs R2 8/9)** — driven by new RB-V-skip bug (state criterion lost on skip-criteria branch, R2c-09 and R2c-10).
 
 **Split variant:**
-- **91% raw / 94.4% audited R1 baseline** — audit applied 2026-04-08, 6/10 audited PASS (highest among dev variants).
+- **94.4% audited R1 baseline** — audit applied 2026-04-08, 6/10 audited PASS (highest among dev variants).
 - **P5-STATE regression in R09** — silent states-skip recurred once after being patched pre-R02, indicating the CRITICAL guard fix is probabilistic rather than deterministic. Same IGNORE class as RA-P/RB-N.
 - **P6-BOOL 7/10 (worst split checkpoint)** — "Disabled" label leak in R06 and R08 plus R01 cascade; display-only issue in the Phase 6 card template.
 - **P5-DONE loop exit in R07** — RC-R07-F01 criteria loop self-terminated after the 2nd criterion, same class as RB-A but single-run occurrence.
@@ -195,24 +121,29 @@ Includes both improvements and regressions — negative deltas indicate a checkp
 
 Split variant has only R1 baseline. No R2 round is currently scheduled; if a follow-up round is run the progression delta will be added here.
 
-### 🏷️ Aggregate Classification Summary (post-R2c, verified; split additions 2026-04-08)
+### 🏷️ Aggregate Classification Summary
 
-Counts produced by independent classification table audit (Agent 2 round 2 verification). Split variant additions are shown as a separate Δ layer so the RA/RB audit chain remains frozen.
+Counts produced by independent classification table audit (Agent 2 round 2 verification). Split variant additions are shown as a separate Δ layer.
 
-<!-- post-audit correction 2026-04-08: base RA count updated from 34 to 35 -->
+**Category Legend:**
+- **IGNORE** — Instruction explicitly present but agent silently skipped it. Uses "Do NOT skip", "MANDATORY", "STOP AND YIELD" language.
+- **HALLUCINATE** — Agent generated content or behavior not present in instructions.
+- **AMBIGUOUS** — Instruction unclear, contradictory, or has a gap that led to failure.
+- **PLATFORM** — Non-deterministic rendering, MCP failures, context overflow, tool timeouts — not an instruction or agent-behavior issue.
+- **FLAKY** — Intermittent; no consistent reproduction; under observation.
+- **NOT_A_BUG** — Observed behavior is actually expected; no fix needed.
 
-| Category | Stab + Rework | Split | Combined | Members (combined) |
-|----------|---------------|-------|----------|--------------------|
-| **IGNORE (open)** | 47 | +4 | **51** | Stab+Rew: RB-H reclassified IGNORE per Agent 2 verification (instruction explicitly says `display_adaptive_card`; agent emits plain text = silent tool skip). Split adds: RC-R05-F02 (P5 re-execution loop), RC-R06-F01 (P5-PRICE silent skip), RC-R10-F01 (P3b typed-fallback), RC-R10-F02 (P5b→P6 typed-fallback) |
-| **CLOSED** | 4 | +2 | **6** | Stab+Rew: RB-I (FIX-16), RB-M (FIX-10), RB-CC (FIX-11), RB-DD (FIX-14). Split adds: RC-R01-F01 (P5-GATE stop guard), RC-R01-F02 (P5-STATE stop guard; flaky closure — see RC-R09-F01) |
-| **HALLUCINATE** | 10 | +1 | **11** | Stab+Rew: RA-B, RA-H, RA-I, RA-Q, RA-NEW-2, RA-NEW-4, RA-NEW-6, RA-NEW-7, RA-HALLUC-CG, RB-O. Split adds: RC-R06-F02 (display name prompt hallucinated in Phase 5b) |
-| **AMBIGUOUS** | 2 | 0 | **2** | RA-A (verified — Phase 2 has zero typed-input fallback); RB-NEW-R2-1 (verified — fuzzy match instructed but no display normalization). Split adds none — split's "new defect" items classified IGNORE per symptom, not AMBIGUOUS |
-| **PLATFORM** | 7 | 0 | **7** | RA-X, RA-NEW-R2-9, RB-F, RB-Q, RB-X, RB-NEW-R2-5, RB-NEW-R2-6 |
-| **FLAKY** | 0 | +6 | **6** | Split introduces FLAKY as a top-level class: RC-R02-F01, RC-R03-F01, RC-R05-F01, RC-R07-F01, RC-R08-F01, RC-R09-F01. Pre-split RA/RB audit did not use FLAKY |
-| **Total countable** | **68** | **+13** | **81** | (excludes NOT_A_BUG; Stab+Rew rounding: 103% due to post-audit HALLUCINATE reclassifications — IGNORE row intentionally kept at 47 to preserve the 49→47→51 delta chain) |
-| **NOT_A_BUG** | 3 | 0 | **3** | RB-B, RB-J, RB-R |
-<!-- post-audit correction 2026-04-08: RA count 34→35 propagated from §5 catalog -->
-| **Total entries** | **71** | **+13** | **84** | |
+| Category | Stab + Rework | Split | Combined | **% of Total** | Members (combined) |
+|----------|:-------------:|:-----:|:--------:|:--------------:|--------------------|
+| **IGNORE** | 47 | +4 | **51** | **63.0%** | Stab+Rew: RB-H reclassified IGNORE per Agent 2 verification (instruction explicitly says `display_adaptive_card`; agent emits plain text = silent tool skip). Split adds: RC-R05-F02 (P5 re-execution loop), RC-R06-F01 (P5-PRICE silent skip), RC-R10-F01 (P3b typed-fallback), RC-R10-F02 (P5b→P6 typed-fallback) |
+| **HALLUCINATE** | 10 | +1 | **11** | **13.6%** | Stab+Rew: RA-B, RA-H, RA-I, RA-Q, RA-NEW-2, RA-NEW-4, RA-NEW-6, RA-NEW-7, RA-HALLUC-CG, RB-O. Split adds: RC-R06-F02 (display name prompt hallucinated in Phase 5b) |
+| **PLATFORM** | 7 | 0 | **7** | **8.6%** | RA-X, RA-NEW-R2-9, RB-F, RB-Q, RB-X, RB-NEW-R2-5, RB-NEW-R2-6 |
+| **CLOSED** | 4 | +2 | **6** | **7.4%** | Stab+Rew: RB-I (FIX-16), RB-M (FIX-10), RB-CC (FIX-11), RB-DD (FIX-14). Split adds: RC-R01-F01 (P5-GATE stop guard), RC-R01-F02 (P5-STATE stop guard; flaky closure — see RC-R09-F01) |
+| **FLAKY** | 0 | +6 | **6** | **7.4%** | Split introduces FLAKY as a top-level class: RC-R02-F01, RC-R03-F01, RC-R05-F01, RC-R07-F01, RC-R08-F01, RC-R09-F01. Pre-split RA/RB audit did not use FLAKY |
+| **AMBIGUOUS** | 2 | 0 | **2** | **2.5%** | RA-A (verified — Phase 2 has zero typed-input fallback); RB-NEW-R2-1 (verified — fuzzy match instructed but no display normalization). Split adds none — split's "new defect" items classified IGNORE per symptom, not AMBIGUOUS |
+| **Total countable** | **68** | **+13** | **81** | **100%** | (excludes NOT_A_BUG; combined rounding: 102% due to post-audit HALLUCINATE reclassifications — IGNORE row intentionally kept at 47 to preserve the 49 → 47 → 51 delta chain) |
+| **NOT_A_BUG** | 3 | 0 | **3** | — | RB-B, RB-J, RB-R |
+| **Total entries** | **71** | **+13** | **84** | — | Sum of all categories including NOT_A_BUG |
 
 **IGNORE delta chain:** 49 → 47 (post-R2c audit) → 51 (after split adds 4 new IGNOREs).
 
@@ -226,121 +157,9 @@ Counts produced by independent classification table audit (Agent 2 round 2 verif
 | RB-H | IGNORE | Cosmetic (typically) | Plain-text fallback typed correctly captures data |
 | RB-NEW-R2-6 | PLATFORM | Cosmetic | P7 plain-text fallback shows correct values |
 
-### 🧪 Stabilized R1b → R2c Transition Audit
-
-#### 🔬 Were R1b and R2c testing the same scenarios?
-
-**No.** Side-by-side scenario comparison:
-
-| | R1b scenarios | R2c scenarios |
-|---|---|---|
-| 21 / 01 | Webhook/JSON 24/7 Excl Order ON 2 enum | Webhook/JSON Mon-Fri Excl Order ON 3 crit |
-| 22 / 02 | Portal Mon-Fri Shared Order OFF | Webhook/JSON-nested Tue-Thu Excl Order ON 5 crit |
-| 23 / 03 | Webhook/XML Wkdys 8-6 CST Excl Order ON 3 crit | Portal 24/7 Excl Order OFF 2 enum + XML→JSON recovery |
-| 24 / 04 | Email 24/7 Shared Order OFF skip | Webhook/URL-Enc Mon-Fri Shared Order OFF skip |
-| 25 / 05 | FTP Mon-Fri MST Excl Order ON | Email/URL-Enc 24/7 Shared Order OFF 4 crit |
-| 26 / 06 | Webhook/URL-Enc Mon-Wed-Fri 1 numeric | Webhook/**XML auto-detect** Mon-Wed-Fri Excl Order OFF 2 enum |
-| 27 / 07 | Portal 24/7 Excl Order ON 2 enum | Webhook/**JSON auto-detect** 24/7 Shared Order ON 3 crit |
-| 28 / 08 | Webhook/JSON-nested Tue-Thu Shared Order ON 1 enum | FTP Mon-Fri Excl Order ON 2 crit |
-| 29 / 09 | Email Mon-Fri 8-5 CST Excl Order OFF 2 numeric | Portal Mon-Fri Shared Order OFF skip |
-| 30 / 10 | FTP 24/7 Shared Order ON 1 enum | Email 24/7 Shared Order OFF skip |
-
-**Only one near-match:** R1b-28 (Webhook/JSON-nested Tue-Thu Shared Order ON 1 enum) vs R2c-02 (Webhook/JSON-nested Tue-Thu Excl Order ON 5 crit). Both PASSed (R1b-28 = 22/23 96%, R2c-02 = 23/23 100%).
-
-**Key difference:** R2c introduced **auto-detect content type scenarios** (R2c-06 XML auto, R2c-07 JSON auto) and more **skip-criteria scenarios** (R2c-04, 09, 10) that R1b didn't test. The auto-detect scenarios are where R2c's biggest cascade failures happened (R2c-06 = 68%, the worst R2c run).
-
-#### 📜 Stabilized instruction changes between R1b and R2c (audit)
-
-R1b ran with pre-fix instructions. R2c ran after these stabilized commits:
-
-**Commit 5200cc3 (Apr 6 06:26)** — "Apply stability fixes" — affected stabilized minimally:
-- 1 file changed (system/1-global.md), +4 / -2 lines
-- Added: "never duplicate the same text in outputs" to PROMPT notation
-- Added: "NEVER hallucinate or assume the data" to Tool Execution Prerequisites
-- Added: "Never output the same prompt text more than once in the same message"
-- Added: DEBUG transparency override
-- **Did NOT touch:** Phase 5 logic, field suggestion step, P5-FIELD rendering, connection tests, Portal flow
-
-**Commit 57d0a98 (Apr 6 19:20)** — "Update delivery instruction packs" — **STRUCTURAL CHANGE TO PHASE 5**:
-- 2 files changed: system/1-global.md (+1/-1), phase-5-create-delivery-account.md (+5/-5)
-- **CRITICAL:** Phase 5 STATES question MOVED from after `get_lead_type` (STEP 4) to BEFORE `get_lead_type` (STEP 3)
-- Old order: price → exclusivity → order → get_lead_type → STATES → criteria
-- New order: price → exclusivity → order → STATES → get_lead_type → criteria
-
-**Commit 8bf74d0 (Apr 6 21:39)** — "Clarify ActionSet/ChoiceSet" — minor:
-- 1 file (system/1-global.md), +5 / -2 lines
-- Added explicit examples of correct/incorrect Action.Submit data field usage
-- Did NOT touch Phase 5 or criteria flow
-
-**Audit conclusion:**
-
-The R2c regression IS partially attributable to instruction changes, specifically commit **57d0a98**. The states question reorder restructured Phase 5 flow:
-- States now collected BEFORE `get_lead_type`
-- This changes the prompt sequence the agent follows
-- The field suggestion step (P5-FIELD) comes immediately after `get_lead_type` now (with no states question in between as a "buffer step")
-- Mixed model on this restructured flow rendered the field suggestion card as plain text in 1/10 runs (Run 04); the other 5 originally-flagged P5-FIELD failures were phantom findings (see §3 Root Cause Analysis #1 for detail).
-
-**However**, the regression is NOT 100% explained by instructions:
-- R2c also tested NEW scenarios (auto-detect content type) that R1b didn't run
-- R2c-06 cascade failure was triggered by P3-AUTODETECT skip — a scenario type that didn't exist in R1b
-- R2c-09 Portal connection test bug is also a NEW scenario interaction
-
-**Combined cause assessment:**
-- ~50% scenario differences (auto-detect, more skip-criteria)
-- ~30% instruction restructure (commit 57d0a98 states reorder)
-- ~20% model behavior variance under post-fix #1 anti-doubling rules
-
-**Recommendation:** To get a clean apples-to-apples comparison, re-run R1b's exact 10 scenarios under post-fix #1 instructions (call it R1b-postfix). That would isolate the instruction-change effect from the scenario-difference effect.
-
 ---
 
-## <a name="progression"></a>4. Round Progression Analysis
-
-### Stabilized progression (criteria persistence focus)
-
-| Round | P5-CR3 pass (post-audit) | P5-DONE pass | Comments |
-|-------|--------------------------|--------------|----------|
-| Stab R1a (gpt-5.4 only, pre-fix) | 5/9 = 56% | 8/20 = 40% | Post-audit: many F→Y (loop re-entered; drop=Finding U); many Y/F→N/A (<3 criteria scenarios) |
-| Stab R1b (mixed, pre-fix) | 1/1 = 100% | 9/9 = 100% | Post-audit: denom dropped from 9 to 1 — only Run 23 had 3+ criteria scenario |
-| Stab R2 (gpt-5.4 only, post-fix) | 0/6 = 0% | 4/10 = 40% | No change post-audit — all failures are real criteria-bypass cases |
-| Stab R2c (mixed, post-fix) | 3/4 = 75% | 9/10 = 90% | Post-audit: R2c-03 F→N/A, R2c-05 F→Y (matrix error) — only R2c-07 is real failure |
-
-**Stabilized takeaway:** Post-audit, P5-CR3 has so few applicable runs that round-to-round comparisons are unreliable. Mixed model (R1b, R2c) still wins for overall criteria persistence (P5-DONE 90-100%). Post-fix instructions alone (R2) actively hurt criteria persistence.
-
-### Rework progression (criteria persistence focus)
-
-| Round | P5-CR3 pass (post-audit) | P5-DONE pass | Comments |
-|-------|--------------------------|--------------|----------|
-| Rew R1a (gpt-5.4 only, pre-fix) | 1/12 = 8% | 1/12 = 8% | Baseline — all failures real RB-A loop exits; no reclassification needed |
-| Rew R1b (mixed, pre-fix) | 1/2 = 50% | 3/10 = 30% | Post-audit: 6 F→N/A (<3 criteria scenarios); denom dropped 8→2 |
-| Rew R2 (gpt-5.4 only, post-fix) | 1/8 = 13% | 6/10 = 60% | No change post-audit — all failures are real criteria-builder skips |
-| **Rew R2c (mixed, post-fix)** | **4/4 = 100%** | **7/8 = 88%** | **Post-audit: R2c-08 F→N/A (2-criteria scenario); now 100% pass on applicable runs** |
-
-**Rework takeaway:** Post-audit, Rew R2c is the ONLY round with clean P5-CR3 on applicable runs. Fixes + mixed model combination still required for consistent criteria persistence (P5-DONE).
-
-### Split progression (baseline only)
-
-Split variant has one round only. Baseline: R1 = 91% raw / **94.4% audited**, 6/10 audited PASS. Two findings fixed in-round via pre-R02 patching (RC-R01-F01 P5-GATE silent skip, RC-R01-F02 P5-STATE silent skip). One flaky regression in R09 re-exhibited the RC-R01-F02 symptom, indicating the fix is probabilistic rather than deterministic.
-
-### Cross-variant comparison: Best round per variant
-
-See §3 Round Champion Scoreboard for the ranked best-round table across all variants, and §8.1 Pass Rate Delta for the production-relative comparison.
-
----
-
-## <a name="classification"></a>5. Findings Classification
-
-### Classification Definitions
-
-| Category | Definition |
-|----------|-----------|
-| **IGNORE** | Instruction IS present in the instruction pack, AI silently skipped or failed to follow it |
-| **HALLUCINATE** | AI generated content/behavior not described in the instructions |
-| **AMBIGUOUS** | Instruction is unclear, contradictory, or has a true gap |
-| **PLATFORM** | Non-deterministic card rendering, MCP issues, context overflow — not instruction-following |
-| **CLOSED** | Verified fixed in R2c with quoted instruction evidence |
-| **NOT_A_BUG** | Design choice, excluded from countable totals |
-| **Impact: Cosmetic** | Orthogonal attribute — workflow completes despite the issue (RB-G doubling, RB-H plain text) |
+## 5. Findings Classification
 
 ### Per-Variant Findings Catalog (Condensed)
 
@@ -453,65 +272,7 @@ Split variant: 13 findings — 2 CLOSED, 6 FLAKY, 5 NEW (4 IGNORE + 1 HALLUCINAT
 
 ---
 
-## <a name="ignore-verification"></a>6. IGNORE Verification (Top 5 + R2c + Split additions)
-
-Each finding verified by reading actual instruction file with line number + quoted text.
-
-### IGNORE-1: RA-P / RB-N / RC-R01-F02 / RC-R09-F01 — States question silently skipped
-
-- **Stabilized:** `delivery-original-stabilized/resources/phase-5-create-delivery-account.md:48` — `WAIT for user input — STOP here. Do NOT proceed until the user provides target states`
-- **Rework:** `delivery-rework/resources/rw-phase-5-create-delivery-account.md:45-47` — `Immediately after detecting the state field, display this prompt. Do NOT skip this prompt. Do NOT combine it with the criteria gate. ... **STOP AND YIELD.**`
-- **Split:** `delivery-original-stabilized-split/resources/split-phase-5-create-delivery-account.md` — `CRITICAL: Display the prompt below and STOP.` (added pre-R02 as the RC-R01-F02 fix). Regressed once in R09 despite the CRITICAL guard — indicates probabilistic enforcement.
-- **Status:** All three variants explicit. R2c rework: 1/10 occurrences (down from 5/10 in R2). Split R1: 2/10 occurrences (R01 pre-fix + R09 post-fix regression). **CONFIRMED IGNORE**.
-
-### IGNORE-2: RA-U / RB-V — Criteria not persisted to account
-
-- **Stabilized:** `phase-5-create-delivery-account.md` STEPs 7-10 — `RETAIN criteriaPayload (the array of criterion objects accumulated during this loop — do NOT discard or reset)`
-- **Rework:** `rw-phase-5c-criteria-builder.md:12` — `CRITICAL: Always APPEND to parsedCriteriaList, never overwrite.`
-- **R2c sub-variant — RB-V-skip:** `rw-phase-5-create-delivery-account.md:50-57` (Step 5 builds state criterion) and `:74-78` (Step 7 calls create_delivery_account with criteriaPayload). On skip path, Step 7 runs after Step 6. Instructions explicit; agent drops state criterion to `criteria:[]` on skip path in 2/10 R2c runs (R2c-09, R2c-10). **CONFIRMED IGNORE**.
-
-### IGNORE-3: RB-G — Phase transition prompts doubled
-
-- **Rework:** `rw-phase-5-create-delivery-account.md` lines 19, 25, 31, 36, 47, 54, 62, 80 all contain `**STOP AND YIELD.**` after each prompt
-- **Status:** Explicit STOP AND YIELD across all rework phase files. Agent doubling prompts violates the directive. **R2c: ~50% occurrence** but **impact reclassified cosmetic (F\*)** — workflow completes correctly. Root cause unchanged: IGNORE. **CONFIRMED IGNORE**.
-
-### IGNORE-4: RB-D — Criteria gate entirely skipped
-
-- **Rework:** `rw-phase-5-create-delivery-account.md:59-62` — `Step 6: Criteria Gate — This step REQUIRES user input. Do not skip it. ... **STOP AND YIELD.** Do not hallucinate data. You must wait for the user to respond.`
-- **Status:** Maximally explicit. R2c: 3/10 (R2c-01, R2c-04, R2c-05) — partial improvement from R2's 6/9. **CONFIRMED IGNORE**.
-
-### IGNORE-5: RB-A — Criteria loop exits after 1 criterion
-
-- **Rework:** `rw-phase-5c-criteria-builder.md:72-73` — `Criteria loop prompt — MANDATORY after every accepted criterion: You MUST show this prompt after every criterion is appended. Do NOT advance to State 3 without user confirmation.`
-- **Status:** Explicit MANDATORY + "You MUST" + "Do NOT advance". R2c: 1/5 qualifying criteria runs (R2c-08) — major improvement from R2's 88%. FIX-9 verified working in 4/5 R2c criteria runs. **CONFIRMED IGNORE**.
-
-### IGNORE-NEW: RB-H / RC-R10-F01 / RC-R10-F02 — Card rendered as plain text (reclassified PLATFORM → IGNORE)
-
-- **Rework:** `rw-phase-3-webhook.md:38` — `Present the choice using display_adaptive_card with an ActionSet`. Same explicit `display_adaptive_card` directive at `rw-phase-5-create-delivery-account.md:24, 30, 61` and elsewhere.
-- **Split:** `delivery-original-stabilized-split/resources/split-phase-3b-webhook-test.md` and `split-phase-5-create-delivery-account.md` both mandate the adaptive card path. RC-R10-F01 (Phase 3b "Proceed?" plain text) and RC-R10-F02 (Phase 5b→Phase 6 "reply with yes" plain text) are the same silent tool-skip pattern as RB-H.
-- **Verification reasoning:** Findings document agent generating plain text instead. If the agent chooses not to call `display_adaptive_card` and emits text, that is failure to follow an explicit tool-use instruction = IGNORE (silent tool skip pattern matching F44 from CLAUDE.md).
-- **Caveat:** If session logs prove `display_adaptive_card` was called with valid card JSON but the platform returned plain text, those specific occurrences would be PLATFORM. Agent 2 verification recommends reading R2c session logs to split into IGNORE vs PLATFORM sub-cases.
-- **Provisional classification:** **IGNORE**, **Impact: Cosmetic** when typed fallback resolves correctly.
-
-### CLOSED Verification (R2c-fixed)
-
-| Finding | Fix | Instruction Evidence | R2c Evidence |
-|---------|-----|----------------------|--------------|
-| **RB-I** | FIX-16 | `rw-phase-3-webhook.md:69-72` — `IF parsing still fails: before showing the recovery card, attempt to parse postingInstructions as each other format. If it successfully parses as valid JSON or valid XML, add a third option to the recovery card` | R2c-03: XML→JSON recovery PASS, 8/9 mappings |
-| **RB-M** | FIX-10 | `rw-phase-5c-criteria-builder.md:83-84` — `Parse operator from user input. Check symbols FIRST: >= or ≥ → GreaterOrEqual, <= → LessOrEqual, > → Greater, < → Less, = → Equal, != → NotEqual` | R2c-03/05/06/07: all `>=` → GreaterOrEqual confirmed |
-| **RB-CC** | FIX-11 | `rw-phase-5c-criteria-builder.md:56-62` — `IF enumerated field: ... ALWAYS show ChoiceSet for value selection — do not auto-resolve from user text ... Display ChoiceSet via display_adaptive_card` | R2c-02/06/07/08: SelfCreditRating UID 343593, LoanRequestType UID 343608 verified |
-| **RB-DD** | FIX-14 | `rw-phase-3b-webhook-test.md:27-32` — both success and failure paths: `Present using display_adaptive_card: TextBlock + ActionSet` | R2c P3B-TEST 6/6 = 100% pass |
-
-### AMBIGUOUS Verification
-
-| Finding | Verified Class | Evidence |
-|---------|----------------|----------|
-| **RA-A** | AMBIGUOUS | `phase-2-get-lead-types.md:9-12` — entire Phase 2 is only `PROMPT / TOOL: display_lead_types_choice / WAIT for user choice / RETAIN`. Zero typed-fallback instructions. True instruction gap. |
-| **RB-NEW-R2-1** | AMBIGUOUS | `rw-phase-5c-criteria-builder.md:26-29, 86` — builds `leadFieldsIndex` keyed on `leadFieldName` (camelCase like `selfCreditRating`), displays via `suggestedFields` using same raw names, matches via `fuzzy >90%` on `leadFieldName`. No rule to insert spaces at camelCase boundaries for display, no user-input normalization. True gap. |
-
----
-
-## <a name="cosmetic-convention"></a>7. Cosmetic vs Functional Failure Convention
+## 7. Cosmetic vs Functional Failure Convention
 
 Introduced in R2c for Rework. Later applied to Stabilized R2c (2026-04-07 audit) and Split R1 (2026-04-08 audit). Legacy rounds (R1a/R1b/R2 for Stabilized and Rework) remain in raw scoring.
 
@@ -539,7 +300,7 @@ For apples-to-apples comparison across variants, see the per-checkpoint grid whi
 
 ---
 
-## <a name="test-vs-production"></a>8. Test vs Production Comparison
+## 8. Test vs Production Comparison
 
 Production is `delivery/` (original baseline) running on `leadexec.clickpointsoftware.com`, not `/delivery-original-stabilized`. Stability findings for production live in `stability-production-findings.md` (4 runs, PR1).
 
@@ -588,12 +349,21 @@ Check status per variant:
 
 ## Appendix: Cross-Document References
 
-- `stability-stabilized-findings.md` — full stabilized variant matrix and findings catalog
-- `stability-rework-findings.md` — full rework variant matrix and findings catalog
-- `stability-split-findings.md` — split variant matrix and findings catalog (R1 baseline)
-- `stability-production-findings.md` — production variant matrix and findings catalog (PR1 baseline)
-- `stability-failure-analysis.md` — original v1 of this document (retained for history)
-- `delivery-original-stabilized/resources/` — stabilized instruction files
-- `delivery-original-stabilized-split/resources/` — split variant instruction files (split-phase-*.md)
-- `delivery-rework/resources/` — rework instruction files (post-fix #1 commit 5200cc3)
+**Per-variant findings files (source data for this analysis):**
+- [`stability-stabilized-findings.md`](stability-stabilized-findings.md) — full Stabilized variant run matrix, defect catalog, and round-by-round scoring (RA-* findings)
+- [`stability-rework-findings.md`](stability-rework-findings.md) — full Rework variant run matrix, defect catalog, and round-by-round scoring (RB-* findings)
+- [`stability-split-findings.md`](stability-split-findings.md) — Split variant R1 run matrix, audited score matrix, and defect catalog (RC-* findings)
+- [`stability-production-findings.md`](stability-production-findings.md) — Production variant (`/delivery` on `leadexec.clickpointsoftware.com`) PR1 findings and anomalies
 
+**Previous analysis reports:**
+- [`stability-failure-analysis.md`](stability-failure-analysis.md) — original v1 of this document (retained for historical reference; pre-split, pre-audit framing)
+- [`stability-failure-analysis-v2.md`](stability-failure-analysis-v2.md) — v2 with split variant integrated; retained for IGNORE verification deep-dive content (§6) and full instruction-line evidence that was trimmed from v3
+
+**Test protocols:**
+- [`stability-test-protocol.md`](stability-test-protocol.md) — full stability test protocol with per-phase checkpoints
+- [`stability-test-protocol-simple.md`](stability-test-protocol-simple.md) — QA-oriented test protocol for split variant
+
+**Instruction source directories:**
+- [`delivery-original-stabilized/resources/`](delivery-original-stabilized/resources/) — Stabilized instruction files
+- [`delivery-rework/resources/`](delivery-rework/resources/) — Rework instruction files
+- [`delivery-original-stabilized-split/resources/`](delivery-original-stabilized-split/resources/) — Split instruction files
