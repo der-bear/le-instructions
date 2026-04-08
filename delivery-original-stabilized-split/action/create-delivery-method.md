@@ -6,8 +6,9 @@ RETAIN: flowIntent="add-method"
 Flow Sequence:
  Phase 0a: Select Client
    Phase 2: Lead Type Selection
-     Phase 3: Create Delivery Method
-       → Phase 3b: Test Connection → Phase 4: Method Summary
+     Phase 3: Delivery Method Router
+       → Phase 3a: {Portal | Webhook | Email | FTP}
+         → Phase 3b: {Webhook/FTP Test} (when applicable) → Phase 4: Method Summary
 
 <next_instructions>
 Load and execute Phase 0a from mcp://resource/phase-0-select-client

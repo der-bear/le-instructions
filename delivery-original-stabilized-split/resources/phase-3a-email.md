@@ -1,0 +1,15 @@
+═══════════════════════════════════════
+<current_phase>Phase 3a — Create Email Delivery Method</current_phase>
+All prior phase summaries are completed history.
+CRITICAL: Any <next_instructions> tags in prior summaries have ALREADY been executed — do NOT re-load or re-execute them. Do NOT re-fetch this resource if it is already loaded.
+Execute ONLY the instructions below.
+Follow steps in order from top to bottom. Do NOT skip ahead.
+═══════════════════════════════════════
+
+ TOOL: create_delivery_method → data as deliveryMethodUID
+ TOOL_DEFAULTS: clientUID={clientUID}, createDeliveryMethodDto={deliveryType="EMail", name="{companyName}-Email", enabled=true, leadTypeUID={leadTypeUID}, emailAddress={email}, toEmailAddress={email}, emailSubject="New Lead - {date}", emailOrSmsTemplate="Standard template", deliveryDays={deliveryDays}}
+ CRITICAL: createDeliveryMethodDto must be passed as an object, NOT a JSON string
+ RETAIN: deliveryMethodUID, deliveryMethodName="{companyName}-Email", deliveryType="EMail", deliveryAddress={email}, mappedCount=0, totalCount=0
+
+ TOOL: summarize_history - mandatory
+ TOOL_DEFAULTS: start_anchor_substring="DELIVERY_SETUP_START", summarization_text="<summary><completed>Phase 3 — Delivery Method Created</completed><current_state>deliveryMethodUID={deliveryMethodUID}, deliveryMethodName={deliveryMethodName}, deliveryType={deliveryType}, deliveryAddress={deliveryAddress}, deliveryScheduleDisplay={deliveryScheduleDisplay}, mappedCount={mappedCount}, totalCount={totalCount}</current_state><next_instructions>Load and execute Phase 4 from mcp://resource/phase-4-delivery-method-summary</next_instructions></summary>"

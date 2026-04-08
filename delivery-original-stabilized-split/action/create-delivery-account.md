@@ -5,7 +5,9 @@ RETAIN: flowIntent="add-account"
 
 Flow Sequence:
  Phase 0b: Select Client & Method
-   Phase 5: Create Delivery Account → Phase 6: Account Summary
+   Phase 5: Create Delivery Account (collect + state + create + gate)
+     → Phase 5b: Criteria Builder (when "Add criteria") → appends criteria via update
+     → Phase 6: Account Summary
 
 <next_instructions>
 Load and execute Phase 0b from mcp://resource/phase-0-select-client-and-method

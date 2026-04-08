@@ -6,9 +6,12 @@ RETAIN: flowIntent="full-setup"
 Flow Sequence:
  Phase 1: Create Client
    Phase 2: Lead Type Selection
-     Phase 3: Create Delivery Method
-       → Phase 3b: Test Connection → Phase 4: Method Summary
-     Phase 5: Create Delivery Account → Phase 6: Account Summary
+     Phase 3: Delivery Method Router
+       → Phase 3a: {Portal | Webhook | Email | FTP}
+         → Phase 3b: {Webhook/FTP Test} (when applicable) → Phase 4: Method Summary
+     Phase 5: Create Delivery Account (collect + state + create + gate)
+       → Phase 5b: Criteria Builder (when "Add criteria") → appends criteria via update
+       → Phase 6: Account Summary
      Phase 7: Client Summary → Phase 8: Activation
 
 <next_instructions>
