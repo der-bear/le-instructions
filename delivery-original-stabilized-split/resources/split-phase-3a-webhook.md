@@ -11,6 +11,11 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
  WAIT for user input
  RETAIN: deliveryAddress (prepend https:// if the user omitted a scheme)
 
+ PROMPT: "What response text should indicate a successful delivery?\n\n(e.g., success, OK, 200)"
+ SUGGEST [conversational]: responseSearch
+ WAIT for user input
+ RETAIN: responseSearch
+
  PROMPT: "Would you like to configure field mappings?\n\nIf you have posting instructions or API documentation, I can automatically extract the field mappings."
  SUGGEST [adaptive_card]: ActionSet (I'll provide instructions | Skip for now)
  WAIT for user choice
@@ -57,7 +62,7 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
            skipFieldMapping = true
 
  IF skipFieldMapping:
-   TOOL_DEFAULTS: clientUID={clientUID}, createDeliveryMethodDto={deliveryType="HttpPost", name="{companyName}-Webhook", enabled=true, leadTypeUID={leadTypeUID}, deliveryAddress={deliveryAddress}, responseSearch="success", useRegEx=false, settings=null, requestBody=null, deliveryDays={deliveryDays}}
+   TOOL_DEFAULTS: clientUID={clientUID}, createDeliveryMethodDto={deliveryType="HttpPost", name="{companyName}-Webhook", enabled=true, leadTypeUID={leadTypeUID}, deliveryAddress={deliveryAddress}, responseSearch={responseSearch}, useRegEx=false, settings=null, requestBody=null, deliveryDays={deliveryDays}}
    CRITICAL: createDeliveryMethodDto must be passed as an object, NOT a JSON string
    RETAIN: deliveryMethodName="{companyName}-Webhook", deliveryType="HttpPost", deliveryTypeDisplay="Webhook", deliveryAddress, mappedCount=0, totalCount=0
 
@@ -126,7 +131,7 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
        WAIT for user to click Continue
 
      PROCESS (Map contentType to MIME): mimeContentType = JSON→"application/json", XML→"application/xml", "URL Encoded"→"application/x-www-form-urlencoded"
-     TOOL_DEFAULTS: clientUID={clientUID}, createDeliveryMethodDto={deliveryType="HttpPost", name="{companyName}-Webhook", enabled=true, leadTypeUID={leadTypeUID}, deliveryAddress={deliveryAddress}, contentType={mimeContentType}, responseSearch="success", useRegEx=false, settings={mappingSettings}, requestBody={requestBody}, deliveryDays={deliveryDays}}
+     TOOL_DEFAULTS: clientUID={clientUID}, createDeliveryMethodDto={deliveryType="HttpPost", name="{companyName}-Webhook", enabled=true, leadTypeUID={leadTypeUID}, deliveryAddress={deliveryAddress}, contentType={mimeContentType}, responseSearch={responseSearch}, useRegEx=false, settings={mappingSettings}, requestBody={requestBody}, deliveryDays={deliveryDays}}
      CRITICAL: createDeliveryMethodDto must be passed as an object, NOT a JSON string
      NOTE: settings=mappingSettings, requestBody is generated template with [SystemFieldName] placeholders, deliveryDays=null for 24/7 or array for specific hours
      RETAIN: deliveryMethodName="{companyName}-Webhook", deliveryType="HttpPost", deliveryTypeDisplay="Webhook", deliveryAddress, mimeContentType, requestBody, mappedCount, totalCount
