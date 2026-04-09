@@ -10,26 +10,26 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
  ASK [adaptive_card]: ActionSet (24/7 delivery | Specific hours only)
  WAIT for user choice
 
- IF "Specific hours only":
-   PROMPT: "Please describe your preferred delivery schedule.\n\n(e.g., Mon-Fri 9am-5pm PST)"
-   ASK [conversational]: scheduleInput
-   WAIT for user input
-   PROCESS: Parse scheduleInput per <data_normalization> rules
+  IF "Specific hours only":
+    PROMPT: "Please describe your preferred delivery schedule.\n\n(e.g., Mon-Fri 9am-5pm PST)"
+    ASK [conversational]: scheduleInput
+    WAIT for user input
+    PROCESS: Parse scheduleInput per <data_normalization> rules
 
-   BUILD deliveryDays array with EXACTLY 7 entries (weekDay 0-6, one for each day of week):
-     - User-specified days: allow=true with their startTime/endTime
-     - All other days: allow=false with startTime="YYYY-01-01T00:00:00±HH:mm", endTime="YYYY-01-01T23:59:59±HH:mm"
-   RETAIN: deliveryDays, deliveryScheduleDisplay
+    BUILD deliveryDays array with EXACTLY 7 entries (weekDay 0-6, one for each day of week):
+      - User-specified days: allow=true with their startTime/endTime
+      - All other days: allow=false with startTime="YYYY-01-01T00:00:00±HH:mm", endTime="YYYY-01-01T23:59:59±HH:mm"
+    RETAIN: deliveryDays, deliveryScheduleDisplay
 
- IF "24/7 delivery":
-   BUILD deliveryDays array with EXACTLY 7 entries (weekDay 0-6):
-     All days: allow=true, startTime="YYYY-01-01T00:00:00+00:00", endTime="YYYY-01-01T23:59:59+00:00"
-   RETAIN: deliveryDays, deliveryScheduleDisplay="24/7"
+  IF "24/7 delivery":
+    BUILD deliveryDays array with EXACTLY 7 entries (weekDay 0-6):
+      All days: allow=true, startTime="YYYY-01-01T00:00:00+00:00", endTime="YYYY-01-01T23:59:59+00:00"
+    RETAIN: deliveryDays, deliveryScheduleDisplay="24/7"
 
  CRITICAL: Complete the schedule branch above before showing the delivery type prompt.
 
  PROMPT: "How would you like your leads delivered?\n\n• Webhook – sends lead data via HTTP POST\n• Portal – client accesses leads via web portal\n• FTP – uploads lead files to a server\n• Email – delivers leads to an inbox"
- ASK [adaptive_card]: ActionSet (Portal | Webhook | Email | FTP)
+ ASK [adaptive_card]: ActionSet (Portal | Webhook | Email | FTP) - required
  WAIT for user choice
 
  PROCESS (Route to method-specific phase):

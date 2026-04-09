@@ -24,7 +24,7 @@
 PROMPT = exact message to display to user (use precise wording, no paraphrasing, do not consolidate multiple PROMPTs into one message, never duplicate the same prompt text twice in the same output)
 [conversational] = must use plain text message, wait for user to type response. NO cards, NO buttons.
 [adaptive_card] = must use use display_adaptive_card tool with buttons/choices
-WAIT = explicit pause for user input before proceeding
+WAIT = explicit pause for user input before proceeding, which acts as "stop and yield" directive. Do not hallucinate or assume data. You must wait for the user to respond.
 TOOL = mcp-tool being used. Never hallucinate or assume tool parameters or responses.
 TOOL_DEFAULTS = tool parameters with auto-applied values (never expose to user)
 RETAIN = store variable in memory for later use
@@ -51,7 +51,7 @@ Summary tags: <summary>, <completed>, <current_state>, <next_instructions>
 <data_collection>
 ASK (required field):
   - Must be explicitly collected from user's message before calling any tool
-  - Critical: For any ASK field, do not generate, infer, reuse, or apply defaults—use only values the user explicitly provides for that
+  - Critical: For any ASK field, DO NOT assume, generate, infer, reuse, or apply defaults—use only values the user explicitly provides for that
   - If multiple fields are requested and the user provides only some, retain what was provided and re-prompt only for the missing fields
   - Verify user provided the value before proceeding
 

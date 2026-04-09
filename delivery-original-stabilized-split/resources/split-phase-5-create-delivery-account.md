@@ -29,23 +29,23 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
  ELSE:
    RETAIN: useOrder = false
 
+ PROMPT: "Which states do you want to target? (e.g., CA, AZ, TX)"
+ ASK [conversational]: targetStates - required
+ WAIT for user input.
+ RETAIN: targetStates
+
  TOOL: get_lead_type(leadTypeUID) → data.leadTypeName as leadTypeName, data.leadFields as leadFields
  RETAIN: leadTypeName, leadFields
 
  PROCESS (State Detection):
    - Detect state field from leadFields priority:
        1) leadFieldSpecialBit in {'State','StandardState'}
-       2) leadFieldName='state' (case-insensitive)
-       3) leadFieldName contains 'state'
+       2) leadFieldName contains 'state'
      Do not process lower tiers once matched.
-     Semantically validate selected field represents US state; if confidence <5%, confirm correct field with user.
+     If confidence <5%, confirm correct field with user.
      RETAIN: stateFieldUID
 
  CRITICAL: Display the prompt below and STOP. Do NOT read or execute anything below this line until the user replies with their target states.
- PROMPT: "Which states do you want to target? (e.g., CA, AZ, TX)"
- ASK [conversational]: targetStates
- WAIT for user input.
- RETAIN: targetStates
 
  PROCESS (Build State Criterion):
      - Normalize targetStates to uppercase USPS codes (per <data_normalization>)

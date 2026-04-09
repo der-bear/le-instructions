@@ -59,7 +59,7 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
  IF skipFieldMapping:
    TOOL_DEFAULTS: clientUID={clientUID}, createDeliveryMethodDto={deliveryType="HttpPost", name="{companyName}-Webhook", enabled=true, leadTypeUID={leadTypeUID}, deliveryAddress={deliveryAddress}, responseSearch="success", useRegEx=false, settings=null, requestBody=null, deliveryDays={deliveryDays}}
    CRITICAL: createDeliveryMethodDto must be passed as an object, NOT a JSON string
-   RETAIN: deliveryMethodName="{companyName}-Webhook", deliveryType, deliveryAddress, mappedCount=0, totalCount=0
+   RETAIN: deliveryMethodName="{companyName}-Webhook", deliveryType="HttpPost", deliveryTypeDisplay="Webhook", deliveryAddress, mappedCount=0, totalCount=0
 
  IF NOT skipFieldMapping:
      PROCESS (Auto-detect Content Type):
@@ -78,11 +78,12 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
      PROCESS (Schema Validation - JSON/XML only):
        IF contentType = "JSON" OR contentType = "XML":
          - Attempt to parse postingInstructions as {contentType}
-         - Auto-fix common issues:
-             • If missing outer braces for JSON object property (e.g., starts with "key": {), wrap in { }
-             • Trailing commas, unescaped quotes, single quotes → double quotes
-             • Common formatting issues
-         - IF parse still fails after auto-fix:
+         - Auto-fix common issues first, then retry parsing:
+             • If missing outer braces for a JSON object property (e.g., starts with "key": {), wrap in { }
+             • Replace single quotes with double quotes where safe
+             • Remove trailing commas
+             • Fix common formatting issues
+         - ONLY IF parse still fails after auto-fix:
              PROMPT: "I couldn't parse this as valid {contentType}. Would you like to:\n• Fix and re-paste the {contentType} schema\n• Switch to a different content type"
              SUGGEST [adaptive_card]: ActionSet (Re-paste {contentType} schema | Switch content type)
              WAIT for user choice
@@ -128,10 +129,10 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
      TOOL_DEFAULTS: clientUID={clientUID}, createDeliveryMethodDto={deliveryType="HttpPost", name="{companyName}-Webhook", enabled=true, leadTypeUID={leadTypeUID}, deliveryAddress={deliveryAddress}, contentType={mimeContentType}, responseSearch="success", useRegEx=false, settings={mappingSettings}, requestBody={requestBody}, deliveryDays={deliveryDays}}
      CRITICAL: createDeliveryMethodDto must be passed as an object, NOT a JSON string
      NOTE: settings=mappingSettings, requestBody is generated template with [SystemFieldName] placeholders, deliveryDays=null for 24/7 or array for specific hours
-     RETAIN: deliveryMethodName="{companyName}-Webhook", deliveryType, deliveryAddress, mimeContentType, requestBody, mappedCount, totalCount
+     RETAIN: deliveryMethodName="{companyName}-Webhook", deliveryType="HttpPost", deliveryTypeDisplay="Webhook", deliveryAddress, mimeContentType, requestBody, mappedCount, totalCount
 
  TOOL: create_delivery_method → data as deliveryMethodUID
- RETAIN: deliveryMethodUID, deliveryType
+ RETAIN: deliveryMethodUID, deliveryType, deliveryTypeDisplay
 
  TOOL: summarize_history - mandatory
- TOOL_DEFAULTS: start_anchor_substring="DELIVERY_SETUP_START", summarization_text="<summary><completed>Phase 3 — Delivery Method Created</completed><current_state>deliveryMethodUID={deliveryMethodUID}, deliveryMethodName={deliveryMethodName}, deliveryType={deliveryType}, deliveryAddress={deliveryAddress}, mimeContentType={mimeContentType}, requestBody={requestBody}, deliveryScheduleDisplay={deliveryScheduleDisplay}, mappedCount={mappedCount}, totalCount={totalCount}</current_state><next_instructions>Load and execute Phase 3b from mcp://resource/split-phase-3b-webhook-test</next_instructions></summary>"
+ TOOL_DEFAULTS: start_anchor_substring="DELIVERY_SETUP_START", summarization_text="<summary><completed>Phase 3 — Delivery Method Created</completed><current_state>deliveryMethodUID={deliveryMethodUID}, deliveryMethodName={deliveryMethodName}, deliveryType={deliveryType}, deliveryTypeDisplay={deliveryTypeDisplay}, deliveryAddress={deliveryAddress}, mimeContentType={mimeContentType}, requestBody={requestBody}, deliveryScheduleDisplay={deliveryScheduleDisplay}, mappedCount={mappedCount}, totalCount={totalCount}</current_state><next_instructions>Load and execute Phase 3b from mcp://resource/split-phase-3b-webhook-test</next_instructions></summary>"
