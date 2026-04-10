@@ -76,6 +76,20 @@ PR1 ran `/delivery` (original baseline). PR2 runs split. Direct comparison betwe
 | 43 | Y | Y | Y | Y | N/A | N/A | skip | Y | Y | Y | Y | Y | Y | Y | - | - | F | Y | Y | Y | 19/22 (86%) | Webhook skip; PRD-LOOP 1/3; all P5 steps collected; Method:40693, Acct:49919 |
 | 44 | Y | Y | Y | Y | N/A | N/A | skip | Y | Y | Y | Y | Y | Y | N/A | N/A | N/A | N/A | F | Y | Y | 13/14 (93%) | Webhook skip; skip btns DEAD (typed); skip criteria; P6 states "CA\|FL\|TX" (pipe); Method:40694, Acct:49920 |
 | 45 | Y | Y | Y | Y | N/A | N/A | skip | F* | Y | Y | Y | Y | Y | N/A | N/A | N/A | N/A | Y | Y | Y | 14/14 (100%) PASS | Webhook skip; P4 text-only; skip btns DEAD (typed); skip criteria; P6 correct; Method:40695, Acct:49921 |
+| 46 | Y | Y | Y | Y | N/A | N/A | skip | F* | Y | Y | Y | Y | Y | N/A | N/A | N/A | N/A | Y | Y | Y | 14/14 (100%) PASS | Webhook skip; skip btns DEAD (typed); raw IDs exposed before P6; skip criteria; P6 correct; Method:40696, Acct:49922 |
+| 47 | Y | Y | Y | Y | N/A | N/A | skip | F* | Y | Y | Y | Y | Y | N/A | N/A | N/A | N/A | Y | Y | Y | 14/14 (100%) PASS | Webhook skip; all typed (no btns); skip criteria; P6 correct; Method:40697, Acct:49923 |
+
+### Round 5 — GPT-5-mini criteria phase (dev mirror)
+**Change:** Criteria building phase swapped to GPT-5-mini (slower model). All other phases unchanged.
+**Domain:** `dev.leadexec.app` (production mirror, same split instructions)
+**Action:** Create Single Client (Split)
+**Plan:** 10 regular + 10 webhook+criteria focused
+
+| Run | P1-PROMPT | P2-DROP | P3-SCHED | P3-TYPE | P3-MAP | P3-COUNT | P3B-TEST | P4-SUMM | P5-PRICE | P5-EXCL | P5-ORDER | P5-STATE | P5-FIELD | P5-CR1 | P5-CR2 | P5-CR3 | P5-DONE | P6-SUMM | P7-SUMM | P8-ACT | RESULT | Notes |
+|-----|-----------|---------|----------|---------|--------|----------|----------|---------|----------|---------|----------|----------|----------|--------|--------|--------|---------|---------|---------|--------|--------|-------|
+| 48 | Y | Y | Y | Y | N/A | N/A | skip | Y | Y | Y | Y | Y | F | N/A | N/A | N/A | N/A | Y | Y | Y | 13/14 (93%) | Webhook skip; gate SKIPPED (GPT-5-mini); P6 correct; Method:47091, Acct:46077 |
+| 49 | Y | Y | Y | Y | N/A | N/A | N/A | Y | Y | Y | Y | Y | Y | F | - | - | F | - | - | - | FAIL | Portal; GPT-5-mini criteria: can't fuzzy match fields ("loan amount"→fail, need exact "LoanAmount"); "done" doesn't exit loop; exposed raw API params; unrecoverable |
+| 50 | | | | | | | | | | | | | | | | | | | | | | |
 
 ---
 

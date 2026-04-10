@@ -59,7 +59,7 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
      - RETAIN criteriaPayload
 
  TOOL: create_delivery_account → data as deliveryAccountUID
- TOOL_DEFAULTS: clientUID={clientUID}, createDeliveryAccountDto={deliveryMethodUID={deliveryMethodUID}, price={price}, deliveryAccountType="WebAndChatLeads", status="Open", name="{companyName}-Account", automationEnabled=true, isExclusive={isExclusive}, useOrder={useOrder}, dayMax=50, hourMax=-1, weekMax=-1, monthMax=-1, criteria={criteriaPayload}}
+ TOOL_DEFAULTS: clientUID={clientUID}, createDeliveryAccountDto={deliveryMethodUID={deliveryMethodUID}, price={price}, deliveryAccountType="WebAndChatLeads", status="Open", name="{companyName}-Account", automationEnabled=true, isExclusive={isExclusive}, useOrder={useOrder}, dayMax=-1, hourMax=-1, weekMax=-1, monthMax=-1, criteria={criteriaPayload}}
  CRITICAL: createDeliveryAccountDto must be passed as an object, NOT a JSON string
  RETAIN: deliveryAccountUID
 

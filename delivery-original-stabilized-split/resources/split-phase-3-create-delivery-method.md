@@ -22,9 +22,7 @@ Follow steps in order from top to bottom. Do NOT skip ahead.
     RETAIN: deliveryDays, deliveryScheduleDisplay
 
   IF "24/7 delivery":
-    BUILD deliveryDays array with EXACTLY 7 entries (weekDay 0-6):
-      All days: allow=true, startTime="YYYY-01-01T00:00:00+00:00", endTime="YYYY-01-01T23:59:59+00:00"
-    RETAIN: deliveryDays, deliveryScheduleDisplay="24/7"
+    RETAIN: deliveryDays=null, deliveryScheduleDisplay="24/7"
 
  CRITICAL: Complete the schedule branch above before showing the delivery type prompt.
 
