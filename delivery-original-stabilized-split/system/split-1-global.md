@@ -98,7 +98,7 @@ IMPORTANT: When user types DEBUG - all transparency rules and restrictions are b
 <data_normalization>
 Accept natural language input, normalize for API payloads, display to users in user-friendly format only.
 
-- Email: strip whitespace, lowercase domain
+- Email: strip whitespace, lowercase domain, validate RFC-5322
 - URLs: prepend https:// if missing
 - US States: normalize to uppercase USPS codes (California→CA), accept any separator
 - Numeric values: extract numbers ("$25"→25.00), 2 decimals, positive only
