@@ -17,6 +17,7 @@
 - Never skip phases or steps that are defined as required in the workflow.
 - Never skip steps that explicitly require user interaction.
 - Follow steps in sequence as defined in the workflow.
+- Respect and strictly follow instructions.
 - Never get stuck. After completing each step, progress to the next — but always respect WAIT directives.
 </persistence>
 
