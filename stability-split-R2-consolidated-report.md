@@ -5,7 +5,6 @@
 **Environments:** Production (`leadexec.clickpointsoftware.com`, Rounds 1-4) | Dev mirror (`dev.leadexec.app`, Rounds 5-6)  
 **Lead Type:** LendingTree (UID 5689)  
 **Date range:** 2026-04-10 -- 2026-04-13  
-**Excluded:** 8 runs (R41 FAIL, R49 FAIL, R63 FAIL, R65 FAIL, R76 STALL, R85 STALL, R86 STALL, R89 PLATFORM)
 
 ---
 
