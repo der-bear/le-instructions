@@ -239,3 +239,24 @@ Transformative results. Zero states skips. Zero P5 regressions. The first run (R
 ## Dominant Pattern
 
 **The criteria loop premature exit (PRD-R2-LOOP) is the single highest-frequency defect at 60% of criteria-attempted runs**, persisting across all model configurations and effort levels. HIGH effort base model resolves the two most critical base-model failures (states skip and P5 regression) but does not fix criteria loop behavior, which is governed by the GPT-5-mini criteria builder phase.
+
+## Criteria Builder — Weakness Analysis and Recommendations
+
+We confirm that the additional criteria handling is the weakest part of the delivery setup flow. GPT-5-mini performs significantly more stable than GPT-5.4-mini in this phase — 73% full 3/3 collection rate vs 6% — but is dramatically slower (60-120s per criterion vs 10-20s).
+
+The root cause is that the criteria phase requires the model to repeatedly perform several heavy processing tasks against the large `get_lead_type` response on every iteration of the loop:
+
+- Prioritize the most relevant industry-specific criteria fields for lead qualification and segmentation
+- Exclude all contact, tracking, and other individual lead-specific fields not typically used as criteria
+- Detect which fields are enumerated and extract numeric IDs of the accepted values
+- On each criterion input, translate the user's natural-language expression, match it to the correct field, and select the appropriate operator (which varies by data type in a non-obvious way)
+- Build the final criteria array with correctly typed objects
+
+Recommended optimizations to consider:
+
+- **Introduce a separate MCP tool for criteria field suggestion** — precompute and cache the prioritized, filtered list of eligible criteria fields per lead type, so the model does not reprocess the full lead type payload on each loop iteration
+- **Pre-process field prioritization** — business and lead qualification field ranking only needs to happen once per lead type edit, not on every agent session
+- **Provide operator hints** — include which operators each suggested field accepts (either in the criteria tool response or via progressive disclosure in the lead type schema), so the model doesn't infer operator compatibility from scratch
+- **Progressive enum loading** — load enumerated values for a specific field only when that field is selected for a criterion, instead of loading all enum values upfront
+
+We also attach a broader plan with other possible MCP optimizations that do not require architecture changes (`mcp-optimization-options.md`). These may not fully resolve the criteria loop issue but would improve overall stability and reduce prompt complexity.
