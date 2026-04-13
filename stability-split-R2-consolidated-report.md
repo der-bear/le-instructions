@@ -150,7 +150,7 @@ Runs may carry multiple classifications. CLOSED = fully verified clean pass (Met
 |----------|------|------:|------------|
 | **P0 HIGH (data integrity)** | 07, 51, 53, 54, 57, 60, 68, 71, 72 | 9 | States prompt skipped -- agent ignored CRITICAL STOP guard before states question, then either hallucinated state values from example text (07, 53, 57, 68, 72) or left states empty (51, 54, 60, 71). GPT-5.4-mini medium effort only; 0 occurrences in Round 6 HIGH effort. |
 | **P0 HIGH (data integrity)** | 69 | 1 | Exclusivity AND Order System both skipped -- agent jumped from price directly to states, bypassing two consecutive WAIT points. |
-| **P1 HIGH (criteria integrity)** | 01, 02, 08, 11, 15, 20, 23, 26, 27, 28, 29, 30, 34, 35, 40, 43, 51, 54, 58, 71, 88 | 21 | PRD-R2-LOOP: criteria loop exits prematurely before all planned criteria collected. 1/3 in 13 runs, 2/3 in 8 runs. Only 14/35 criteria-attempted runs achieved 3/3. |
+| **P1 HIGH (criteria integrity)** | 01, 02, 08, 11, 15, 20, 23, 26, 27, 28, 29, 30, 34, 35, 40, 43, 51, 54, 58, 71, 88 | 21 | PRD-R2-LOOP: criteria loop collects fewer criteria than planned (1/3 in 13 runs, 2/3 in 8 runs). The loop does not entirely fail — at least one criterion is always collected. Collection depth varies by run. 14/35 criteria-attempted runs achieved full 3/3 collection. |
 | **P3 Medium (gate skip)** | 12, 13, 37, 48 | 4 | PRD-R2-GATESKIP: criteria gate card never displayed. Agent jumped directly to account creation or P6 without asking about additional criteria. Safe default (None) applied. |
 | **P3 Medium (P6 context loss)** | 37, 40, 44, 58, 64, 66, 70, 71, 74, 75, 88 | 11 | P6 summary missing fields (price, exclusivity, states, criteria show "Not provided"), pipe-delimited state UIDs instead of abbreviations, or P6 skipped entirely. Context lost during summarize_history between criteria exit and P6. |
 | **P5 Cosmetic** | 02, 08, 10, 11, 23, 27, 30, 44 | 8 | PRD-R2-DEADBTN: card buttons render but clicks do not register. Typed fallback always works. P4 text-only rendering in R10, R45-R47, R66, R75. No data impact. |
@@ -222,7 +222,7 @@ Transformative results. Zero states skips. Zero P5 regressions. The first run (R
 
 | # | Finding | Frequency | Severity | Classification |
 |---|---------|-----------|----------|----------------|
-| PRD-R2-LOOP | Criteria loop premature exit -- loop exits before all planned criteria collected, typically after 1st or 2nd criterion | 21/35 criteria runs (60.0%) | HIGH | IGNORE |
+| PRD-R2-LOOP | Criteria loop — collects fewer criteria than planned (1/3 or 2/3 instead of 3/3). Does not entirely fail; at least one criterion always collected. Depth varies by run. | 21/35 criteria runs (60.0%) | HIGH | IGNORE |
 | PRD-R2-STATESKIP | States prompt skipped -- CRITICAL STOP guard ignored, states question never asked (medium effort only) | 9/69 (13.0%); 0% in R6 | HIGH | IGNORE |
 | PRD-R2-STATEHALL | States hallucinated from example text -- when states skipped, agent copies "CA, AZ, TX" from prompt example or defaults to "CA" | 5/9 states-skip runs (55.6%) | HIGH | HALLUCINATE |
 | PRD-R2-P6LOSS | P6 context loss -- P6 summary missing price/states/criteria, pipe-delimited UIDs, or P6 skipped entirely | 11/69 (15.9%) | Medium | IGNORE |
