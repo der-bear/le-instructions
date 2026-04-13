@@ -167,7 +167,7 @@ Runs may carry multiple classifications. CLOSED = fully verified clean pass (Met
 | Average score | 92.2% | 92.8% | +0.6 |
 | Clean pass rate | 12/33 (36.4%) | 9/24 (37.5%) | +1.1 |
 | 3/3 criteria rate | 1/17 (5.9%) | 11/15 (73.3%) | **+67.4** |
-| States skip rate | 1/33 (3.0%) | 8/24 (33.3%) | **+30.3 (regression)** |
+| States skip rate | 1/33 (3.0%) | 8/24 (33.3%) | **+30.3 (regression)** — note: GPT-5.4-mini medium on production had only 3% states skip; the 33% regression appeared on dev mirror only |
 | P5 regression (P2 re-entry) | 1 excluded (R41) | 2 excluded (R63, R65) | persistent |
 | P6 context loss | 2/33 (6.1%) | 6/24 (25.0%) | **+18.9 (new pattern)** |
 
